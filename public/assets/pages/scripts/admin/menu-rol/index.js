@@ -9,7 +9,7 @@ $('.menu_rol').on('change', function () {
     } else {
         data.estado = 0
     }
-    ajaxRequest('/admin/menu-rol', data);
+    ajaxRequest('/anitaERP/public/admin/menu-rol', data);
 });
 
 function ajaxRequest (url, data) {

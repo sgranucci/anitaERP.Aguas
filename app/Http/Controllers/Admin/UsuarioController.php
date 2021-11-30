@@ -26,6 +26,9 @@ class UsuarioController extends Controller
 
     public function guardar(ValidacionUsuario $request)
     {
+        if ($foto = Usuario::setFoto($request->foto_up))
+            $request->request->add(['foto' => $foto]);
+
         $usuario = Usuario::create($request->all());
         $usuario->roles()->sync($request->rol_id);
         return redirect('admin/usuario')->with('mensaje', 'Usuario creado con exito');
@@ -43,6 +46,8 @@ class UsuarioController extends Controller
     public function actualizar(ValidacionUsuario $request, $id)
     {
         $usuario = Usuario::findOrFail($id);
+        if ($foto = Usuario::setFoto($request->foto_up, $usuario->foto))
+            $request->request->add(['foto' => $foto]);
         $usuario->update(array_filter($request->all()));
         $usuario->roles()->sync($request->rol_id);
         return redirect('admin/usuario')->with('mensaje', 'Usuario actualizado con exito');
@@ -54,6 +59,7 @@ class UsuarioController extends Controller
             $usuario = Usuario::findOrFail($id);
             $usuario->roles()->detach();
             $usuario->delete();
+            Storage::disk('public')->delete("imagenes/fotos_usuarios/$usuario->foto");
             return response()->json(['mensaje' => 'ok']);
          } else {
             abort(404);

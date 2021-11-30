@@ -7,13 +7,16 @@ use App\Models\Admin\Rol;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Facades\Image;
 
 class Usuario extends Authenticatable
 {
     use Notifiable;
     protected $remember_token = false;
     protected $table = 'usuario';
-    protected $fillable = ['usuario', 'nombre', 'email', 'password'];
+    protected $fillable = ['usuario', 'nombre', 'email', 'password', 'foto'];
 
     public function roles()
     {
@@ -25,7 +28,8 @@ class Usuario extends Authenticatable
         Session::put([
             'usuario' => $this->usuario,
             'usuario_id' => $this->id,
-            'nombre_usuario' => $this->nombre
+            'nombre_usuario' => $this->nombre,
+            'foto_usuario' => $this->foto
         ]);
         if (count($roles) == 1) {
             Session::put(
@@ -36,6 +40,24 @@ class Usuario extends Authenticatable
             );
         } else {
             Session::put('roles', $roles);
+        }
+    }
+
+    public static function setFoto($foto, $actual = false)
+    {
+        if ($foto) {
+            if ($actual) {
+                Storage::disk('public')->delete("imagenes/fotos_usuarios/$actual");
+            }
+            $imageName = Str::random(20) . '.jpg';
+            $imagen = Image::make($foto)->encode('jpg', 75);
+            $imagen->resize(300, 300, function ($constraint) {
+                $constraint->upsize();
+            });
+            Storage::disk('public')->put("imagenes/fotos_usuarios/$imageName", $imagen->stream());
+            return $imageName;
+        } else {
+            return false;
         }
     }
 

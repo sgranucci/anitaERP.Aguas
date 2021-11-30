@@ -4,10 +4,15 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>@yield('titulo', 'Biblioteca') | tutorialesvirtuales</title>
+    <title>@yield('titulo', 'Anita ERP') | Anita ERP</title>
     <!-- Tell the browser to be responsive to screen width -->
     <!-- Font Awesome -->
     <link rel="stylesheet" href="{{asset("assets/$theme/plugins/fontawesome-free/css/all.min.css")}}">
+  	<!-- DataTables -->
+  	<link rel="stylesheet" href="{{asset("assets/$theme/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css")}}">
+  	<link rel="stylesheet" href="{{asset("assets/$theme/plugins/datatables-responsive/css/responsive.bootstrap4.min.css")}}">
+  	<link rel="stylesheet" href="{{asset("assets/$theme/plugins/datatables-buttons/css/buttons.bootstrap4.min.css")}}">
+	<link rel="stylesheet" href="{{asset("assets/css/datatable.css")}}">
     <!-- Ionicons -->
     <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
     <!-- Theme style -->
@@ -91,6 +96,20 @@
     <script src="{{asset("assets/$theme/plugins/bootstrap/js/bootstrap.bundle.min.js")}}"></script>
     <!-- AdminLTE App -->
     <script src="{{asset("assets/$theme/dist/js/adminlte.min.js")}}"></script>
+	<!-- DataTables  & Plugins -->
+	<script src="{{asset("assets/$theme/plugins/datatables/jquery.dataTables.min.js")}}"></script>
+	<script src="{{asset("assets/$theme/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js")}}"></script>
+	<script src="{{asset("assets/$theme/plugins/datatables-responsive/js/dataTables.responsive.min.js")}}"></script>
+	<script src="{{asset("assets/$theme/plugins/datatables-responsive/js/responsive.bootstrap4.min.js")}}"></script>
+	<script src="{{asset("assets/$theme/plugins/datatables-buttons/js/dataTables.buttons.js")}}"></script>
+	<script src="{{asset("assets/$theme/plugins/datatables-buttons/js/dataTables.buttons.min.js")}}"></script>
+	<script src="{{asset("assets/$theme/plugins/datatables-buttons/js/buttons.bootstrap4.min.js")}}"></script>
+	<script src="{{asset("assets/$theme/plugins/jszip/jszip.min.js")}}"></script>
+	<script src="{{asset("assets/$theme/plugins/pdfmake/pdfmake.min.js")}}"></script>
+	<script src="{{asset("assets/$theme/plugins/pdfmake/vfs_fonts.js")}}"></script>
+	<script src="{{asset("assets/$theme/plugins/datatables-buttons/js/buttons.html5.min.js")}}"></script>
+	<script src="{{asset("assets/$theme/plugins/datatables-buttons/js/buttons.print.min.js")}}"></script>
+	<script src="{{asset("assets/$theme/plugins/datatables-buttons/js/buttons.colVis.min.js")}}"></script>
     <!-- AdminLTE for demo purposes -->
     @yield("scriptsPlugins")
     <script src="{{asset("assets/js/jquery-validation/jquery.validate.min.js")}}"></script>

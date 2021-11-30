@@ -69,6 +69,7 @@ class LibroController extends Controller
      */
     public function editar($id)
     {
+        can('editar-libros');
         $data = Libro::findOrFail($id);
         return view('libro.editar', compact('data'));
     }
@@ -82,6 +83,7 @@ class LibroController extends Controller
      */
     public function actualizar(ValidacionLibro $request, $id)
     {
+        can('actualizar-libros');
         $libro = Libro::findOrFail($id);
         if ($foto = Libro::setCaratula($request->foto_up, $libro->foto))
             $request->request->add(['foto' => $foto]);
@@ -97,6 +99,7 @@ class LibroController extends Controller
      */
     public function eliminar(Request $request, $id)
     {
+        can('eliminar-libros');
         if ($request->ajax()) {
             $libro = Libro::findOrFail($id);
             if (Libro::destroy($id)) {

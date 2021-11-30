@@ -54,3 +54,9 @@ $(document).ready(function () {
         });
     }
 });
+
+function zfill(number, width) {
+    var length = number.toString().length; /* Largo del n£mero */
+
+    return ((zero.repeat(width - length)) + number.toString());
+}

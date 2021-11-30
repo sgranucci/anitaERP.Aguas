@@ -29,6 +29,12 @@
     </div>
 </div>
 <div class="form-group row">
+    <label for="foto" class="col-lg-3 col-form-label">Foto</label>
+    <div class="col-lg-5">
+        <input type="file" name="foto_up" id="foto" data-initial-preview="{{isset($data->foto) ? asset("storage/imagenes/fotos_usuarios/$data->foto") : asset("assets/$theme/dist/img/user2-160x160.jpg")}}" accept="image/*"/>
+    </div>
+</div>
+<div class="form-group row">
     <label for="rol_id" class="col-lg-3 col-form-label requerido">Rol</label>
     <div class="col-lg-8">
         <select name="rol_id[]" id="rol_id" class="form-control" multiple required>

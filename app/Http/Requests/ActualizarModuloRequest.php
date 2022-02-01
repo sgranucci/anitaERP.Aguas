@@ -27,6 +27,9 @@ class ActualizarModuloRequest extends FormRequest
             'nombre' => [
 				'required',
 			],
+            'codigo' => [
+				'required',
+			],
             'talles.*'    => [
                 'integer',
             ],

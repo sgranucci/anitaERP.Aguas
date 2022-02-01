@@ -12,8 +12,13 @@
             <div class="image">
 			@php
 				$foto = session()->get('foto_usuario');
+
+				if ($foto)
+					$_url = "storage/imagenes/fotos_usuarios/$foto";
+				else
+					$_url = "assets/$theme/dist/img/user2-160x160.jpg";
 			@endphp
-                <img src="{{asset("storage/imagenes/fotos_usuarios/$foto")}}" class="img-circle elevation-2"
+                <img src="{{asset($_url)}}" class="img-circle elevation-2"
                     alt="User Image">
             </div>
             <div class="info">

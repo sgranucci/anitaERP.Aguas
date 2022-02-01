@@ -25,6 +25,7 @@ class GuardarModuloRequest extends FormRequest
     {
         return [
             'nombre' => 'required|max:50|unique:modulo,nombre,' . $this->route('id'),
+            'codigo' => 'required|max:10|unique:modulo,codigo,' . $this->route('id'),
         ];
     }
 }

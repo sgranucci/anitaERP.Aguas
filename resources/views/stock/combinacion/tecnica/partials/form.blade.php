@@ -1,9 +1,10 @@
+<div id="printableArea">
 <div class="card">
 	<div class="card-body">
 		<div class="row">
     		<div class="col-sm-6">
 				<div class="form-group row">
-    				<label for="articulo_id" class="col-lg-4 col-form-label requerido">Codigo de art&iacute;culo</label>
+    				<label for="articulo_id" class="col-lg-4 col-form-label requerido">Art&iacute;culo</label>
 					<select id="articulo_id" name="articulo_id" class="col-lg-8 form-control" readonly>
                         @foreach($articulo as $key => $value)
                             @if( isset($combinacion) && (int) $value->id == (int) $combinacion->articulo_id )
@@ -42,6 +43,12 @@
                         @endforeach
                     </select>
                 </div>
+				<div class="form-group row">
+    				<label for="foto" class="col-lg-3 col-form-label">Foto</label>
+    				<div class="col-lg-8">
+        				<input type="file" name="foto_up" id="foto" data-initial-preview="{{isset($combinacion->foto) ? asset("storage/imagenes/fotos_articulos/$combinacion->foto") : ''}}" accept="image/*"/>
+    				</div>
+				</div>
         	</div>
     		<div class="col-sm-6">
 				<div class="form-group row">
@@ -50,9 +57,9 @@
                         <option value="">-- Seleccionar --</option>
                         @foreach($fondo as $key => $value)
                             @if( isset($combinacion) && (int) $value->id == (int) $combinacion->fondo_id )
-                                <option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
+                                <option value="{{ $value->id }}" selected="select">{{$value->nombre}}-{{ $value->codigo }}</option>    
                             @else
-                                <option value="{{ $value->id }}">{{ $value->nombre }}</option>    
+                                <option value="{{ $value->id }}">{{$value->nombre}}-{{ $value->codigo }}</option>    
                             @endif
                         @endforeach
                     </select>
@@ -117,7 +124,7 @@
     		</tr>
     	</thead>
     	<tbody>
-		 	@if (!empty($combinacion))
+		 	@if (count($combinacion->capearts) > 0)
 				@foreach (old('capelladas', $combinacion->capearts ? $combinacion->capearts : ['']) as $combinacion_capeart)
                		<tr id="capellada{{ $loop->index }}">
                 		<td>
@@ -180,13 +187,50 @@
             		<td>
 						<select name="materiales[]" class="form-control">
                 			<option value="">-- Elija medida/talle --</option>
-                			@foreach ($capearts as $material)
-                				<option value="{{ $material->id }}">
-                					{{ $material->descripcion }}
+                			@foreach ($capelladas as $material)
+                				<option value="{{ $material->id }}"> {{ $material->descripcion }}
                 				</option>
                 			@endforeach
                 		</select>
                		</td>
+					<td>
+                		<select name="colores[]" class="form-control">
+                			<option value="">-- Elija color --</option>
+                			@foreach ($color as $capellada_color)
+                				<option value="{{ $capellada_color->id }}" >{{ $capellada_color->nombre }}</option>
+                			@endforeach
+                		</select>
+					</td>
+                	<td>
+                		<input type="text" name="piezas[]" class="form-control"
+                			value="{{ old('piezas.1') ?? '' }}" />
+                	</td>
+                	<td>
+                		<input type="number" name="consumo1[]" class="form-control"
+                			value="{{ old('consumo1.1') ?? '0' }}" />
+                	</td>
+                	<td>
+                		<input type="number" name="consumo2[]" class="form-control"
+                			value="{{ old('consumo2.1') ?? '0' }}" />
+                	</td>
+                	<td>
+                		<input type="number" name="consumo3[]" class="form-control"
+                			value="{{ old('consumo3.1') ?? '0' }}" />
+                	</td>
+                	<td>
+                		<input type="number" name="consumo4[]" class="form-control"
+                			value="{{ old('consumo4.1') ?? '0' }}" />
+                	</td>
+					<td>
+                		<select name="tipos[]" class="form-control">
+                			<option value="">-- Elija tipo de material --</option>
+                			@foreach ($tipos as $tipo)
+                				<option value="{{ $tipo['id'] }}" >{{ $tipo['nombre'] }}</option>
+                			@endforeach
+                		</select>
+                	</td>
+					<td>
+					</td>
            		</tr>
             	<tr id="capellada1"></tr>
 			@endif
@@ -217,7 +261,7 @@
     		</tr>
     	</thead>
     	<tbody>
-		 	@if (!empty($avios))
+		 	@if (count($combinacion->avioarts) > 0)
 				@foreach (old('avios', $combinacion->avioarts ? $combinacion->avioarts : ['']) as $combinacion_avioart)
                		<tr id="avio{{ $loop->index }}">
                 		<td>
@@ -273,17 +317,51 @@
 				<tr id="avio{{ count(old('avioarts', $combinacion->avioarts->count() ? $combinacion->avioarts : [''])) }}"></tr>
 			@else
             	<tr id="avio0">
-            		<td>
-						<select name="materiales[]" class="form-control">
-                			<option value="">-- Elija medida/talle --</option>
-                			@foreach ($capearts as $material)
-                				<option value="{{ $material->id }}">
-                					{{ $material->descripcion }}
-                				</option>
+                	<td>
+                		<select name="materiales_avios[]" class="form-control">
+                			<option value="">-- Elija material --</option>
+                			@foreach ($avios as $material)
+                				<option value="{{ $material->id }}"
+                			>{{ $material->descripcion }}</option>
                 			@endforeach
                 		</select>
-               		</td>
-           		</tr>
+                	</td>
+					<td>
+                		<select name="colores_avios[]" class="form-control">
+                			<option value="">-- Elija color --</option>
+                			@foreach ($color as $capellada_color)
+                				<option value="{{ $capellada_color->id }}"
+                			>{{ $capellada_color->nombre }}</option>
+                			@endforeach
+                		</select>
+					</td>
+                	<td>
+                		<input type="number" name="consumo1_avios[]" class="form-control"
+                			value="{{ old('consumo1_avios.1') ?? '0' }}" />
+                	</td>
+                	<td>
+                		<input type="number" name="consumo2_avios[]" class="form-control"
+                			value="{{ old('consumo2_avios.1') ?? '0' }}" />
+                	</td>
+                	<td>
+                		<input type="number" name="consumo3_avios[]" class="form-control"
+                			value="{{ old('consumo3_avios.1') ?? '0' }}" />
+                	</td>
+                	<td>
+                		<input type="number" name="consumo4_avios[]" class="form-control"
+                			value="{{ old('consumo4_avios.1') ?? '0' }}" />
+                	</td>
+					<td>
+                		<select name="tipos_avios[]" class="form-control">
+                			<option value="">-- Elija tipo de avio --</option>
+                			@foreach ($tipos_avios as $tipo)
+                				<option value="{{ $tipo['id'] }}"
+                			>{{ $tipo['nombre'] }}</option>
+                			@endforeach
+                		</select>
+                	</td>
+					<td> </td>
+                </tr>
             	<tr id="avio1"></tr>
 			@endif
             </tbody>
@@ -305,4 +383,5 @@
 		@endisset
 		</div>
 	</div>
+</div>
 </div>

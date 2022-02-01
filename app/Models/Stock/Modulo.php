@@ -10,7 +10,7 @@ use App\Models\Stock\Talle;
 
 class Modulo extends Model
 {
-    protected $fillable = ['nombre'];
+    protected $fillable = ['nombre', 'codigo'];
     protected $table = 'modulo';
     protected $keyField = 'modu_modulo';
 
@@ -94,8 +94,8 @@ class Modulo extends Model
             $data = $dataAnita[0];
 
             $modulo = Modulo::create([
-                "id" => $key,
-                "nombre" => $data->modu_desc
+                "nombre" => $data->modu_desc,
+                "codigo" => $data->modu_modulo,
             ]);
 
 			for ($_ii = 16; $_ii <= 47; $_ii++)
@@ -120,7 +120,12 @@ class Modulo extends Model
 		for ($talle = 0; $talle < count($talles); $talle++)
 			$campos = $campos . ", modu_cant_m".$talles[$talle];
 
-		$valores = " '".$id."', '".$request->nombre."' ";
+        $modulo = Modulo::select('codigo','id')->where('id',$id)->first();
+		if ($modulo)
+			$modulo_id = $modulo->id;
+		else
+			$modulo_id = $id;
+		$valores = " '".$modulo_id."', '".$request->nombre."' ";
 		for ($talle = 0; $talle < count($talles); $talle++)
 			$valores = $valores . ", '".$cantidades[$talle]."'";
 
@@ -157,18 +162,31 @@ class Modulo extends Model
 			}
 		}
 
+        $modulo = Modulo::select('codigo','id')->where('id',$id)->first();
+		if ($modulo)
+			$modulo_id = $modulo->id;
+		else
+			$modulo_id = $id;
+
 		$data = array( 'acc' => 'update', 
 				'tabla' => $this->table,
 				'valores' => $valores,
-				'whereArmado' => " WHERE modu_modulo = '".$id."' " );
+				'whereArmado' => " WHERE modu_modulo = '".$modulo_id."' " );
         $apiAnita->apiCall($data);
 	}
 
 	public function eliminarAnita($id) {
         $apiAnita = new ApiAnita();
+
+        $modulo = Modulo::select('codigo','id')->where('id',$id)->first();
+		if ($modulo)
+			$modulo_id = $modulo->id;
+		else
+			$modulo_id = $id;
+
         $data = array( 'acc' => 'delete', 
 			'tabla' => $this->table,
-			'whereArmado' => " WHERE modu_modulo = '".$id."' " );
+			'whereArmado' => " WHERE modu_modulo = '".$modulo_id."' " );
         $apiAnita->apiCall($data);
 	}
 }

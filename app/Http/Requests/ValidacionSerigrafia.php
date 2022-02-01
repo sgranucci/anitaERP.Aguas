@@ -24,7 +24,7 @@ class ValidacionSerigrafia extends FormRequest
     public function rules()
     {
         return [
-            'nombre' => 'required|max:50|unique:fondo,nombre,' . $this->route('id'),
+            'nombre' => 'required|max:50|unique:serigrafia,nombre,' . $this->route('id'),
         ];
     }
 }

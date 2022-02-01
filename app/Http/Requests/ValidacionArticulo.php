@@ -29,6 +29,7 @@ class ValidacionArticulo extends FormRequest
             'categoria_id' => 'required|numeric',
             'subcategoria_id' => 'required|numeric',
             'unidadmedida_id' => 'required|numeric',
+            'usoarticulo_id' => 'required|numeric',
             'linea_id' => 'required|numeric',
             'mventa_id' => 'required|numeric',
         ];

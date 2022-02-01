@@ -30,6 +30,8 @@ class ApiAnita {
     }
 
     public function apiCall($data){
+	//dd(env('ANITA_BRIDGE_TYPE'));
+
         if (env('ANITA_BRIDGE_TYPE') == "HTTP") { return $this->apiCallHttp($data); }
         $portSSH = (env('ANITA_PUERTO_SSH') == null ? "" : "-p ".env('ANITA_PUERTO_SSH'));
         $portSCP = (env('ANITA_PUERTO_SSH') == null ? "" : "-P ".env('ANITA_PUERTO_SSH'));

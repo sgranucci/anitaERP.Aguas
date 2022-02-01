@@ -31,7 +31,7 @@ class PercepcioniibbExport implements FromView, WithColumnFormatting, WithMappin
 		$fecha = strtotime($this->desdefecha);
 		$desde_fecha = date('Ymd', $fecha);
 		$fecha = strtotime($this->hastafecha);
-		$hasta_fecha = date('Ymd', $fecha);
+		$hasta_fecha = date('Ym31', $fecha);
 
         $apiAnita = new ApiAnita();
         $data = array( 
@@ -66,7 +66,8 @@ class PercepcioniibbExport implements FromView, WithColumnFormatting, WithMappin
 						(ven_tipo[1,1]='F' or ven_tipo[1,2]='NC' or ven_tipo='CIM') and
 						ven_fecha>=".$desde_fecha." AND ven_fecha<=".$hasta_fecha." AND
                         rpibr_cuit=clim_cuit[1,2]||clim_cuit[4,11]||clim_cuit[13,13] and
-                        rpcaba_cuit=clim_cuit[1,2]||clim_cuit[4,11]||clim_cuit[13,13]"
+                        rpcaba_cuit=clim_cuit[1,2]||clim_cuit[4,11]||clim_cuit[13,13] and
+						rpcaba_desde_fecha>=".$desde_fecha." AND rpcaba_hasta_fecha<=".$hasta_fecha
         );
         $datas = json_decode($apiAnita->apiCall($data));
 

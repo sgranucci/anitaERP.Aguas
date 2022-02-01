@@ -1,34 +1,34 @@
-@extends('layouts.app')
-@section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card">
-                <div class="card-header">Crear Combinación</div>
-                    @if (session('status'))
-                    <div class="card-body">
-                        <div class="alert alert-success" role="alert">
-                            {{ session('status') }}
-                        </div>
-                    </div>
-                    @endif
-                    @if ($errors->any())
-                    <div class="card-body">
-                        <div class="errors">
-                            <p><strong>Por favor corrige los siguientes errores<strong></p>
-                            <ul class="alert alert-danger" style="list-style-type: none">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    </div>
-                    @endif
+@extends("theme.$theme.layout")
+@section('titulo')
+    Editar combinac&oacute;n
+@endsection
+
+@section("scripts")
+<script src="{{asset("assets/pages/scripts/admin/crear.js")}}" type="text/javascript"></script>
+<script>
+$(document).ready(function () {
+    document.getElementById("codigo").focus();
+});
+</script>
+@endsection
+
+@section('contenido')
+<div class="row">
+    <div class="col-lg-12">
+        @include('includes.form-error')
+        @include('includes.mensaje')
+        <div class="card card-danger">
+            <div class="card-header">
+                <h3 class="card-title">Crear Combinaci&oacute;n - Datos Diseño</h3>
+                <div class="card-tools">
+                    <a href="{{  URL::previous() }}" class="btn btn-outline-info btn-sm">
+                        <i class="fa fa-fw fa-reply-all"></i> Volver al listado
+                    </a>
+                </div>
             </div>
-            <br>
-            <form id="" class="" method="POST" action="{{ route('combinacion.save') }}">
-                @csrf
-                @include('combinacion.diseno.partials.form')
+            <form action="{{route('combinacion.save')}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
+                @csrf @method("put")
+                @include('stock.combinacion.diseno.partials.form')
             </form>
         </div>
     </div>

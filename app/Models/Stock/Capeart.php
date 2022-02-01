@@ -40,13 +40,58 @@ class Capeart extends Model
         return $this->belongsTo(Usuario::class, 'usuarioulcambio_id');
     }
 
-    public function sincronizarConAnita(){
+	public function setConsumo1Attribute($value)
+	{
+		if ($value == null)
+    		$this->attributes['consumo1'] = 0;
+		else
+    		$this->attributes['consumo1'] = $value;
+	}
+
+	public function setConsumo2Attribute($value)
+	{
+		if ($value == null)
+    		$this->attributes['consumo2'] = 0;
+		else
+    		$this->attributes['consumo2'] = $value;
+	}
+
+	public function setConsumo3Attribute($value)
+	{
+		if ($value == null)
+    		$this->attributes['consumo3'] = 0;
+		else
+    		$this->attributes['consumo3'] = $value;
+	}
+
+	public function setConsumo4Attribute($value)
+	{
+		if ($value == null)
+    		$this->attributes['consumo4'] = 0;
+		else
+    		$this->attributes['consumo4'] = $value;
+	}
+
+    public function sincronizarConAnita($articulo = null, $combinacion = null){
         $apiAnita = new ApiAnita();
-        $data = array( 'acc' => 'list', 
+
+		if ($articulo != null)
+        	$data = array( 'acc' => 'list', 
 		  				'campos' => "capea_articulo, capea_combinacion, capea_orden", 
-            			'whereArmado' => " WHERE exists (select 1 from combinacion where capea_articulo=comb_articulo and capea_combinacion=comb_combinacion and comb_estado='A') ",
+            			'whereArmado' => " WHERE exists (select 1 from combinacion where capea_articulo=comb_articulo and capea_combinacion=comb_combinacion) AND capea_articulo='".$articulo."' AND capea_combinacion='".$combinacion."'",
+		  				'tabla' => $this->table);
+		else
+        	$data = array( 'acc' => 'list', 
+		  				'campos' => "capea_articulo, capea_combinacion, capea_orden", 
+            			'whereArmado' => " WHERE not exists (select 1 from tmp8 where capea_articulo=articulo and 
+											capea_combinacion=combinacion) ",
 		  				'tabla' => $this->table);
         $dataAnita = json_decode($apiAnita->apiCall($data));
+
+		/*for ($ii = 9954; $ii < count($dataAnita); $ii++)
+		{
+        	$this->traerRegistroDeAnita($dataAnita[$ii]->{$this->keyFieldAnita[0]}, $dataAnita[$ii]->{$this->keyFieldAnita[1]}, $dataAnita[$ii]->{$this->keyFieldAnita[2]});
+		}*/
 
         foreach ($dataAnita as $value) {
         	$this->traerRegistroDeAnita($value->{$this->keyFieldAnita[0]}, $value->{$this->keyFieldAnita[1]}, $value->{$this->keyFieldAnita[2]});
@@ -84,13 +129,15 @@ class Capeart extends Model
         	$articulo = Articulo::select('id', 'sku')->where('sku' , ltrim($data->capea_articulo, '0'))->first();
 			$articulo_id = $articulo->id;
 
-			$combinacion_id = NULL;
+			$combinacion_id = 0;
 			if ($articulo)
 			{
 				// Leo la combinacion para sacar el id
         		$combinacion = Combinacion::select('id', 'articulo_id', 'codigo')->where('articulo_id', $articulo->id)->where('codigo', $data->capea_combinacion)->first();
 				if ($combinacion)
 					$combinacion_id = $combinacion->id;
+				else
+					return;
 			}
 
 			$material_id = NULL;
@@ -122,6 +169,16 @@ class Capeart extends Model
 	public function guardarAnita($request, $materiales, $colores, $piezas, $consumo1, $consumo2, $consumo3, $consumo4, $tipos, $orden) {
         $apiAnita = new ApiAnita();
 
+		$material_sku = NULL;
+        $articulo = Articulo::select('id', 'sku')->where('id' , $materiales)->first();
+		if ($articulo)
+			$material_sku = $articulo->sku;
+
+		$color = NULL;
+        $color = Color::select('id', 'codigo')->where('id' , $colores)->first();
+		if ($color)
+			$color = $color->codigo;
+
         $data = array( 'acc' => 'insert',
 			'tabla' => $this->table, 
             'campos' => '
@@ -140,8 +197,8 @@ class Capeart extends Model
             'valores' => "
 				'".str_pad($request->sku, 13, "0", STR_PAD_LEFT)."', 
 				'".$orden."',
-				'".str_pad($materiales, 13, "0", STR_PAD_LEFT)."',
-				'".$colores."',
+				'".str_pad($material_sku, 13, "0", STR_PAD_LEFT)."',
+				'".$color."',
 				'".$piezas."',
 				'".$consumo1."',
 				'".$consumo2."',
@@ -157,7 +214,7 @@ class Capeart extends Model
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'delete', 
 						'tabla' => $this->table, 
-						'whereArmado' => " WHERE capea_articulo = '".$articulo."' AND capea_combinacion = '".$combinacion."' " );
+						'whereArmado' => " WHERE capea_articulo = '".str_pad($articulo, 13, "0", STR_PAD_LEFT)."' AND capea_combinacion = '".$combinacion."' " );
         $apiAnita->apiCall($data);
 	}
 }

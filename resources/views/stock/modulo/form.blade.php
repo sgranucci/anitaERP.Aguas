@@ -4,6 +4,12 @@
     <input type="text" name="nombre" id="nombre" class="form-control" value="{{old('nombre', $modulo->nombre ?? '')}}" required/>
     </div>
 </div>
+<div class="form-group row">
+    <label for="codigo" class="col-lg-3 col-form-label requerido">C&oacute;digo</label>
+    <div class="col-lg-8">
+    <input type="text" name="codigo" id="codigo" class="form-control" value="{{old('codigo', $modulo->codigo ?? '')}}" required/>
+    </div>
+</div>
 <div class="card">
     <div class="card-header">
     	Medidas

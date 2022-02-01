@@ -25,6 +25,7 @@ class ValidacionSubcategoria extends FormRequest
     {
         return [
             'nombre' => 'required|max:50|unique:subcategoria,nombre,' . $this->route('id'),
+            'codigo' => 'required|unique:subcategoria,codigo,' . $this->route('id'),
         ];
     }
 }

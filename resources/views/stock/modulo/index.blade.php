@@ -44,6 +44,7 @@ M&oacute;dulos
                         <tr>
                             <th class="width20">ID</th>
                             <th>Nombre</th>
+                            <th>C&oacute;digo</th>
                             <th>Medidas</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>
@@ -56,6 +57,9 @@ M&oacute;dulos
         						</td>
         						<td>
             						{{ $modulo->nombre ?? '' }}
+        						</td>
+        						<td>
+            						{{ $modulo->codigo ?? '' }}
         						</td>
         						<td>
             						<ul>

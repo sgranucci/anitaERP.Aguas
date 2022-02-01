@@ -23,10 +23,10 @@ function cambiarEstado(id, index){
           var btn = '';
           var estado = '';
           if(index == 1){
-            btn = "<button type='button' class='btn btn-danger ml-2' onclick='cambiarEstado("+id+", 0)'>Desactivar</button>";
+            btn = "<button type='button' class='btn-xs btn-danger ml-2' onclick='cambiarEstado("+id+", 0)'>Desactivar</button>";
             estado = "A";
           }else{
-            btn = "<button type='button' class='btn btn-success ml-2' onclick='cambiarEstado("+id+", 1)'>Activar</button>";
+            btn = "<button type='button' class='btn-xs btn-success ml-2' onclick='cambiarEstado("+id+", 1)'>Activar</button>";
             estado = "I";
           }
           $("#container-button-state"+id).html(btn);
@@ -37,6 +37,7 @@ function cambiarEstado(id, index){
     });
   }
 }
+
 </script>
 
 @endsection
@@ -52,7 +53,8 @@ function cambiarEstado(id, index){
             <div class="card-header">
                 <h3 class="card-title">Combinaciones</h3>
                 <div class="card-tools">
-                    <a href="{{route('combinacion.create')}}" class="btn btn-outline-secondary btn-sm">
+                    <a href="{{route('combinacion.create', ['id' => $articulo->id] )}}" class="btn btn-outline-secondary btn-sm">
+            						{{ $combinacion->articulos->sku ?? '' }} {{ $combinacion->articulos->descripcion ?? '' }}
                        	@if (can('crear-combinaciones', false))
                         	<i class="fa fa-fw fa-plus-circle"></i> Nuevo registro
 						@endif
@@ -98,26 +100,27 @@ function cambiarEstado(id, index){
                        			@if (can('cambiar-estado-combinaciones', false))
                         		<span id="container-button-state{{$combinacion->id}}">
 									@if ($combinacion->estado == 'A')
-            							<button type="button" class="btn btn-danger ml-2" onclick="cambiarEstado({{$combinacion->id}}, 0)">Desactivar</button>
+            							<button type="button" class="btn-xs btn-danger ml-2" onclick="cambiarEstado({{$combinacion->id}}, 0)">Desactivar</button>
 									@else
-            							<button type="button" class="btn btn-success ml-2" onclick="cambiarEstado({{$combinacion->id}}, 1)">Activar</button>
+            							<button type="button" class="btn-xs btn-success ml-2" onclick="cambiarEstado({{$combinacion->id}}, 1)">Activar</button>
 									@endif
                         		</span>
 								@endif
                        			@if (can('editar-combinaciones-disenio', false))
-          							<a href="/anitaERP/public/stock/combinacion/edit/{{ $combinacion->id }}" type="button" class="btn btn-primary ml-2">Dise&ntilde;o</a>
+          							<a href="/anitaERP/public/stock/combinacion/edit/{{ $combinacion->id }}" type="button" class="btn-xs btn-primary ml-2">Dise&ntilde;o</a>
 								@endif
                        			@if (can('editar-combinaciones-tecnica', false))
-          							<a href="/anitaERP/public/stock/combinacion/edit/{{$combinacion->id}}/tecnica" type="button" class="btn btn-primary ml-2">T&eacute;cnica</a>
+          							<a href="/anitaERP/public/stock/combinacion/edit/{{$combinacion->id}}/tecnica" type="button" class="btn-xs btn-primary ml-2">T&eacute;cnica</a>
 								@endif
                        			@if (can('imprimir-articulos-qr', false))
-                                	<a href="{{route('product.download', ['id' => $combinacion->articulos->id, 'sku' => $combinacion->articulos->sku, 'codigo' => $combinacion->codigo])}}" class="btn-accion-tabla tooltipsC" title="Imprimir QR">
+          							<a href="/anitaERP/public/stock/product/{{$combinacion->articulos->sku}}/{{$combinacion->codigo}}" class="btn-accion-tabla tooltipsC" title="Imprimir QR">
                                    		<i class="fa fa-qrcode"></i>
+									</a>
 								@endif
                        			@if (can('eliminar-combinaciones', false))
                                 	<form action="{{route('eliminar_combinacion', ['id' => $combinacion->id])}}" class="d-inline form-eliminar" method="POST">
                                    		@csrf @method("delete")
-                                   		<button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">
+                                   	<button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">
                                        	<i class="fa fa-times-circle text-danger"></i>
                                    	</button>
                                 	</form>

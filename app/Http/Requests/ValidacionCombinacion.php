@@ -25,8 +25,8 @@ class ValidacionCombinacion extends FormRequest
     {
         return [
             'articulo_id' => ['required'],
-            'codigo' => ['required','string','max:6'],
-            'nombre' => ['string','max:40'],
+			//'codigo' => ['unique_with:combinacion, articulo_id, codigo'],
+            'nombre' => ['string','max:20'],
             'observacion' => ['string', 'nullable'],
             'estado' => ['string','max:1'],
         ];

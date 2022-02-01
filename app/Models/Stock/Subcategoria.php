@@ -9,7 +9,7 @@ use App\ApiAnita;
 
 class Subcategoria extends Model
 {
-    protected $fillable = ['nombre'];
+    protected $fillable = ['nombre', 'codigo'];
     protected $table = 'subcategoria';
     protected $keyField = 'subc_id';
 
@@ -47,17 +47,11 @@ class Subcategoria extends Model
             $data = $dataAnita[0];
 			$subcategoria = new Subcategoria();
 
-			$subcategoria->id = $key;
-			$subcategoria->nombre = $data->subc_desc;
-			//$subcategoria->anitaid = $key;
-
-			$subcategoria->save();
-
-            //Subcategoria::create([
-				//"id" => $key,
-				//"nombre" => $data->subc_desc,
-				//"anitaid" => $key
-            //]);
+            Subcategoria::create([
+				"id" => $key,
+				"nombre" => $data->subc_desc,
+				"codigo" => $data->subc_id
+            ]);
         }
     }
 
@@ -66,7 +60,7 @@ class Subcategoria extends Model
 
         $data = array( 'tabla' => 'subcategoria', 'acc' => 'insert',
             'campos' => ' subc_id, subc_desc ',
-            'valores' => " '".$id."', '".$request->nombre."' "
+            'valores' => " '".$request->codigo."', '".$request->nombre."' "
         );
         $apiAnita->apiCall($data);
 	}
@@ -74,13 +68,13 @@ class Subcategoria extends Model
 	public function actualizarAnita($request, $id) {
         $apiAnita = new ApiAnita();
 		$data = array( 'acc' => 'update', 'tabla' => 'subcategoria', 'valores' => " subc_desc = '".
-					$request->nombre."' ", 'whereArmado' => " WHERE subc_id = '".$id."' " );
+					$request->nombre."' ", 'whereArmado' => " WHERE subc_id = '".$request->codigo."' " );
         $apiAnita->apiCall($data);
 	}
 
-	public function eliminarAnita($id) {
+	public function eliminarAnita($codigo) {
         $apiAnita = new ApiAnita();
-        $data = array( 'acc' => 'delete', 'tabla' => 'subcategoria', 'whereArmado' => " WHERE subc_id = '".$id."' " );
+        $data = array( 'acc' => 'delete', 'tabla' => 'subcategoria', 'whereArmado' => " WHERE subc_id = '".$codigo."' " );
         $apiAnita->apiCall($data);
 	}
 }

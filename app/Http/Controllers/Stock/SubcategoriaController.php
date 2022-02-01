@@ -104,7 +104,7 @@ class SubcategoriaController extends Controller
 
 		// Elimina anita
 		$Subcategoria = new Subcategoria();
-        $Subcategoria->eliminarAnita($id);
+        $Subcategoria->eliminarAnita($request->codigo);
 
         if ($request->ajax()) {
             if (Subcategoria::destroy($id)) {

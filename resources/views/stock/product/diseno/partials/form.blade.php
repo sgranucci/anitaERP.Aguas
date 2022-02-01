@@ -16,7 +16,7 @@
                 </div>
 				<div class="form-group row">
     				<label for="usoarticulo_id" class="col-lg-4 col-form-label requerido">Tipo de art&iacute;culo</label>
-					<select id="usoarticulo_id" name="usoarticulo_id" class="col-lg-8 form-control">
+					<select id="usoarticulo_id" name="usoarticulo_id" class="col-lg-8 form-control" required>
                         <option value="">-- Seleccionar --</option>
                         @foreach($usosArticulos as $key => $value)
                             @if( isset($producto) && (int) $value->id == (int) old('usoarticulo_id', $producto->usoarticulo_id ?? ''))
@@ -29,7 +29,7 @@
               	</div>
 				<div class="form-group row">
     				<label for="unidadmedida_id" class="col-lg-4 col-form-label requerido">Unidad de medida</label>
-					<select id="unidadmedida_id" name="unidadmedida_id" class="col-lg-8 form-control">
+					<select id="unidadmedida_id" name="unidadmedida_id" class="col-lg-8 form-control" required>
                         <option value="">-- Seleccionar --</option>
                         @foreach($unidadmedida as $key => $value)
                             @if( isset($producto) && (int) $value->id == (int) $producto->unidadmedida_id )
@@ -46,7 +46,7 @@
                 </div>
 				<div class="form-group row">
     				<label for="categoria_id" class="col-lg-4 col-form-label requerido">Categor&iacute;a</label>
-					<select id="categoria_id" name="categoria_id" class="col-lg-8 form-control">
+					<select id="categoria_id" name="categoria_id" class="col-lg-8 form-control" required>
                         <option value="">-- Seleccionar --</option>
                         @foreach($categoria as $key => $value)
                             @if( isset($producto) && (int) $value->id == (int) $producto->categoria_id )
@@ -59,7 +59,7 @@
                 </div>
 				<div class="form-group row">
     				<label for="subcategoria_id" class="col-lg-4 col-form-label requerido">Subcategor&iacute;a</label>
-					<select id="subcategoria_id" name="subcategoria_id" class="col-lg-8 form-control">
+					<select id="subcategoria_id" name="subcategoria_id" class="col-lg-8 form-control" required>
                         <option value="">-- Seleccionar --</option>
                         @foreach($subcategoria as $key => $value)
                             @if( isset($producto) && (int) $value->id == (int) $producto->subcategoria_id )
@@ -91,15 +91,15 @@
                         <option value="">-- Seleccionar --</option>
                         @foreach($linea as $key => $value)
                             @if( isset($producto) && $value->id == $producto->linea_id)
-                                <option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
+                                <option value="{{ $value->id }}" selected="select">{{ $value->codigo }}-{{ $value->nombre }}</option>    
                             @else
-                                <option value="{{ $value->id }}">{{ $value->nombre }}</option>    
+                                <option value="{{ $value->id }}">{{ $value->codigo }}-{{ $value->nombre }}</option>    
                             @endif
                         @endforeach
                     </select>
                 </div>
 				<div class="form-group row">
-    				<label for="forro_id" class="col-lg-4 col-form-label requerido">Forro</label>
+    				<label for="forro_id" class="col-lg-4 col-form-label">Forro</label>
 					<select id="forro_id" name="forro_id" class="col-lg-8 form-control">
                             <option value=""> -- Seleccionar -- </option>
                             @foreach( $forro as $key => $value)
@@ -112,7 +112,7 @@
                     </select>
                 </div>
 				<div class="form-group row">
-    				<label for="compfondo_id" class="col-lg-4 col-form-label requerido">Componente del fondo</label>
+    				<label for="compfondo_id" class="col-lg-4 col-form-label">Componente del fondo</label>
 					<select id="compfondo_id" name="compfondo_id" class="col-lg-8 form-control">
                             <option value=""> -- Seleccionar -- </option>
                             @foreach( $compfondo as $key => $value)
@@ -125,7 +125,7 @@
                     </select>
                 </div>
 				<div class="form-group row">
-    				<label for="material_id" class="col-lg-4 col-form-label requerido">Material</label>
+    				<label for="material_id" class="col-lg-4 col-form-label">Material</label>
 					<select id="material_id" name="material_id" class="col-lg-8 form-control">
                         <option value="">-- Seleccionar --</option>
                         @foreach($capellada as $value)
@@ -141,7 +141,7 @@
         </div>
 		<div class="card-footer">
         	<div class="row">
-            	@isset($edit)
+            	@if ($edit)
         			@include('includes.boton-form-editar')
             	@else
         			@include('includes.boton-form-crear')

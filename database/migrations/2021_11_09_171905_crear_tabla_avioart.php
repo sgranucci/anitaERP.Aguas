@@ -24,10 +24,10 @@ class CrearTablaAvioart extends Migration
             $table->unsignedBigInteger('color_id')->nullable();
             $table->foreign('color_id', 'fk_avioart_color')->references('id')->on('color')->onDelete('set null')->onUpdate('set null');
             $table->string('tipo', 1);
-			$table->decimal('consumo1',20,6);
-			$table->decimal('consumo2',20,6);
-			$table->decimal('consumo3',20,6);
-			$table->decimal('consumo4',20,6);
+			$table->decimal('consumo1',20,6)->default(0);
+			$table->decimal('consumo2',20,6)->default(0);
+			$table->decimal('consumo3',20,6)->default(0);
+			$table->decimal('consumo4',20,6)->default(0);
             $table->unsignedBigInteger('usuarioultcambio_id')->nullable();
             $table->foreign('usuarioultcambio_id', 'fk_avioart_usuario')->references('id')->on('usuario')->onDelete('set null')->onUpdate('set null');
             $table->timestamps();

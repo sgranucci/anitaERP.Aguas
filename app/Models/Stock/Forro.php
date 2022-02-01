@@ -60,6 +60,7 @@ class Forro extends Model
     }
 
 	public function guardarAnita($request, $id) {
+        $apiAnita = new ApiAnita();
         $data = array( 'tabla' => 'forro', 'acc' => 'insert',
             'campos' => ' forr_forro, forr_desc ',
             'valores' => " '".$id."', '".$request->nombre."' "

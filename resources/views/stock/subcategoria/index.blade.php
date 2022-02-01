@@ -30,6 +30,7 @@ Subcategorias
                         <tr>
                             <th class="width20">ID</th>
                             <th>Nombre</th>
+                            <th>C&oacute;digo</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>
                     </thead>
@@ -38,6 +39,7 @@ Subcategorias
                         <tr>
                             <td>{{$data->id}}</td>
                             <td>{{$data->nombre}}</td>
+                            <td>{{$data->codigo}}</td>
                             <td>
                        			@if (can('editar-subcategorias', false))
                                 	<a href="{{route('editar_subcategoria', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">

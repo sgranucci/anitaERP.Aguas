@@ -27,6 +27,7 @@ Usuarios
                             <th class="width20">ID</th>
                             <th>Usuario</th>
                             <th>Nombre</th>
+                            <th>Foto</th>
                             <th>Email</th>
                             <th>Roles</th>
                             <th class="width80"></th>
@@ -38,6 +39,7 @@ Usuarios
                             <td>{{$data->id}}</td>
                             <td>{{$data->usuario}}</td>
                             <td>{{$data->nombre}}</td>
+                            <td><img width=50px src="{{ isset($data->foto) ? asset("storage/imagenes/fotos_usuarios/$data->foto") : '' }}"></td>
                             <td>{{$data->email}}</td>
                             <td>
                                 @foreach ($data->roles as $rol)

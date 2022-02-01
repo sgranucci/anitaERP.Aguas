@@ -12,6 +12,7 @@ use App\Models\Stock\Listaprecio;
 use App\Models\Configuracion\Moneda;
 use App\Http\Requests\ValidacionPrecio;
 use Carbon\Carbon;
+use DB;
 use Auth;
 
 class PrecioController extends Controller
@@ -24,16 +25,22 @@ class PrecioController extends Controller
     public function index()
     {
         can('listar-precios');
-        $datas = Precio::with('articulos')->with('listaprecios')->with('monedas')->with('usuarios')->take(5000)->get();
+        $datas = Precio::with('articulos')->with('listaprecios')->with('monedas')->with('usuarios')->
+					whereExists(function($query) 
+					{
+						$query->select(DB::raw(1))
+								->from('combinacion')
+								->whereRaw("combinacion.articulo_id = precio.articulo_id AND combinacion.estado='A'");
+					})
+					->get();
 
 		if ($datas->isEmpty())
 		{
 			$Precio = new Precio();
         	$Precio->sincronizarConAnita();
 	
-        	$datas = Precio::with('articulos')->with('listaprecios')->with('moneda')->with('usuario')->take(5000)->get();
+        	$datas = Precio::with('articulos')->with('listaprecios')->with('monedas')->with('usuarios')->get();
 		}
-
         return view('stock.precio.index', compact('datas'));
     }
 
@@ -45,7 +52,14 @@ class PrecioController extends Controller
     public function crear()
     {
         can('crear-precios');
-		$articulo_query = Articulo::all();
+		$articulo_query = Articulo::where('usoarticulo_id','1')
+							->whereExists(function($query)
+                    		{
+                        		$query->select(DB::raw(1))
+                                		->from('combinacion')
+                                		->whereRaw("combinacion.articulo_id = articulo.id AND combinacion.estado='A'");
+                    		})->get();
+
 		$listaprecio_query = Listaprecio::all();
 		$moneda_query = Moneda::all();
 
@@ -151,7 +165,7 @@ class PrecioController extends Controller
 
 		// Elimina anita
 		$Precio = new Precio();
-        $Precio->eliminarAnita($precio->articulos->codigo, $precio->listaprecio->codigo);
+        $Precio->eliminarAnita($precio->articulos->sku, $precio->listaprecios->codigo);
 
         if ($request->ajax()) {
             if (Precio::destroy($id)) {

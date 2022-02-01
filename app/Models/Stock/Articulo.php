@@ -9,6 +9,7 @@ use App\ApiAnita;
 use App\Models\Seguridad\Usuario;
 use App\Models\Contable\Cuentacontable;
 use App\Models\Configuracion\Impuesto;
+use App\Models\Ventas\Pedido_Combinacion;
 use Carbon\Carbon;
 use Auth;
 
@@ -27,6 +28,11 @@ class Articulo extends Model
 	public function precios()
     {
         return $this->hasMany(Precio::class);
+    }
+
+	public function pedido_combinaciones()
+    {
+        return $this->hasMany(Pedido_combinacion::class, 'id');
     }
 
     public function empresas()
@@ -133,7 +139,9 @@ class Articulo extends Model
 		ini_set('max_execution_time', '300');
 
         $apiAnita = new ApiAnita();
-        $data = array( 'acc' => 'list', 'campos' => "$this->keyFieldAnita as $this->keyField, $this->keyFieldAnita", 'tabla' => $this->tableAnita );
+        $data = array( 'acc' => 'list', 
+						'campos' => "$this->keyFieldAnita as $this->keyField, $this->keyFieldAnita",
+						'tabla' => $this->tableAnita );
         $dataAnita = json_decode($apiAnita->apiCall($data));
 
         $datosLocal = Articulo::all();
@@ -142,12 +150,19 @@ class Articulo extends Model
             $datosLocalArray[] = $value->{$this->keyField};
         }
 
-		/*for ($ii = 10686; $ii < count($dataAnita); $ii++)
+		/*$dataAnita = [ '0000071212602'
+			];
+		for ($ii = 0; $ii < count($dataAnita); $ii++)
+		{
+        	$this->traerRegistroDeAnita($dataAnita[$ii], true);
+		}*/
+
+		/*for ($ii = 8153; $ii < count($dataAnita); $ii++)
 		{
         	$this->traerRegistroDeAnita($dataAnita[$ii]->sku, true);
 		}*/
 
-        foreach ($dataAnita as $value) {
+        /*foreach ($dataAnita as $value) {
             if (!in_array(ltrim($value->{$this->keyField}, '0'), $datosLocalArray)) {
                 $this->traerRegistroDeAnita($value->{$this->keyFieldAnita}, true);
             }
@@ -155,7 +170,7 @@ class Articulo extends Model
 			{
                 $this->traerRegistroDeAnita($value->{$this->keyFieldAnita}, false);
 			}
-        }
+        }*/
     }
 
     public function traerRegistroDeAnita($key, $fl_crea_registro){
@@ -233,7 +248,7 @@ class Articulo extends Model
 	
 			$mventa_id = ($data->stkm_o_compra == '0' ? NULL : $data->stkm_o_compra);
 			$impuesto_id = ($data->stkm_cod_impuesto == '0' ? 1 : $data->stkm_cod_impuesto);
-	
+
         	$cuenta = Cuentacontable::select('id', 'codigo')->where('codigo' , $data->stkm_cta_contable)->first();
 			if ($cuenta)
 				$cuentacontableventa_id = $cuenta->id;
@@ -272,19 +287,32 @@ class Articulo extends Model
 			else
 				$material_id = NULL;
 	
+        	$subcategoria = Subcategoria::select('id', 'codigo')->where('codigo' , ltrim($data->stkm_subcategoria, '0'))->first();
+			if ($subcategoria)
+				$subcategoria_id = $subcategoria->id;
+			else
+				$subcategoria_id = NULL;
+	
 			$tipocorte_id = $data->stkm_tipo_corte;
 	
         	$articulo = Articulo::select('id', 'descripcion', 'sku')->where('sku' , ltrim($data->stkm_puntera, '0'))->first();
+			$puntera_id = NULL;
 			if ($articulo)
-				$puntera_id = $articulo->id;
-			else
-				$puntera_id = NULL;
+			{
+        		$puntera = Puntera::select('id', 'articulo_id')->where('articulo_id', $articulo->id)->first();
+
+				if ($puntera)
+					$puntera_id = $puntera->id;
+			}
 	
         	$articulo = Articulo::select('id', 'descripcion', 'sku')->where('sku' , ltrim($data->stkm_contrafuerte, '0'))->first();
+			$contrafuerte_id = NULL;
 			if ($articulo)
-				$contrafuerte_id = $articulo->id;
-			else
-				$contrafuerte_id = NULL;
+			{
+        		$contrafuerte = Contrafuerte::select('id', 'articulo_id')->where('articulo_id', $articulo->id)->first();
+				if ($contrafuerte)
+					$contrafuerte_id = $contrafuerte->id;
+			}
 	
 			$tipocorteforro_id = $data->stkm_tipo_cortefo;
 
@@ -305,7 +333,7 @@ class Articulo extends Model
 				"unidadesxenvase" => $data->stkm_unidad_xenv,
 				"skualternativo" => $data->stkm_articulo_prod,
 				"categoria_id" => $categoria_id > 0 ? $categoria_id : NULL,
-				"subcategoria_id" => $data->stkm_subcategoria > 0 ? $data->stkm_subcategoria : NULL,
+				"subcategoria_id" => $subcategoria_id > 0 ? $subcategoria_id : NULL,
 				"linea_id" => $linea_id,
 				"mventa_id" => $mventa_id,
 				"peso" => $data->stkm_peso_aprox,
@@ -433,11 +461,11 @@ class Articulo extends Model
 				'".str_pad($request->sku, 13, "0", STR_PAD_LEFT)."', 
 				'".$request->descripcion."',
     			'".$request->unidadesdemedidas->abreviatura."',
-				'".$request->unidadesxenvase."',
+				'".($request->unidadesxenvase == NULL ? 0 : $request->unidadesxenvase)."',
 				'".'000000'."',
 				'".str_pad($request->categorias->codigo, 4, "0", STR_PAD_LEFT)."',
 				'".($request->cuentascontablesventas ? $request->cuentascontablesventas->codigo : 0)."',
-				'".$request->impuesto_id."',
+				'".($request->impuesto_id == NULL || $request->impuesto_id == ' ' ? 0 : $request->impuesto_id)."',
 				'".'0'."',
 				'".'0'."',
 				'".'0'."',
@@ -449,22 +477,22 @@ class Articulo extends Model
 				'".'0'."',
 				'".'0'."',
 				'".'0'."',
-            	'".Auth::user()->name."',
+            	'".Auth::user()->nombre."',
 				'".'0'."',
 				'".$fecha."',
 				'".$request->skualternativo."',
-				'".$request->peso."',
-				'".str_pad($request->materiales->codigo, 8, "0", STR_PAD_LEFT)."',
+				'".($request->peso == NULL ? 0 : $request->peso)."',
+				'".($request->materiales ? str_pad($request->materiales->codigo, 8, "0", STR_PAD_LEFT) : '')."',
 				'".str_pad($request->lineas->codigo, 6, "0", STR_PAD_LEFT)."',
 				'".($request->cuentascontablescompras ? $request->cuentascontablescompras->codigo : 0)."',
 				'".Carbon::parse($request->fechaultimacompra)->format('Ymd')."',
 				'".$request->mventa_id."',
 				'".$request->nofactura."',
-				'".$request->formula."',
-				'".$request->ppp."',
+				'".($request->formula == NULL ? 0 : $request->formula)."',
+				'".($request->ppp == NULL ? 0 : $request->ppp)."',
 				'".$request->foto."',
 				'".$request->unidadmedida_id."',
-				'".$request->unidadmedidaalternativa_id."',
+				'".($request->unidadmedidaalternativa_id == NULL ? 0 : $request->unidadmedidaalternativa_id)."',
 				'".$fecha."',
 				'".$request->nomenclador."',
 				'".$request->usoarticulo_id."',
@@ -485,15 +513,34 @@ class Articulo extends Model
         $fecha = Carbon::now();
 		$fecha = $fecha->format('Ymd');
 
-		$data = array( 'acc' => 'update', 'tabla' => $this->tableAnita, 
+		if (is_object($request->categorias))
+			$codigo = str_pad($request->categorias->codigo, 4, "0", STR_PAD_LEFT);
+		else
+			$codigo = NULL;
+
+        $data = array( 
+            'acc' => 'list', 'tabla' => $this->tableAnita, 
+            'campos' => '
+			stkm_articulo,
+    		stkm_desc
+			',
+            'whereArmado' => " WHERE ".$this->keyFieldAnita." = '".str_pad($request->sku, 13, "0", STR_PAD_LEFT)."' " 
+        );
+        $dataAnita = json_decode($apiAnita->apiCall($data));
+
+        if (!$dataAnita) {
+		  	$this->guardarAnita($request);
+		}
+		else
+			$data = array( 'acc' => 'update', 'tabla' => $this->tableAnita, 
 				'valores' => " stkm_desc = '".$request->descripcion."',
                 	stkm_unidad_medida = '".($request->unidadesdemedidas ? $request->unidadesdemedidas->abreviatura : ' ')."',
                 	stkm_unidad_xenv = '".$request->unidadesxenvase."',
                 	stkm_proveedor = '".'000000'."',
-                	stkm_agrupacion = '".str_pad($request->categorias->codigo, 4, "0", STR_PAD_LEFT)."',
+                	stkm_agrupacion = '".$codigo."',
                 	stkm_cta_contable = '".($request->cuentascontablesventas ? 
 						$request->cuentascontablesventas->codigo : 0)."',
-                	stkm_cod_impuesto =	'".$request->impuesto_id."',
+                	stkm_cod_impuesto =	'".($request->impuesto_id == NULL || $request->impuesto_id == ' ' ? 0 : $request->impuesto_id)."',
                 	stkm_cta_cont_ii = '".($request->cuentascontablesimpinternos ? 
 						$request->cuentascontablesimpinternos->codigo : 0)."',
                 	stkm_usuario = '".Auth::user()->name."',

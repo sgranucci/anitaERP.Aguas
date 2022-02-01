@@ -44,11 +44,11 @@ M&oacute;dulos
                         <tr>
                             <th class="width20">ID</th>
                             <th>Nombre</th>
-                            <th>C&oacute;digo</th>
+                            <th>C&oacute;digo ANITA</th>
                             <th>Tipo numeraci&oacute;n</th>
                             <th>Max.Hormas</th>
                             <th>Numeraci&oacute;n</th>
-                            <th>Lista precio</th>
+                            <th>Lista WEB</th>
                             <th>Modulos</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>

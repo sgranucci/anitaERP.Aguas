@@ -1,14 +1,10 @@
 @extends("theme.$theme.layout")
 @section('titulo')
-    Reporte de control de precepciones de IIBB
+    Percepciones de IIBB
 @endsection
 
 @section("scripts")
-$(document).ready(function () {
-  $('.date').datetimepicker({
-    format: 'MM/DD/YYYY',
-    locale: 'en'
-  });
+
 @endsection
 
 @section('contenido')

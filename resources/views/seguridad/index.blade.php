@@ -26,7 +26,7 @@
         <!-- /.login-logo -->
         <div class="card">
             <div class="card-body login-card-body">
-                <p class="login-box-msg">Inicio de Sessión</p>
+                <p class="login-box-msg">Inicio de Sesión</p>
                 @if (session('status'))
                 <div class="alert alert-success" role="alert">
                     {{ session('status') }}

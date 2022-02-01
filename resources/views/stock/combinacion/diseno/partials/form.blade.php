@@ -8,11 +8,15 @@
 				<div class="form-group row">
     				<label for="articulo_id" class="col-lg-4 col-form-label requerido">Codigo de art&iacute;culo</label>
 					<select id="articulo_id" name="articulo_id" class="col-lg-8 form-control" readonly>
-                        @foreach($articulo as $key => $value)
-                            @if( isset($combinacion) && (int) $value->id == (int) $combinacion->articulo_id )
-                                <option value="{{ $value->id }}" selected="select">{{ $value->descripcion }}-{{ $value->sku }}</option>    
-                            @endif
-                        @endforeach
+						@if (!isset($edit))
+                        	<option value="{{ $articulo->id }}" selected="select">{{ $articulo->descripcion }}-{{ $articulo->sku }}</option>   
+						@else
+                        	@foreach($articulo as $key => $value)
+                            	@if( isset($combinacion) && (int) $value->id == (int) $combinacion->articulo_id )
+                                	<option value="{{ $value->id }}" selected="select">{{ $value->descripcion }}-{{ $value->sku }}</option>   
+                            	@endif
+                        	@endforeach
+						@endif
                     </select>
                 </div>
 				<div class="form-group row">

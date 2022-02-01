@@ -83,6 +83,67 @@
                                         </select>
                                     </div><!--END_COL_SM_2-->
                                 </div>
+
+                                <div class='row-filter-combo row'>
+
+                                    <div class="col-sm-2">
+                                        <strong>Estado Combinaci&oacute;n</strong>
+                                    </div>
+
+                                    <div class='col-sm-3'>
+                                        <select name='filter_column[2][type]' data-type='varchar'
+                                                class="filter-combo form-control">
+                                            <option value=''>** Operador</option>
+                                            <option typeallow='all'
+                                                     value='='>= (Igual a)</option>
+                                            <option  value='empty'>Vacio (o Null) </option>
+                                        </select>
+                                    </div><!--END COL_SM_4-->
+
+                                    <div class='col-sm-5'>
+										<select id="estado" disabled name="filter_column[2][value]" class="filter-value form-control">
+                        					<option value="">-- Selecciona estado --</option>
+                                			<option value="A">Activas</option>    
+                                			<option value="I">Inactivas</option>    
+                                			<option value="S">Sin combinacion</option>    
+                    					</select>
+										<!-- 
+ 										<input type='text' class='filter-value form-control' style="display:none"
+                                               disabled name='filter_column[t][value]'
+                                               value=''> -->
+
+                                        <div class='row between-group' style="display:none">
+                                            <div class='col-sm-6'>
+                                                <div class='input-group '>
+                                                    <span class="input-group-addon">Desde:</span>
+                                                    <input
+                                                            disabled
+                                                            type='text'
+                                                            class='filter-value-between form-control timepicker'
+                                                            readonly placeholder='Acci¢n Desde'
+                                                            name='filter_column[1][value][]' value=''>
+                                                </div>
+                                            </div>
+                                            <div class='col-sm-6'>
+                                                <div class='input-group '>
+                                                    <span class="input-group-addon">Hasta:</span>
+                                                    <input
+                                                            disabled
+                                                            type='text'
+                                                            class='filter-value-between form-control timepicker'
+                                                            readonly placeholder='Acci¢n Hasta'
+                                                            name='filter_column[1][value][]' value=''>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div><!--END COL_SM_6-->
+
+                                    <div class='col-sm-2'>
+                                        <select class='form-control' name='filter_column[2][sorting]'>
+                                            <option  value='asc' selected>- - -</option>
+                                        </select>
+                                    </div><!--END_COL_SM_2-->
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer" align="right">
@@ -92,7 +153,8 @@
                             <button class="btn btn-primary btn-submit" type="submit">Enviar</button>
                         </div>
 
-                        <input type="hidden" name="filter_column[1][column]" value="usoarticulo_id">
+                        <input type="hidden" name="filter_column[1][column]" id="usoarticulo_id" value="usoarticulo_id">
+                        <input type="hidden" name="filter_column[2][column]" id="estado" value="estado">
                         <input type="hidden" name="lasturl" value="{{route('products.index')}}">
                     </form>
                 </div>

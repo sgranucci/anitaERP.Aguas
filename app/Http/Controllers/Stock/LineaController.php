@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\EliminarMasivoLineaRequest;
 use App\Http\Requests\GuardarLineaRequest;
 use App\Http\Requests\ActualizarLineaRequest;
+use App\Models\Stock\Articulo;
 use App\Models\Stock\Linea;
 use App\Models\Stock\Modulo;
 use App\Models\Stock\Tiponumeracion;
@@ -36,6 +37,28 @@ class LineaController extends Controller
 		}
 
         return view('stock.linea.index', compact('lineas', 'modulo_query'));
+    }
+
+	public function leerModulos($articulo_id, $modulo_id = null)
+    {
+		$articulo = Articulo::select('linea_id')->where('id',$articulo_id)->first();
+
+		$linea = NULL;
+		$modulos = NULL;
+		if ($articulo)
+		{
+			$linea = Linea::with('modulos')->where('id',$articulo->linea_id)->first();
+
+			if ($linea)
+			{
+				if ($modulo_id != null)
+					$modulos = Modulo::select('id','nombre')->whereIn('id',$linea->modulos)->orWhere('id','=',$modulo_id)->get()->toArray();
+				else
+					$modulos = Modulo::select('id','nombre')->whereIn('id',$linea->modulos)->get()->toArray();
+			}
+		}
+
+		return $modulos;
     }
 
     /**

@@ -2,11 +2,12 @@
     <li class="nav-item">
         <a href="{{url($item['url'])}}" class="nav-link {{getMenuActivo($item["url"])}}">
             <i class="nav-icon fa {{$item["icono"]}}"></i>
-			@if (($submenu ?? '') == 1)
-				<i class="fa fa-angle-right pull-right"></i>
-			@endif
             <p>
-                {{$item["nombre"]}}
+				@if ($submenu ?? '' == 1)
+                	&nbsp {{ $item["nombre"] }}
+				@else
+                	{{ $item["nombre"] }}
+				@endif
             </p>
         </a>
     </li>

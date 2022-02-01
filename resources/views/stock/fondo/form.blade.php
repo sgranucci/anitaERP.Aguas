@@ -5,9 +5,9 @@
     </div>
 </div>
 <div class="form-group row">
-	<label for="articulo_id" class="col-lg-3 col-form-label requerido">Art&iacute;culo</label>
+	<label for="articulo_id" class="col-lg-3 col-form-label">Art&iacute;culo</label>
 	<div class="col-lg-8">
-		<select name="articulo_id" id="articulo_id" class="form-control" required>
+		<select name="articulo_id" id="articulo_id" class="form-control">
 			<option value="">Seleccione el art&iacute;culo</option>
 			@foreach($articulos as $id => $articulo)
 				@if( isset($data) && (int) $articulo->id == (int) $data->articulo_id )

@@ -62,7 +62,11 @@ class FondoController extends Controller
 
 		// Graba anita
 		$Fondo = new Fondo();
-        $Fondo->guardarAnita($request, $fondo->id, $articulos->sku, $fondo->codigo);
+		if ($articulos)
+			$sku = $articulos->sku;
+		else
+			$sku = '';
+        $Fondo->guardarAnita($request, $fondo->id, $sku, $fondo->codigo);
 
         return redirect('stock/fondo')->with('mensaje', 'Fondo creado con exito');
     }
@@ -97,9 +101,14 @@ class FondoController extends Controller
         Fondo::findOrFail($id)->update($request->all());
 		$articulos = Articulo::where('id', $request->articulo_id)->first();
 
+		if (!$articulos)
+		  $sku = ' ';
+		else
+		  $sku = $articulos->sku;
+
 		// Actualiza anita
 		$Fondo = new Fondo();
-        $Fondo->actualizarAnita($request, $request->id, $articulos->sku, $request->codigo);
+        $Fondo->actualizarAnita($request, $request->id, $sku, $request->codigo);
 
         return redirect('stock/fondo')->with('mensaje', 'Fondo actualizado con exito');
     }

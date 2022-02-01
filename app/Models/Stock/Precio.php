@@ -43,6 +43,7 @@ class Precio extends Model
         $apiAnita = new ApiAnita();
         $data = array( 
             'acc' => 'list', 'tabla' => $this->tableAnita, 
+            'whereArmado' => " WHERE stkp_lista in (1,2,3,5) ",
             'campos' => '
                 stkp_articulo,
                 stkp_lista,
@@ -58,7 +59,7 @@ class Precio extends Model
 
 		$usuario_id = Auth::user()->id;
 
-        for ($ii = 29062; $ii < count($dataAnita); $ii++)
+        for ($ii = 0; $ii < count($dataAnita); $ii++)
 		{
 			$sku = ltrim($dataAnita[$ii]->stkp_articulo, '0');
 			$articulo = Articulo::where('sku', $sku)->first();
@@ -86,7 +87,7 @@ class Precio extends Model
         $apiAnita = new ApiAnita();
 
 		$fecha_vigencia = $request->fechavigencia;
-		$fecha_vigencia = $fecha_vigencia->format('Ymd');
+		$fecha_vigencia = str_replace("-", "", $fecha_vigencia);
 
 		$codigo = str_pad($request->articulos->sku, 13, "0", STR_PAD_LEFT);
 		$usuario = Auth::user()->nombre;

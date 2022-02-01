@@ -109,6 +109,19 @@ Route::post('configuracion/localidad', 'Configuracion\LocalidadController@guarda
 Route::get('configuracion/localidad/{id}/editar', 'Configuracion\LocalidadController@editar')->name('editar_localidad');
 Route::put('configuracion/localidad/{id}', 'Configuracion\LocalidadController@actualizar')->name('actualizar_localidad');
 Route::delete('configuracion/localidad/{id}', 'Configuracion\LocalidadController@eliminar')->name('eliminar_localidad');
+Route::get('configuracion/leerlocalidades/{id}', 'Configuracion\LocalidadController@leerLocalidades')->name('leer_localidad');
+Route::get('configuracion/leercodigopostal/{id}', 'Configuracion\LocalidadController@leerCodigoPostal')->name('leer_codigo_postal');
+
+/* 
+ * Condiciones de iva
+ */
+
+Route::get('configuracion/condicioniva', 'Configuracion\CondicionivaController@index')->name('condicioniva');
+Route::get('configuracion/condicioniva/crear', 'Configuracion\CondicionivaController@crear')->name('crear_condicioniva');
+Route::post('configuracion/condicioniva', 'Configuracion\CondicionivaController@guardar')->name('guardar_condicioniva');
+Route::get('configuracion/condicioniva/{id}/editar', 'Configuracion\CondicionivaController@editar')->name('editar_condicioniva');
+Route::put('configuracion/condicioniva/{id}', 'Configuracion\CondicionivaController@actualizar')->name('actualizar_condicioniva');
+Route::delete('configuracion/condicioniva/{id}', 'Configuracion\CondicionivaController@eliminar')->name('eliminar_condicioniva');
 
 /* 
  * Fondos
@@ -252,6 +265,28 @@ Route::post('stock/serigrafia', 'Stock\SerigrafiaController@guardar')->name('gua
 Route::get('stock/serigrafia/{id}/editar', 'Stock\SerigrafiaController@editar')->name('editar_serigrafia');
 Route::put('stock/serigrafia/{id}', 'Stock\SerigrafiaController@actualizar')->name('actualizar_serigrafia');
 Route::delete('stock/serigrafia/{id}', 'Stock\SerigrafiaController@eliminar')->name('eliminar_serigrafia');
+
+/* 
+ * Materiales de capelladas
+ */
+
+Route::get('stock/materialcapellada', 'Stock\MaterialcapelladaController@index')->name('materialcapellada');
+Route::get('stock/materialcapellada/crear', 'Stock\MaterialcapelladaController@crear')->name('crear_materialcapellada');
+Route::post('stock/materialcapellada', 'Stock\MaterialcapelladaController@guardar')->name('guardar_materialcapellada');
+Route::get('stock/materialcapellada/{id}/editar', 'Stock\MaterialcapelladaController@editar')->name('editar_materialcapellada');
+Route::put('stock/materialcapellada/{id}', 'Stock\MaterialcapelladaController@actualizar')->name('actualizar_materialcapellada');
+Route::delete('stock/materialcapellada/{id}', 'Stock\MaterialcapelladaController@eliminar')->name('eliminar_materialcapellada');
+
+/* 
+ * Materiales de avios
+ */
+
+Route::get('stock/materialavio', 'Stock\MaterialavioController@index')->name('materialavio');
+Route::get('stock/materialavio/crear', 'Stock\MaterialavioController@crear')->name('crear_materialavio');
+Route::post('stock/materialavio', 'Stock\MaterialavioController@guardar')->name('guardar_materialavio');
+Route::get('stock/materialavio/{id}/editar', 'Stock\MaterialavioController@editar')->name('editar_materialavio');
+Route::put('stock/materialavio/{id}', 'Stock\MaterialavioController@actualizar')->name('actualizar_materialavio');
+Route::delete('stock/materialavio/{id}', 'Stock\MaterialavioController@eliminar')->name('eliminar_materialavio');
 
 /* 
  * Talles
@@ -407,6 +442,11 @@ Route::get('stock/caja/{id}/editar', 'Stock\CajaController@editar')->name('edita
 Route::put('stock/caja/{id}', 'Stock\CajaController@actualizar')->name('actualizar_caja');
 Route::delete('stock/caja/{id}', 'Stock\CajaController@eliminar')->name('eliminar_caja');
 
+// Reportes de stock
+
+Route::get('stock/catalogo', 'Stock\CombinacionController@catalogo')->name('catalogo');
+Route::post('stock/crearCatalogo', 'Stock\CombinacionController@crearCatalogo')->name('crear_catalogo');
+
 /* 
  * Impuestos
  */
@@ -454,13 +494,18 @@ Route::post('contable/cuentacontable/guardar-orden', 'Contable\CuentacontableCon
 
 Route::get('stock/products', 'Stock\ArticuloController@index')->name('products.index');
 Route::get('stock/products/list', 'Stock\ArticuloController@list')->name('products.list');
-Route::get('stock/product/', 'Stock\ArticuloController@download')->name('product.download');
+Route::get('stock/product/{sku}/{codigo}', 'Stock\ArticuloController@download')->name('product.download');
 Route::get('stock/products/create', 'Stock\ArticuloController@create')->name('product.create');
 Route::put('stock/product/save', 'Stock\ArticuloController@save')->name('product.save');
 Route::get('stock/product/edit/{id}/{tipo?}/{filtros?}', 'Stock\ArticuloController@edit')->name('product.edit');
 Route::get('stock/product/datos-tecnicos/edit/{id}', 'Stock\ArticuloController@edit')->name('product.edittecnica');
 Route::put('stock/product/update/{id}/{filtros?}', 'Stock\ArticuloController@actualizar')->name('product.update');
 Route::delete('stock/product/delete/{id}', 'Stock\ArticuloController@delete')->name('product.delete');
+Route::post('stock/product/limpiafiltro', 'Stock\ArticuloController@limpiafiltro')->name('product.limpiafiltro');
+
+Route::get('stock/leercombinaciones/{id}', 'Stock\CombinacionController@leerCombinaciones')->name('leer_combinaciones');
+Route::get('stock/leermodulos/{id}/{modulo?}', 'Stock\LineaController@leerModulos')->name('leer_modulos');
+Route::get('stock/leertalles/{id}', 'Stock\ModuloController@leerTalles')->name('leer_talles');
 
 Route::put('stock/product/contaduria/update/{id}', 'Stock\ArticuloController@updateContaduria')->name('product.contaduria.update');
 Route::put('stock/product/tecnica/update/{id}', 'Stock\ArticuloController@updateTecnica')->name('product.tecnica.update');
@@ -469,13 +514,13 @@ Route::get('stock/combinacion/list', 'Stock\CombinacionController@list')->name('
 Route::get('stock/combinacion/index/{id?}', 'Stock\CombinacionController@index')->name('combinacion.index');
 
 Route::post('stock/combinacion/updateState', 'Stock\CombinacionController@updateState')->name('combinacion.updateState');
-Route::put('stock/combinacion/updateStateAll', 'Stock\CombinacionController@updateStateAll')->name('combinacion.updateStateAll');
+Route::post('stock/combinacion/updateStateAll', 'Stock\CombinacionController@updateStateAll')->name('combinacion.updateStateAll');
 Route::get('stock/combinacion/edit/{id}/{tipo?}', 'Stock\CombinacionController@edit')->name('combinacion.edit');
 Route::put('stock/combinacion/update/{id}', 'Stock\CombinacionController@update')->name('combinacion.update');
 Route::put('stock/combinacion/updateTecnica', 'Stock\CombinacionController@updateTecnica')->name('combinacion.tecnica.update');
-Route::get('stock/combinacion/create', 'Stock\CombinacionController@create')->name('combinacion.create');
+Route::get('stock/combinacion/create/{id}', 'Stock\CombinacionController@create')->name('combinacion.create');
 Route::put('stock/combinacion/save', 'Stock\CombinacionController@save')->name('combinacion.save');
-Route::put('stock/combinacion/delete', 'Stock\CombinacionController@delete')->name('eliminar_combinacion');
+Route::delete('stock/combinacion/delete/{id}', 'Stock\CombinacionController@delete')->name('eliminar_combinacion');
 Route::get('stock/combinacion/product/{sku}', 'Stock\CombinacionController@create')->name('combinacion.product');
 
 // Reportes de ventas
@@ -483,4 +528,83 @@ Route::get('stock/combinacion/product/{sku}', 'Stock\CombinacionController@creat
 Route::get('ventas/reppercepcioniibb', 'Ventas\ReppercepcioniibbController@index')->name('listar_percepcioniibb');
 Route::post('ventas/crearreppercepcioniibb', 'Ventas\ReppercepcioniibbController@crearReporteControlPercepcionesIIBB')->name('crear_reppercepcioniibb');
 
+
+/* Modulo de ventas
+
+/* 
+ * Vendedores
+ */
+
+Route::get('ventas/vendedor', 'Ventas\VendedorController@index')->name('vendedor');
+Route::get('ventas/vendedor/crear', 'Ventas\VendedorController@crear')->name('crear_vendedor');
+Route::post('ventas/vendedor', 'Ventas\VendedorController@guardar')->name('guardar_vendedor');
+Route::get('ventas/vendedor/{id}/editar', 'Ventas\VendedorController@editar')->name('editar_vendedor');
+Route::put('ventas/vendedor/{id}', 'Ventas\VendedorController@actualizar')->name('actualizar_vendedor');
+Route::delete('ventas/vendedor/{id}', 'Ventas\VendedorController@eliminar')->name('eliminar_vendedor');
+
+/* 
+ * Zonas de venta
+ */
+
+Route::get('ventas/zonavta', 'Ventas\ZonavtaController@index')->name('zonavta');
+Route::get('ventas/zonavta/crear', 'Ventas\ZonavtaController@crear')->name('crear_zonavta');
+Route::post('ventas/zonavta', 'Ventas\ZonavtaController@guardar')->name('guardar_zonavta');
+Route::get('ventas/zonavta/{id}/editar', 'Ventas\ZonavtaController@editar')->name('editar_zonavta');
+Route::put('ventas/zonavta/{id}', 'Ventas\ZonavtaController@actualizar')->name('actualizar_zonavta');
+Route::delete('ventas/zonavta/{id}', 'Ventas\ZonavtaController@eliminar')->name('eliminar_zonavta');
+
+/* 
+ * Subzonas de venta
+ */
+
+Route::get('ventas/subzonavta', 'Ventas\SubzonavtaController@index')->name('subzonavta');
+Route::get('ventas/subzonavta/crear', 'Ventas\SubzonavtaController@crear')->name('crear_subzonavta');
+Route::post('ventas/subzonavta', 'Ventas\SubzonavtaController@guardar')->name('guardar_subzonavta');
+Route::get('ventas/subzonavta/{id}/editar', 'Ventas\SubzonavtaController@editar')->name('editar_subzonavta');
+Route::put('ventas/subzonavta/{id}', 'Ventas\SubzonavtaController@actualizar')->name('actualizar_subzonavta');
+Route::delete('ventas/subzonavta/{id}', 'Ventas\SubzonavtaController@eliminar')->name('eliminar_subzonavta');
+
+/* 
+ * Condiciones de venta
+ */
+
+Route::get('ventas/condicionventa', 'Ventas\CondicionventaController@index')->name('condicionventa');
+Route::get('ventas/condicionventa/crear', 'Ventas\CondicionventaController@crear')->name('crear_condicionventa');
+Route::post('ventas/condicionventa', 'Ventas\CondicionventaController@guardar')->name('guardar_condicionventa');
+Route::get('ventas/condicionventa/{id}/editar', 'Ventas\CondicionventaController@editar')->name('editar_condicionventa');
+Route::put('ventas/condicionventa/{id}', 'Ventas\CondicionventaController@actualizar')->name('actualizar_condicionventa');
+Route::delete('ventas/condicionventa/{id}', 'Ventas\CondicionventaController@eliminar')->name('eliminar_condicionventa');
+
+/* 
+ * Transportes
+ */
+
+Route::get('ventas/transporte', 'Ventas\TransporteController@index')->name('transporte');
+Route::get('ventas/transporte/crear', 'Ventas\TransporteController@crear')->name('crear_transporte');
+Route::post('ventas/transporte', 'Ventas\TransporteController@guardar')->name('guardar_transporte');
+Route::get('ventas/transporte/{id}/editar', 'Ventas\TransporteController@editar')->name('editar_transporte');
+Route::put('ventas/transporte/{id}', 'Ventas\TransporteController@actualizar')->name('actualizar_transporte');
+Route::delete('ventas/transporte/{id}', 'Ventas\TransporteController@eliminar')->name('eliminar_transporte');
+
+/* 
+ * Clientes
+ */
+
+Route::get('ventas/cliente', 'Ventas\ClienteController@index')->name('cliente');
+Route::get('ventas/cliente/crear', 'Ventas\ClienteController@crear')->name('crear_cliente');
+Route::post('ventas/cliente', 'Ventas\ClienteController@guardar')->name('guardar_cliente');
+Route::get('ventas/cliente/{id}/editar', 'Ventas\ClienteController@editar')->name('editar_cliente');
+Route::put('ventas/cliente/{id}', 'Ventas\ClienteController@actualizar')->name('actualizar_cliente');
+Route::delete('ventas/cliente/{id}', 'Ventas\ClienteController@eliminar')->name('eliminar_cliente');
+
+/* 
+ * Pedidos
+ */
+
+Route::get('ventas/pedido', 'Ventas\PedidoController@index')->name('pedido');
+Route::get('ventas/pedido/crear', 'Ventas\PedidoController@crear')->name('crear_pedido');
+Route::post('ventas/pedido', 'Ventas\PedidoController@guardar')->name('guardar_pedido');
+Route::get('ventas/pedido/{id}/editar', 'Ventas\PedidoController@editar')->name('editar_pedido');
+Route::put('ventas/pedido/{id}', 'Ventas\PedidoController@actualizar')->name('actualizar_pedido');
+Route::delete('ventas/pedido/{id}', 'Ventas\PedidoController@eliminar')->name('eliminar_pedido');
 

@@ -15,11 +15,11 @@ class TablaPermisoSeeder extends Seeder
     {
         $now = Carbon::now()->toDateTimeString();
         $permisos = [
-            array('id' => '181', 'nombre' => 'Crear localidades', 'slug' => 'crear-localidades', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '182', 'nombre' => 'Listar localidades', 'slug' => 'listar-localidades', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '183', 'nombre' => 'Editar localidades', 'slug' => 'editar-localidades', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '184', 'nombre' => 'Actualizar localidades', 'slug' => 'editar-localidades', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '185', 'nombre' => 'Borrar localidades', 'slug' => 'borrar-localidades', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '231', 'nombre' => 'Crear pedidos', 'slug' => 'crear-pedidos', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '232', 'nombre' => 'Listar pedidos', 'slug' => 'listar-pedidos', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '233', 'nombre' => 'Editar pedidos', 'slug' => 'editar-pedidos', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '234', 'nombre' => 'Actualizar pedidos', 'slug' => 'editar-pedidos', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '235', 'nombre' => 'Borrar pedidos', 'slug' => 'borrar-pedidos', 'created_at' => $now, 'updated_at' => $now),
 
         ];
         DB::table('permiso')->insert($permisos);

@@ -5,7 +5,7 @@
     </div>
 </div>
 <div class="form-group row">
-    <label for="nombre" class="col-lg-3 col-form-label requerido">C&oacute;digo</label>
+    <label for="nombre" class="col-lg-3 col-form-label requerido">C&oacute;digo ANITA</label>
     <div class="col-lg-3">
     <input type="text" name="codigo" id="codigo" class="form-control" value="{{old('codigo', $linea->codigo ?? '')}}" required/>
     </div>
@@ -41,7 +41,7 @@
 	</select>
 </div>
 <div class="form-group row">
-    <label for="listaprecio_id" class="col-lg-3 col-form-label requerido">Lista de precios</label>
+    <label for="listaprecio_id" class="col-lg-3 col-form-label requerido">Lista de precios WEB</label>
 	<select name="listaprecio_id" class="col-lg-3 form-control">
 		<option value="">-- Elija lista de precios --</option>
 		@foreach ($listaprecio_query as $listaprecio)

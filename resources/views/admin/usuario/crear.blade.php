@@ -21,7 +21,7 @@
                     </a>
                 </div>
             </div>
-            <form action="{{route('guardar_usuario')}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
+            <form action="{{route('guardar_usuario')}}" id="form-general" enctype="multipart/form-data" class="form-horizontal form--label-right" method="POST" autocomplete="off">
                 @csrf
                 <div class="card-body">
                     @include('admin.usuario.form')

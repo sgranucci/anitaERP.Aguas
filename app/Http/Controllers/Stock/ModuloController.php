@@ -34,6 +34,13 @@ class ModuloController extends Controller
         return view('stock.modulo.index', compact('modulos'));
     }
 
+	public function leerTalles($modulo_id)
+    {
+        $modulos = Modulo::with('talles')->where('id',$modulo_id)->get();
+
+		return $modulos;
+    }
+
     /**
      * Show the form for creating a new resource.
      *

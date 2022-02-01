@@ -18,18 +18,29 @@ class LocalidadController extends Controller
      */
     public function index()
     {
+	  	ini_set('memory_limit', '512M');
         can('listar-localidades');
-        $datas = Localidad::with('provincias')->orderBy('id')->get();
+        $datas = Localidad::with('provincias')->orderBy('nombre')->paginate(15);
 
 		if ($datas->isEmpty())
 		{
 			$Localidad = new Localidad();
         	$Localidad->sincronizarConAnita();
 	
-        	$datas = Localidad::with('provincias')->orderBy('id')->get();
+        	$datas = Localidad::with('provincias')->orderBy('nombre')->paginate(15);
 		}
-
         return view('configuracion.localidad.index', compact('datas'));
+    }
+
+	public function leerLocalidades($id)
+    {
+        return Localidad::select('id','nombre')->where('provincia_id',$id)->orderBy('nombre','asc')->get()->toArray();
+    }
+
+    public function leerCodigoPostal($id)
+    {
+        $cp = Localidad::select('codigopostal')->where('id',$id)->get();
+        return $cp[0]->codigopostal;
     }
 
     /**

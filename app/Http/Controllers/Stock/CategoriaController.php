@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Stock;
 
+use App\Http\Requests\ValidacionCategoria;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Stock\Categoria;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Stock\Tipoarticulo;
-use App\Http\Requests\ValidacionCategoria;
 
 class CategoriaController extends Controller
 {

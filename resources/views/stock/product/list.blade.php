@@ -6,6 +6,47 @@ Art&iacute;culos
 @section("scripts")
 <script src="{{asset("assets/pages/scripts/admin/index.js")}}" type="text/javascript"></script>
 <script src="{{asset("assets/pages/scripts/stock/articulo/filtro.js")}}" type="text/javascript"></script>
+
+<script>
+function checkState(index){
+  var confirmar = confirm("¿Desea inactivar combinaciones de forma masiva?");
+  if(confirmar){
+
+    var id = $("#producto_id").val();
+    var token = $("meta[name='csrf-token']").attr("content");
+    var estado = 'I';
+    var data = "id="+id+"&estado="+estado+"&_token="+token;
+    
+    $.ajax({
+        type: "POST",
+        url: '/anitaERP/public/stock/combinacion/updateStateAll',
+        data: data,
+        success: function(response){
+          $('#tabla-data').DataTable().ajax.reload();
+        }
+    });
+  }
+}
+
+function limpiaFiltros(){
+	$('#estado').val('');
+	$('#usoarticulo_id').val('');
+
+    var token = $("meta[name='csrf-token']").attr("content");
+    var data = "_token="+token;
+
+    $.ajax({
+        type: "POST",
+        url: '/anitaERP/public/stock/product/limpiafiltro',
+		data: data,
+        success: function(response){
+			window.location.replace(window.location.pathname);
+        }
+    });
+}
+
+</script>
+
 @endsection
 
 <?php use App\Helpers\biblioteca ?>
@@ -26,7 +67,7 @@ Art&iacute;culos
                     </a>
                     <span id="container-button-state">
                        	@if (can('cambiar-estado-combinaciones', false))
-                            <button class="btn btn-outline-secondary btn-sm" style="color:white" onclick="checkState(0)">Cambiar estado de combinaciones</button>
+                            <button class="btn btn-outline-secondary btn-sm" style="color:white" onclick="checkState(0)">Inactivar combinaciones</button>
                         @endif
                     </span>
                    	<a href="javascript:void(0)" class="btn btn-outline-secondary btn-sm" id='btn_advanced_filter' data-url-parameter='' 
@@ -35,6 +76,11 @@ Art&iacute;culos
                        		<i class="fa fa-filter"></i> Filtros y Orden
 						@endif
                     </a>
+					@if (session()->get('filtros') != '') 
+                    	<span id="container-button-state">
+                            <button class="btn btn-outline-secondary btn-sm" style="color:white" onclick="limpiaFiltros()">Limpiar filtros</button>
+                    	</span>
+					@endif
                 </div>
             </div>
             <div class="card-body table-responsive p-0">
@@ -70,17 +116,22 @@ Art&iacute;culos
                             <td>
 								@if ($articulo->usoarticulo_id == 1)
                        				@if (can('editar-articulos-combinaciones', false))
-          								<a class="btn-xs btn-primary ml-2" href="combinacion/index/{{$articulo->id}}">Combinaciones</a>
+          								<a class="btn-xs btn-primary ml-2" style="padding: 1px" href="combinacion/index/{{$articulo->id}}">Combinaciones</a>
 									@endif
 								@endif
                        			@if (can('editar-articulos-disenio', false))
-          							<a class="btn-xs btn-primary ml-2" href="{{route('product.edit', ['id' => $articulo->id])}}">Diseño</a>
+          							<a class="btn-xs btn-primary ml-2" style="padding: 1px" href="product/edit/{{$articulo->id}}/disenio">Diseño</a>
 								@endif
                        			@if (can('editar-articulos-tecnica', false))
-          							<a class="btn-xs btn-primary ml-2" href="product/edit/{{$articulo->id}}/tecnica">T&eacute;cnica</a>
+          							<a class="btn-xs btn-primary ml-2" style="padding: 1px" href="product/edit/{{$articulo->id}}/tecnica">T&eacute;cnica</a>
 								@endif
                        			@if (can('editar-articulos-contaduria', false))
-          							<a class="btn-xs btn-primary ml-2" href="product/edit/{{$articulo->id}}/contaduria">Contaduría</a>
+          							<a class="btn-xs btn-primary ml-2" style="padding: 1px" href="product/edit/{{$articulo->id}}/contaduria">Contable</a>
+								@endif
+                       			@if (can('imprimir-articulos-qr', false))
+          							<a href="product/{{$articulo->stkm_articulo}}/TODO" class="btn-accion-tabla tooltipsC" title="Imprimir QR">
+                                   		<i class="fa fa-qrcode"></i>
+									</a>
 								@endif
                        			@if (can('borrar-articulos', false))
                                 <form action="{{route('product.delete', ['id' => $articulo->id])}}" class="d-inline form-eliminar" method="POST">

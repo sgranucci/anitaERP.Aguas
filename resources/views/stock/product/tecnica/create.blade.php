@@ -27,7 +27,7 @@
                     @endif
             </div>
             <br>
-            <form id="" class="" method="POST" action="{{ route('product.save') }}">
+            <form id="" class="" enctype="multipart/form-data" method="POST" action="{{ route('product.save') }}">
                 @csrf
                 @include('product.partials.form')
             </form>

@@ -21,7 +21,7 @@
                     </a>
                 </div>
             </div>
-            <form action="{{route('product.tecnica.update', ['id' => $producto->id])}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
+            <form action="{{route('product.tecnica.update', ['id' => $producto->id])}}" id="form-general" enctype="multipart/form-data" class="form-horizontal form--label-right" method="POST" autocomplete="off">
                 @csrf @method("put")
                 <input type="hidden" name="id" class="form-control" value="{{ $producto->id }}" />
                 @include('stock.product.tecnica.partials.form', ['edit' => true])

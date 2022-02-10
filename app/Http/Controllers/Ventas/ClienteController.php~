@@ -1,0 +1,109 @@
+<?php
+
+namespace App\Http\Controllers\Ventas;
+
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Models\Ventas\Cliente;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\ValidacionCliente;
+use App\Repositories\Ventas\ClienteRepositoryInterface;
+
+class ClienteController extends Controller
+{
+	private $repository;
+
+    public function __construct(RepositoryInterface $repository)
+    {
+        $this->repository = $repository;
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        can('listar-clientes');
+		$datas = $this->repository->all();
+
+        return view('ventas.cliente.index', compact('datas'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function crear()
+    {
+        can('crear-clientes');
+
+        return view('ventas.cliente.crear');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function guardar(ValidacionCliente $request)
+    {
+		$this->repository->create($request->all());
+
+        return redirect('ventas/cliente')->with('mensaje', 'Cliente creado con exito');
+    }
+
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function editar($id)
+    {
+        can('editar-clientes');
+        $data = $this->repository->findOrFail($id);
+
+        return view('ventas.cliente.editar', compact('data'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function actualizar(ValidacionCliente $request, $id)
+    {
+        can('actualizar-clientes');
+        $this->repository->update($request->all(), $id);
+
+        return redirect('ventas/cliente')->with('mensaje', 'Cliente actualizado con exito');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function eliminar(Request $request, $id)
+    {
+        can('borrar-clientes');
+
+        if ($request->ajax()) {
+        	if ($this->repository->delete($id)) {
+                return response()->json(['mensaje' => 'ok']);
+            } else {
+                return response()->json(['mensaje' => 'ng']);
+            }
+        } else {
+            abort(404);
+        }
+    }
+}

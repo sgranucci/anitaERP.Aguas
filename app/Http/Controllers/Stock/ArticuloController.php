@@ -25,7 +25,6 @@ use App\Models\Stock\Capeart;
 use App\Models\Stock\Avioart;
 use App\Models\Configuracion\Impuesto;
 use App\Http\Controllers\Controller;
-use PDF;
 use QrCode;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -181,6 +180,8 @@ class ArticuloController extends Controller
 
         return json_encode(["ok"]);
 	}
+
+	// Lista etiqueta QR
 
 	public function download(Request $request, $sku, $codigo) {
 

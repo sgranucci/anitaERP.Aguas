@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\ApiAnita;
 use App\Models\Stock\Talle;
+use App\Models\Ventas\Pedido_Combinacion;
 
 class Modulo extends Model
 {
@@ -23,6 +24,11 @@ class Modulo extends Model
 	{
     	return $this->belongsToMany(Linea::class, 'linea_modulo');
 	}
+
+	public function pedido_combinaciones()
+    {
+        return $this->hasMany(Pedido_combinacion::class, 'id');
+    }
 
     public function sincronizarConAnita(){
         $apiAnita = new ApiAnita();

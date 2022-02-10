@@ -61,11 +61,11 @@ class CombinacionController extends Controller
         $hay_combinacion = Combinacion::first();
 
         if( $articulo_id ){
-        	$combinaciones = Combinacion::select('id','articulo_id','codigo','nombre','estado')->with('articulos:id,descripcion,sku')->
+        	$combinaciones = Combinacion::select('id','articulo_id','codigo','nombre','estado','foto')->with('articulos:id,descripcion,sku')->
             				where("articulo_id",$articulo_id)->get();
         	$articulo = Articulo::where("id",$articulo_id)->first();
         }else{
-        	$combinaciones = Combinacion::select('id','articulo_id','codigo','nombre','estado')->with('articulos:id,descripcion,sku')->get();
+        	$combinaciones = Combinacion::select('id','articulo_id','codigo','nombre','estado','foto')->with('articulos:id,descripcion,sku')->get();
 			$articulo = '';
         }
 
@@ -92,10 +92,10 @@ class CombinacionController extends Controller
 		if (!$hay_combinacion)
 		{
         	if( $articulo_id ){
-        		$combinaciones = Combinacion::select('id','articulo_id','codigo','nombre','estado')->with('articulos:id,descripcion,sku')->
+        		$combinaciones = Combinacion::select('id','articulo_id','codigo','nombre','estado','foto')->with('articulos:id,descripcion,sku')->
             					where("articulo_id",$articulo_id)->get();
         	}else{
-        		$combinaciones = Combinacion::select('id','articulo_id','codigo','nombre','estado')->with('articulos:id,descripcion,sku')->get();
+        		$combinaciones = Combinacion::select('id','articulo_id','codigo','nombre','estado','foto')->with('articulos:id,descripcion,sku')->get();
         	}
 		}
 

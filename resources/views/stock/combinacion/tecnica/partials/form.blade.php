@@ -168,7 +168,7 @@
                 				value="{{ (old('consumo4.' . $loop->index) ?? optional($combinacion_capeart)->consumo4) ?? '0' }}" />
                 		</td>
 						<td>
-                			<select name="tipos[]" class="form-control">
+                			<select name="tipos[]" class="form-control requerido" required>
                 				<option value="">-- Elija tipo de material --</option>
                 				@foreach ($tipos as $tipo)
                 					<option value="{{ $tipo['id'] }}"
@@ -222,7 +222,7 @@
                 			value="{{ old('consumo4.1') ?? '0' }}" />
                 	</td>
 					<td>
-                		<select name="tipos[]" class="form-control">
+                		<select name="tipos[]" class="form-control requerido" required>
                 			<option value="">-- Elija tipo de material --</option>
                 			@foreach ($tipos as $tipo)
                 				<option value="{{ $tipo['id'] }}" >{{ $tipo['nombre'] }}</option>
@@ -301,7 +301,7 @@
                 				value="{{ (old('consumo4_avios.' . $loop->index) ?? optional($combinacion_avioart)->consumo4) ?? '0' }}" />
                 		</td>
 						<td>
-                			<select name="tipos_avios[]" class="form-control">
+                			<select name="tipos_avios[]" class="form-control requerido" required>
                 				<option value="">-- Elija tipo de avio --</option>
                 				@foreach ($tipos_avios as $tipo)
                 					<option value="{{ $tipo['id'] }}"
@@ -352,7 +352,7 @@
                 			value="{{ old('consumo4_avios.1') ?? '0' }}" />
                 	</td>
 					<td>
-                		<select name="tipos_avios[]" class="form-control">
+                		<select name="tipos_avios[]" class="form-control requerido" required>
                 			<option value="">-- Elija tipo de avio --</option>
                 			@foreach ($tipos_avios as $tipo)
                 				<option value="{{ $tipo['id'] }}"

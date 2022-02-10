@@ -72,7 +72,8 @@ function cambiarEstado(id, index){
                             <th class="width80">Combinaci&oacute;n</th>
                             <th>Nombre</th>
                             <th>Art&iacute;culo</th>
-                            <th class="width80">Estado</th>
+                            <th class="width20">Estado</th>
+                            <th class="width80">Foto</th>
                             <th data-orderable="false"></th>
                         </tr>
                     </thead>
@@ -96,6 +97,7 @@ function cambiarEstado(id, index){
             						{{ $combinacion->estado ?? '' }}
 								</span>
         						</td>
+                            	<td><img width=100px src="{{ isset($combinacion->foto) ? asset("storage/imagenes/fotos_articulos/$combinacion->foto") : '' }}"></td>
         						<td>
                        			@if (can('cambiar-estado-combinaciones', false))
                         		<span id="container-button-state{{$combinacion->id}}">

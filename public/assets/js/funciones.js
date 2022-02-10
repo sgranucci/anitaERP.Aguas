@@ -57,3 +57,10 @@ var Biblioteca = function () {
         },
     }
 }();
+
+function fNumero(Pvalor, Pdecimal)
+{
+	var pre = (new Intl.NumberFormat('en-US', {minimumFractionDigits: Pdecimal}).format(parseFloat(Pvalor).toFixed(Pdecimal)));
+
+	return pre;
+}

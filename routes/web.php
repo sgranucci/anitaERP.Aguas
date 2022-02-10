@@ -375,6 +375,7 @@ Route::post('stock/precio', 'Stock\PrecioController@guardar')->name('guardar_pre
 Route::get('stock/precio/{id}/editar', 'Stock\PrecioController@editar')->name('editar_precio');
 Route::put('stock/precio/{id}', 'Stock\PrecioController@actualizar')->name('actualizar_precio');
 Route::delete('stock/precio/{id}', 'Stock\PrecioController@eliminar')->name('eliminar_precio');
+Route::get('stock/asignaprecio/{id}/{talle?}', 'Stock\PrecioController@asignaPrecio')->name('asigna_precio');
 
 /* 
  * Unidades de medida
@@ -607,4 +608,5 @@ Route::post('ventas/pedido', 'Ventas\PedidoController@guardar')->name('guardar_p
 Route::get('ventas/pedido/{id}/editar', 'Ventas\PedidoController@editar')->name('editar_pedido');
 Route::put('ventas/pedido/{id}', 'Ventas\PedidoController@actualizar')->name('actualizar_pedido');
 Route::delete('ventas/pedido/{id}', 'Ventas\PedidoController@eliminar')->name('eliminar_pedido');
+Route::get('ventas/listarpedido/{id}/{cliente_id?}', 'Ventas\PedidoController@listarPedido')->name('listar_pedido');
 

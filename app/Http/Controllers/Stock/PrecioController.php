@@ -8,6 +8,7 @@ use App\Models\Stock\Precio;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Seguridad\Usuario;
 use App\Models\Stock\Articulo;
+use App\Models\Stock\Talle;
 use App\Models\Stock\Listaprecio;
 use App\Models\Configuracion\Moneda;
 use App\Http\Requests\ValidacionPrecio;
@@ -43,6 +44,55 @@ class PrecioController extends Controller
 		}
         return view('stock.precio.index', compact('datas'));
     }
+
+	public function asignaPrecio($articulo_id, $talle_id)
+	{
+		$talle_id = preg_replace('([^A-Za-z0-9,])', '', $talle_id);
+		$array_talle = explode(',', $talle_id);
+		if ($talle_id)
+		{
+			$talle = Talle::select('nombre', 'id')->whereIn('id', $array_talle)->get();
+
+			foreach($talle as $value)
+			{
+				$lista = 1;
+		
+				if ($value->nombre >= 16 && $value->nombre <= 26)
+					$lista = 1;
+				if ($value->nombre >= 27 && $value->nombre <= 33)
+					$lista = 2;
+				if ($value->nombre >= 34 && $value->nombre <= 40)
+					$lista = 3;
+				if ($value->nombre >= 41) 
+					$lista = 6;
+	
+				$precio = Precio::with('listaprecios')->where('articulo_id',$articulo_id)->where('listaprecio_id',$lista)->first();
+	
+				if ($precio)
+				{
+					$precio_talle = $precio->precio;
+					$listaprecio_id = $precio->listaprecio_id;
+					$moneda_id = $precio->moneda_id;
+					$incluyeimpuesto = $precio->listaprecios->incluyeimpuesto;
+				}
+				else
+				{
+					$precio_talle = 0;
+					$listaprecio_id = 0;
+					$moneda_id = 1;
+					$incluyeimpuesto = 1;
+				}
+
+				$array_precio[] = [
+									'precio'=>$precio_talle,
+				  					'listaprecio_id'=>$listaprecio_id,
+				  					'moneda_id'=>$moneda_id,
+				  					'incluyeimpuesto'=>$incluyeimpuesto,
+				  					];
+			}
+		}
+		return($array_precio);
+	}
 
     /**
      * Show the form for creating a new resource.

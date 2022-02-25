@@ -3,10 +3,11 @@
 namespace App\Models\Ventas;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use App\Models\Stock\Mventa;
 use App\Models\Ventas\Cliente;
+use App\Models\Ventas\Cliente_Entrega;
 use App\Models\Ventas\Condicionventa;
 use App\Models\Ventas\Vendedor;
 use App\Models\Ventas\Pedido_Combinacion;
@@ -21,7 +22,7 @@ class Pedido extends Model
 
     protected $fillable = ['fecha', 'fechaentrega', 'cliente_id', 'condicionventa_id', 'vendedor_id', 'transporte_id', 
 							'mventa_id', 'estado', 'usuario_id', 'leyenda', 'descuento', 'descuentointegrado', 
-							'lugarentrega', 'codigo'];
+							'cliente_entrega_id', 'lugarentrega', 'codigo'];
     protected $table = 'pedido';
 	protected $dates = [
 						'fecha',
@@ -62,5 +63,16 @@ class Pedido extends Model
     {
         return $this->belongsTo(Usuario::class, 'usuario_id');
     }
+
+    public function cliente_entregas()
+    {
+        return $this->hasOne(Cliente_Entrega::class, 'cliente_entrega_id');
+    }
+
+	public function getEntregaNombreAttribute()
+	{
+		$data = Cliente_entrega::find($this->cliente_entrega_id);
+		return ($data ? $data->nombre : '');
+	}
 }
 

@@ -11,6 +11,47 @@ function sub()
 {
 	$('#form-general').submit();
 }
+
+   function completarCliente_Entrega(cliente_id){
+        var loc_id, fl_tiene_entrega = false;
+        $.get('/anitaERP/public/ventas/leercliente_entrega/'+cliente_id, function(data){
+            var entr = $.map(data, function(value, index){
+                return [value];
+            });
+            $("#cliente_entrega_id").empty();
+            $("#cliente_entrega_id").append('<option value=""></option>');
+            $.each(entr, function(index,value){
+                $("#cliente_entrega_id").append('<option value="'+value.id+'">'+value.nombre+'</option>');
+				fl_tiene_entrega = true;
+            });
+			if (fl_tiene_entrega)
+			{
+			  $("#divcodigoentrega").show();
+			  $("#divlugar").hide();
+			}
+			else
+			{
+			  $("#divcodigoentrega").hide();
+			  $("#divlugar").show();
+			}
+        });
+        setTimeout(() => {
+        }, 3000);
+    }
+
+    $(function () {
+        $("#cliente_id").change(function(){
+            var cliente_id = $(this).val();
+            completarCliente_Entrega(cliente_id);
+    	});
+
+		$("#divlugar").show();
+		$("#divcodigoentrega").hide();
+
+        var cliente_id = $("#cliente_id").val();
+        completarCliente_Entrega(cliente_id);
+	  });
+
 </script>
 
 @endsection

@@ -4,7 +4,7 @@
                	<!-- textarea -->
                	<div class="form-group">
                		<label>Leyendas</label>
-               		<textarea name="leyenda" class="form-control" rows="8" placeholder="Leyendas ...">{{old('leyenda', $data->leyenda ?? '')}}</textarea>
+               		<textarea name="leyenda" id="leyenda" class="form-control" rows="8" placeholder="Leyendas ...">{{old('leyenda', $data->leyenda ?? '')}}</textarea>
                	</div>
         </div>
    </div>

@@ -90,6 +90,7 @@
         					@endif
         				@endforeach
         			</select>
+    				<input type="hidden" id="condicioniva_query" value="{{$condicioniva_query}}">
         		</div>
         		<div class="form-group row">
     				<label for="letra" class="col-lg-4 col-form-label">Letra </label>

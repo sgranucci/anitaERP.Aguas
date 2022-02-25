@@ -52,10 +52,12 @@
     				<label for="vaweb" class="col-lg-4 col-form-label requerido">Va a web</label>
 					<select name="vaweb" class="col-lg-3 form-control" required>
     					<option value="">-- Elija si va a web --</option>
-        				@foreach ($vaweb_enum as $value => $vaweb)
-        					<option value="{{ $value }}"
-        						@if (old('vaweb', $data->vaweb ?? '') == $value) selected @endif
-        						>{{ $vaweb }}</option>
+        				@foreach($vaweb_enum as $value => $vaweb)
+        					@if( (int) $value == old('vaweb', $data->vaweb ?? ''))
+        						<option value="{{ $value }}" selected="select">{{ $vaweb }}</option>    
+        					@else
+        						<option value="{{ $value }}">{{ $vaweb }}</option>    
+        					@endif
         				@endforeach
 					</select>
 				</div>

@@ -529,6 +529,9 @@ Route::get('stock/combinacion/product/{sku}', 'Stock\CombinacionController@creat
 Route::get('ventas/reppercepcioniibb', 'Ventas\ReppercepcioniibbController@index')->name('listar_percepcioniibb');
 Route::post('ventas/crearreppercepcioniibb', 'Ventas\ReppercepcioniibbController@crearReporteControlPercepcionesIIBB')->name('crear_reppercepcioniibb');
 
+// Etiquetas de OT
+Route::get('ventas/repetiquetaot', 'Ventas\OrdentrabajoController@index')->name('repetiquetaot');
+Route::post('ventas/crearetiquetaot', 'Ventas\OrdentrabajoController@crearEtiquetaOt')->name('crear_repetiquetaot');
 
 /* Modulo de ventas
 
@@ -597,6 +600,7 @@ Route::post('ventas/cliente', 'Ventas\ClienteController@guardar')->name('guardar
 Route::get('ventas/cliente/{id}/editar', 'Ventas\ClienteController@editar')->name('editar_cliente');
 Route::put('ventas/cliente/{id}', 'Ventas\ClienteController@actualizar')->name('actualizar_cliente');
 Route::delete('ventas/cliente/{id}', 'Ventas\ClienteController@eliminar')->name('eliminar_cliente');
+Route::get('ventas/leercliente_entrega/{cliente_id}', 'Ventas\ClienteController@leerCliente_Entrega')->name('leer_cliente_entrega');
 
 /* 
  * Pedidos

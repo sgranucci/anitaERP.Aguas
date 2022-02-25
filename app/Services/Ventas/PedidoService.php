@@ -96,26 +96,33 @@ class PedidoService
 		$data['descuentointegrado'] = ' ';
 
        	// Pide ultimo numero de pedido en Anita
-       	$this->pedidoRepository->ultimoCodigoAnita($data['tipo'], $data['letra'], $data['sucursal'], $nro);
-       	$data['nro'] = $nro;
-
-       	$data['codigo'] = $data['tipo'].'-'.$data['letra'].'-'.
+		if ($funcion == 'create')
+		{
+       		$this->pedidoRepository->ultimoCodigoAnita($data['tipo'], $data['letra'], $data['sucursal'], $nro);
+       		$data['nro'] = $nro;
+	
+       		$data['codigo'] = $data['tipo'].'-'.$data['letra'].'-'.
                           str_pad($data['sucursal'], 5, "0", STR_PAD_LEFT).'-'.
                           str_pad($data['nro'], 8, "0", STR_PAD_LEFT);
 
-		// Guarda maestro de pedidos 
-		if ($funcion == 'create')
+			// Guarda maestro de pedidos 
        		$pedido = $this->pedidoRepository->create($data);
+		}
 		else
-       		$pedido = $this->pedidoRepository->update($data, $id);
+		{
+			$data['nro'] = substr($data['codigo'], 12, 8);
 
+       		$pedido = $this->pedidoRepository->update($data, $id);
+		}
+
+		// Guarda items
 		if ($pedido)
 		{
 		  	$data['pedido_id'] = ($funcion == 'update' ? $id : $pedido->id);
 
+			// Borra los registros de movimientos antes de grabar nuevamente
 			if ($funcion == 'update')
 			{
-				// Borra los registros antes de grabar nuevamente
        			$this->pedido_combinacionRepository->deleteporpedido($data['pedido_id'], $data['tipo'],
 					$data['letra'], $data['sucursal'], $data['nro']);
 			}
@@ -202,10 +209,10 @@ class PedidoService
 
         if (($pedido = $this->pedidoRepository->delete($id)))
 		{
-			$tipo = substr($data->codigo, 0, 3);
-			$letra = substr($data->codigo, 4, 1);
-			$sucursal = substr($data->codigo, 6, 5);
-			$nro = substr($data->codigo, 12, 8);
+			$tipo = substr($data[0]->codigo, 0, 3);
+			$letra = substr($data[0]->codigo, 4, 1);
+			$sucursal = substr($data[0]->codigo, 6, 5);
+			$nro = substr($data[0]->codigo, 12, 8);
 
         	$pedido_combinacion = $this->pedido_combinacionRepository->deleteporpedido($id, $tipo, $letra, $sucursal, $nro);
 

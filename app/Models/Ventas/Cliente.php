@@ -33,6 +33,16 @@ class Cliente extends Model
     protected $table = 'cliente';
 	protected $dates = ['deleted_at'];
 
+	public function cliente_entregas()
+	{
+    	return $this->hasMany(Cliente_Entrega::class, 'cliente_id')->with('localidades')->with('provincias')->with('transportes');
+	}
+
+	public function cliente_archivos()
+	{
+    	return $this->hasMany(Cliente_Archivo::class, 'cliente_id');
+	}
+
     public function localidades()
     {
         return $this->belongsTo(Localidad::class, 'localidad_id');
@@ -81,6 +91,11 @@ class Cliente extends Model
     public function cuentascontables()
     {
         return $this->belongsTo(Cuentacontable::class, 'cuentacontable_id');
+    }
+
+    public function transportes()
+    {
+        return $this->belongsTo(Transporte::class, 'transporte_id');
     }
 
     public function usuarios()

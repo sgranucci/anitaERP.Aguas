@@ -10,6 +10,7 @@ use App\Repositories\Ventas\TransporteRepositoryInterface;
 use App\Queries\Ventas\ClienteQueryInterface;
 use App\Services\Ventas\PedidoService;
 use App\Models\Configuracion\Moneda;
+use App\Models\Ventas\Cliente;
 use App\Models\Stock\Articulo;
 use App\Models\Stock\Mventa;
 use App\Models\Stock\Modulo;
@@ -150,7 +151,7 @@ class PedidoController extends Controller
 				&$transporte_query, &$mventa_query, &$articulo_query, &$modulo_query, &$listaprecio_query, 
 				&$moneda_query)
 	{
-		$cliente_query = $this->clienteQuery->allQuery(['id','nombre','codigo']);
+		$cliente_query = $this->clienteQuery->allQueryporEstado(['id','nombre','codigo'], '0');//Cliente::$enumEstado['activo']);
 		$condicionventa_query = Condicionventa::all();
 		$vendedor_query = Vendedor::all();
 		$transporte_query = $this->transporteRepository->all();

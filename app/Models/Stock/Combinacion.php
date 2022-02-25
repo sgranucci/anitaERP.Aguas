@@ -343,7 +343,6 @@ class Combinacion extends Model
 							"' AND ".$this->keyFieldAnitacombinacion[1]." = '".$request->codigo."' "
         );
         $dataAnitacombinacion = json_decode($apiAnita->apiCall($datacombinacion));
-
         if (count($dataAnitacombinacion) == 0) 
 		{
 		  	self::guardarAnita($request);

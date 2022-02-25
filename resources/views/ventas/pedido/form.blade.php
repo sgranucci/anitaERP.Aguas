@@ -39,12 +39,26 @@
         		@endforeach
         	</select>
 		</div>
-		<div class="form-group row">
-    		<label for="lugarentrega" class="col-lg-3 col-form-label">Entrega en</label>
+		<div class="form-group row" id="divlugar">
+    		<label for="lugarentrega" class="col-lg-3 col-form-label">Lugar de Entrega</label>
     		<div class="col-lg-8">
     			<input type="text" name="lugarentrega" id="lugarentrega" class="form-control" value="{{old('lugarentrega', $pedido->lugarentrega ?? '')}}">
     		</div>
 		</div>
+		<div class="form-group row" id="divcodigoentrega">
+        	<label class="col-lg-3 col-form-label">Entrega en</label>
+        	<select name="cliente_entrega_id" id='cliente_entrega_id' data-placeholder="Entrega" class="col-lg-8 form-control" data-fouc>
+        		@if($pedido->cliente_entrega_id ?? '')
+					@if($pedido->cliente_entrega_id == "")
+        				<option selected></option>
+        			@else
+        				<option value="{{old('cliente_entrega_id', $pedido->cliente_entrega_id)}}" selected>{{$pedido->entrega_nombre}}</option>
+					@endif
+        		@endif
+        	</select>
+        	<input type="hidden" id="cliente_entrega_id_previa" name="cliente_entrega_id_previa" value="{{old('cliente_entrega_id', $pedido->cliente_entrega_id ?? '')}}" >
+        	<input type="hidden" id="entrega_nombre" name="entrega_nombre" value="{{old('entrega_nombre', $pedido->entrega_nombre ?? '')}}" >
+        </div>
 	</div>
 	<div class="col-sm-6">
 		<div class="form-group row">

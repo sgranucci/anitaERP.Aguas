@@ -41,8 +41,28 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 	    $this->app->bind(
+        	'App\Repositories\Ventas\Cliente_EntregaRepositoryInterface',
+        	'App\Repositories\Ventas\Cliente_EntregaRepository',
+    	);
+
+	    $this->app->bind(
+        	'App\Repositories\Ventas\Cliente_ArchivoRepositoryInterface',
+        	'App\Repositories\Ventas\Cliente_ArchivoRepository',
+    	);
+
+	    $this->app->bind(
         	'App\Queries\Ventas\ClienteQueryInterface',
         	'App\Queries\Ventas\ClienteQuery',
+    	);
+
+	    $this->app->bind(
+        	'App\Queries\Ventas\Cliente_EntregaQueryInterface',
+        	'App\Queries\Ventas\Cliente_EntregaQuery',
+    	);
+
+	    $this->app->bind(
+        	'App\Queries\Ventas\OrdentrabajoQueryInterface',
+        	'App\Queries\Ventas\OrdentrabajoQuery',
     	);
 
 	    $this->app->bind(

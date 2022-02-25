@@ -66,9 +66,10 @@ class ClienteRepository implements ClienteRepositoryInterface
     public function delete($id)
     {
     	$cliente = Cliente::find($id);
-		//
+
 		// Elimina anita
-		self::eliminarAnita($cliente->codigo);
+		if ($cliente)
+			self::eliminarAnita($cliente->codigo);
 
         $cliente = $this->model->destroy($id);
 
@@ -77,7 +78,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 
     public function find($id)
     {
-        if (null == $cliente = $this->model->find($id)) {
+        if (null == $cliente = $this->model->with("cliente_entregas")->with("cliente_archivos")->find($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
 
@@ -86,10 +87,9 @@ class ClienteRepository implements ClienteRepositoryInterface
 
     public function findOrFail($id)
     {
-        if (null == $cliente = $this->model->findOrFail($id)) {
+        if (null == $cliente = $this->model->with("cliente_entregas")->with("cliente_archivos")->findOrFail($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
-
         return $cliente;
     }
 
@@ -228,7 +228,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 					$localidad_id = NULL;
 			}
 	
-        	$pais = Localidad::select('id', 'nombre')->where('id' , $data->clim_pais)->first();
+        	$pais = Pais::select('id', 'nombre')->where('id' , $data->clim_pais)->first();
 			if ($pais)
 				$pais_id = $pais->id;
 			else
@@ -445,15 +445,15 @@ class ClienteRepository implements ClienteRepositoryInterface
 				'".$condicioniva."',
 				'0',
 				'".$request['letra']."',
-				'".$request['condicionventa_id']."',
+				'".($request['condicionventa_id']>0?$request['condicionventa_id']:0)."',
 				'".$cuentacontable."',
 				'0',
 				'0',
-				'".$request['zonavta_id']."',
-				'".$request['subzonavta_id']."',
+				'".($request['zonavta_id']>0?$request['zonavta_id']:0)."',
+				'".($request['subzonavta_id']>0?$request['subzonavta_id']:0)."',
 				'".$request['provincia_id']."',
-				'".$request['vendedor_id']."',
-				'".$request['vendedor_id']."',
+				'".($request['vendedor_id']>0?$request['vendedor_id']:0)."',
+				'".($request['vendedor_id']>0?$request['vendedor_id']:0)."',
 				'".$codigotransporte."',
 				'0',
 				' ',
@@ -480,7 +480,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 				'".$fecha."',
 				' ',
 				'0',
-				' ',
+				'0',
 				' ',
 				' ',
 				' ',
@@ -497,7 +497,8 @@ class ClienteRepository implements ClienteRepositoryInterface
         $apiAnita->apiCall($data);
 
 		// Graba leyenda
-		$leyenda = str_split($request['leyenda']);
+		$leyenda = explode("\n", $request['leyenda']);
+		$linea = 0;
 		foreach ($leyenda as $ley)
 		{
         	$data = array( 'tabla' => $this->tableAnita[1], 'acc' => 'insert',
@@ -509,7 +510,7 @@ class ClienteRepository implements ClienteRepositoryInterface
             				'valores' => " 
 								'".str_pad($request['codigo'], 6, "0", STR_PAD_LEFT)."', 
 								'".$linea++."', 
-								'".$ley."', 
+								'".preg_replace("/\r/", "", $ley)."' "
 						);
 
         	$apiAnita->apiCall($data);
@@ -536,12 +537,12 @@ class ClienteRepository implements ClienteRepositoryInterface
                 clim_cuit 	                    = '".$request['nroinscripcion']."',
                 clim_cond_iva 	                = '".$condicioniva."',
                 clim_letra 	                    = '".$request['letra']."',
-                clim_cond_venta 	            = '".$request['condicionventa_id']."',
+                clim_cond_venta 	            = '".($request['condicionventa_id'] > 0 ? $request['condicionventa_id'] : 0)."',
                 clim_cta_contable 	            = '".$cuentacontable."',
-                clim_zonavta 	                = '".$request['zonavta_id']."',
-                clim_subzona 	                = '".$request['subzonavta_id']."',
+                clim_zonavta 	                = '".($request['zonavta_id']>0?$request['zonavta_id']:0)."',
+                clim_subzona 	                = '".($request['subzonavta_id']>0?$request['subzonavta_id']:0)."',
                 clim_zonamult 	                = '".$request['provincia_id']."',
-                clim_vendedor 	                = '".$request['vendedor_id']."',
+                clim_vendedor 	                = '".($request['vendedor_id']>0?$request['vendedor_id']:0)."',
                 clim_expreso 	                = '".$codigotransporte."',
                 clim_retiene_iva 	            = '".$request['retieneiva']."',
                 clim_lista_precio 	            = '".($request['listaprecio_id'] > 0 ? $request['listaprecio_id'] : 0)."',
@@ -567,7 +568,8 @@ class ClienteRepository implements ClienteRepositoryInterface
         $apiAnita->apiCall($data);
 
 		// Graba leyenda
-		$leyenda = str_split($request['leyenda']);
+		$leyenda = explode("\n", $request['leyenda']);
+		$linea = 0;
 		foreach ($leyenda as $ley)
 		{
         	$data = array( 'tabla' => $this->tableAnita[1], 'acc' => 'insert',
@@ -579,7 +581,7 @@ class ClienteRepository implements ClienteRepositoryInterface
             				'valores' => " 
 								'".str_pad($request['codigo'], 6, "0", STR_PAD_LEFT)."', 
 								'".$linea++."', 
-								'".$ley."', 
+								'".preg_replace("/\r/", "", $ley)."' "
 						);
 
         	$apiAnita->apiCall($data);

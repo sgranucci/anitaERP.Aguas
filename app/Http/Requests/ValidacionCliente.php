@@ -27,7 +27,6 @@ class ValidacionCliente extends FormRequest
     {
         return [
             'nombre' => 'required|max:255|',
-            'email' => 'nullable|email|max:255|unique:cliente,email,' . $this->route('id'),
             'domicilio' => 'required|max:255|',
             'descuento' => 'numeric|nullable|max:100',
             'localidad_id' => ['integer', 'nullable'],

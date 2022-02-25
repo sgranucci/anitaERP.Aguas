@@ -33,6 +33,11 @@ class ClienteQuery implements ClienteQueryInterface
         return $this->model->select($campos)->get();
     }
 
+    public function allQueryporEstado(array $campos, $estado)
+    {
+        return $this->model->select($campos)->where('estado',$estado)->get();
+    }
+
     public function traeClienteporCodigo($codigo)
     {
         return $this->model->select('id','codigo')->where('codigo',$codigo)->first();

@@ -4,74 +4,11 @@
 @endsection
 
 @section("scripts")
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <script src="{{asset("assets/pages/scripts/admin/crear.js")}}" type="text/javascript"></script>
-<script src="{{asset("assets/pages/scripts/admin/domicilio.js")}}" type="text/javascript"></script>
-<script>
-    function completarLetra(condicioniva_id){
-		var condiva = "{{ $condicioniva_query }}";
-		const replace = '"';
-		var data = condiva.replace(/&quot;/g, replace);
-		var dataP = JSON.parse(data);
-
-		$.each(dataP, (index, value) => {
-			if (value['id'] == condicioniva_id)
-				$("#letra").val(value['letra']);
-  		});
-	}
-
-    $(function () {
-        $("#condicioniva_id").change(function(){
-            var  condicioniva_id = $(this).val();
-            completarLetra(condicioniva_id);
-        });
-
-        $("#botonestado").click(function(){
-
-            var estado = $("#estado").val();
-			var descripcion = $("#botonestado").text();
-
-			if (estado == '0')
-			{
-				estado = '1';
-				descripcion = 'Suspendido';
-			}
-			else
-			{
-				estado = '0';
-				descripcion = 'Activo';
-			}
-
-            $("#estado").val(estado);
-            $("#botonestado").html("<i class='fa fa-bell'></i>&nbsp;Estado "+descripcion);
-        });
-
-        $("#botonform1").click(function(){
-            $(".form1").show();
-            $(".form2").hide();
-            $(".form3").hide();
-            $(".form4").hide();
-            $(".form5").hide();
-        });
-
-        $("#botonform2").click(function(){
-            $(".form1").hide();
-            $(".form2").show();
-            $(".form3").hide();
-            $(".form4").hide();
-            $(".form5").hide();
-        });
-
-        $("#botonform4").click(function(){
-            $(".form1").hide();
-            $(".form2").hide();
-            $(".form3").hide();
-            $(".form4").show();
-            $(".form5").hide();
-        });
-
-        completarLetra({{$data->condicioniva_id}});
-    });
-</script>
+<script src="{{asset("assets/pages/scripts/ventas/cliente/domicilio.js")}}" type="text/javascript"></script>
+<script src="{{asset("assets/pages/scripts/ventas/cliente/domicilioentrega.js")}}" type="text/javascript"></script>
+<script src="{{asset("assets/pages/scripts/ventas/cliente/crear.js")}}" type="text/javascript"></script>
 @endsection
 
 @section('contenido')
@@ -81,8 +18,7 @@
         @include('includes.mensaje')
         <div class="card card-danger">
             <div class="card-header">
-                <h3 class="card-title">Editar Cliente </h3>&nbsp;
-				<i class="fa fa-user"></i>Datos principales	
+                <h3 class="card-title">Editar Cliente </h3>&nbsp;ID:&nbsp;{{$data->id }}&nbsp;{{$data->nombre}}
                 <div class="card-tools">
 					<button type="button" id="botonestado" class="btn btn-info btn-sm">
                         <i class="fa fa-bell"></i> Estado {{ $data->descripcionestado }}
@@ -92,12 +28,14 @@
                     </a>
                 </div>
             </div>
-            <form action="{{route('actualizar_cliente', ['id' => $data->id])}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
+            <form action="{{route('actualizar_cliente', ['id' => $data->id])}}" id="form-general" class="form-horizontal form--label-right" method="POST" enctype="multipart/form-data" autocomplete="off">
                 @csrf @method("put")
                 <div class="card-body" style="padding-bottom: 0; padding-top: 5px;">
                     @include('ventas.cliente.form1')
                     @include('ventas.cliente.form2')
+                    @include('ventas.cliente.form3')
                     @include('ventas.cliente.form4')
+                    @include('ventas.cliente.form5')
                 </div>
                 <div class="card-footer" style="padding-top: 0">
                 	<div class="row">

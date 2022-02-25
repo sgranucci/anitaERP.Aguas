@@ -87,7 +87,7 @@ class PedidoRepository implements PedidoRepositoryInterface
 
     public function findOrFail($id)
     {
-        if (null == $pedido = $this->model->findOrFail($id)) {
+        if (null == $pedido = $this->model->with("pedido_combinaciones")->findOrFail($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
 
@@ -101,7 +101,7 @@ class PedidoRepository implements PedidoRepositoryInterface
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 
 						'campos' => "penm_sucursal, penm_nro", 
-            			'whereArmado' => " WHERE penm_tipo='PED' and penm_estado<'3' and penm_fecha>20220100 ",
+            			'whereArmado' => " WHERE penm_tipo='PED' AND penm_estado<'3' AND penm_fecha>20220100 ",
 						'tabla' => $this->tableAnita );
         $dataAnita = json_decode($apiAnita->apiCall($data));
 
@@ -161,7 +161,7 @@ class PedidoRepository implements PedidoRepositoryInterface
     			penm_dto_integrado,
     			penm_cod_entrega
 			',
-            'whereArmado' => " WHERE penm_tipo='PED' and penm_letra='A' and penm_sucursal='".$sucursal."' and penm_nro='".$nro."' " 
+            'whereArmado' => " WHERE penm_tipo='PED' AND penm_letra='A' AND penm_sucursal='".$sucursal."' AND penm_nro='".$nro."' " 
         );
         $dataAnita = json_decode($apiAnita->apiCall($data));
 
@@ -323,16 +323,16 @@ class PedidoRepository implements PedidoRepositoryInterface
     			penm_dto_integrado    = '".$request['descuentointegrado']."', 
     			penm_cod_entreg       = '".'0'."' "
 					,
-				'whereArmado' => " WHERE penm_tipo = '".$tipo."' and penm_letra = '".$letra."' 
-									and penm_sucursal = ".$sucursal."' penm_nro = ".$nro."' " );
+				'whereArmado' => " WHERE penm_tipo = '".$tipo."' AND penm_letra = '".$letra."' 
+									AND penm_sucursal = ".$sucursal."' AND penm_nro = ".$nro."' " );
         $apiAnita->apiCall($data);
 	}
 
 	private function eliminarAnita($tipo, $letra, $sucursal, $nro) {
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita, 
-				'whereArmado' => " WHERE penm_tipo = '".$tipo."' and penm_letra = '".$letra."' 
-									and penm_sucursal = ".$sucursal."' penm_nro = ".$nro."' " );
+				'whereArmado' => " WHERE penm_tipo = '".$tipo."' AND penm_letra = '".$letra."' 
+									AND penm_sucursal = '".$sucursal."' AND penm_nro = '".$nro."' " );
         $apiAnita->apiCall($data);
 	}
 
@@ -343,8 +343,8 @@ class PedidoRepository implements PedidoRepositoryInterface
         $data = array( 'acc' => 'list', 
 				'tabla' => $this->tableAnita, 
 				'campos' => " max(penm_nro) as ".$this->keyFieldAnita[1]." ",
-				'whereArmado' => " WHERE penm_tipo = '".$tipo."' and penm_letra = '".$letra."' 
-									and penm_sucursal = '".$sucursal."' " 
+				'whereArmado' => " WHERE penm_tipo = '".$tipo."' AND penm_letra = '".$letra."' 
+									AND penm_sucursal = '".$sucursal."' " 
 				);
         $dataAnita = json_decode($apiAnita->apiCall($data));
 

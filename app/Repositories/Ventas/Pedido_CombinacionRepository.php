@@ -309,16 +309,6 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 	{
         $apiAnita = new ApiAnita();
 
-		if ($funcion == 'update')
-		{
-			$tipo = substr($data['codigo'], 0, 3);
-			$letra = substr($data['codigo'], 4, 1);
-			$sucursal = substr($data['codigo'], 6, 5);
-			$nro = substr($data['codigo'], 12, 8);
-
-			self::eliminarAnita($tipo, $letra, $sucursal, $nro, $numeroitem);
-		}
-
 		$jtalles = json_decode($medidas);
 		$cliente_id = $data['cliente_id'];
 		$codigo_pedido = $data['codigo'];
@@ -402,16 +392,16 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 		if ($numeroitem)
 		{
         	$data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita, 
-				'whereArmado' => " WHERE penv_tipo = '".$tipo."' and penv_letra = '".$letra."' 
-									and penv_sucursal = ".$sucursal."' penv_nro = ".$nro."' 
-									and penv_orden = ".$numeroitem."' "
+				'whereArmado' => " WHERE penv_tipo = '".$tipo."' AND penv_letra = '".$letra."' 
+									AND penv_sucursal = '".$sucursal."' AND penv_nro = '".$nro."' 
+									AND penv_orden = '".$numeroitem."' "
 						);
 		}
 		else
 		{
         	$data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita, 
-				'whereArmado' => " WHERE penv_tipo = '".$tipo."' and penv_letra = '".$letra."' 
-									and penv_sucursal = ".$sucursal."' penv_nro = ".$nro."' "
+				'whereArmado' => " WHERE penv_tipo = '".$tipo."' AND penv_letra = '".$letra."' 
+									AND penv_sucursal = '".$sucursal."' AND penv_nro = '".$nro."' "
 						);
 		}
         $apiAnita->apiCall($data);
@@ -423,8 +413,8 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 
 				'tabla' => $this->tableAnita, 
-				'whereArmado' => " WHERE penm_tipo = '".$tipo."' and penm_letra = '".$letra."' 
-									and penm_sucursal = ".$sucursal."' ",
+				'whereArmado' => " WHERE penm_tipo = '".$tipo."' AND penm_letra = '".$letra."' 
+									AND penm_sucursal = '".$sucursal."' ",
 				'campos' => " max(penm_nro) as ultnumero "
 				);
         $dataAnita = json_decode($apiAnita->apiCall($data));

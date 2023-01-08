@@ -21,6 +21,11 @@ class Caja extends Model
         return $this->belongsTo(Articulo::class, 'articulo_id');
     }
 
+    public function articulos_caja()
+    {
+        return $this->hasMany(Articulo_Caja::class);
+    }
+
     public function sincronizarConAnita(){
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 

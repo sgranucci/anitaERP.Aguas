@@ -4,7 +4,7 @@
             <input type="file" name="nombrearchivos[]" class="form-control" value"" >
        	</td>
     	<td>
-			<button style="width: 7%;" type="button" title="Elimina esta linea" class="btn-accion-tabla eliminar tooltipsC">
+			<button style="width: 7%;" type="button" title="Elimina esta linea" class="btn-accion-tabla eliminararchivo tooltipsC">
     			<i class="fa fa-times-circle text-danger"></i>
 			</button>
     	</td>

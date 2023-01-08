@@ -48,7 +48,7 @@ Forros
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-forros', false))
+                       			@if (can('borrar-forros', false))
                                 <form action="{{route('eliminar_forro', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

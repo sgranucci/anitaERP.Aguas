@@ -19,6 +19,10 @@ class CrearTablaListaprecio extends Migration
             $table->string('formula', 255);
             $table->string('incluyeimpuesto', 1);
             $table->unsignedBigInteger('codigo');
+            $table->string('desdetalle', 10);
+            $table->string('hastatalle', 10);
+            $table->unsignedBigInteger('tiponumeracion_id');
+            $table->foreign('tiponumeracion_id', 'fk_listaprecio_tiponumeracion')->references('id')->on('tiponumeracion')->onDelete('restrict')->onUpdate('restrict');
             $table->unsignedBigInteger('usuarioultcambio_id');
             $table->foreign('usuarioultcambio_id', 'fk_listaprecio_usuario')->references('id')->on('usuario')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();

@@ -110,7 +110,7 @@
                 </div>
 				<div class="form-group row">
     				<label for="compfondo_id" class="col-lg-4 col-form-label">Componente del fondo</label>
-					<select id="compfondo_id" name="fondo_id" class="col-lg-8 form-control">
+					<select id="compfondo_id" name="compfondo_id" class="col-lg-8 form-control">
                             <option value=""> -- Seleccionar -- </option>
                             @foreach( $compfondo as $key => $value)
                             	@if( isset($producto) && (int) $value->id == (int) old('compfondo_id', $producto->compfondo_id ?? ''))
@@ -150,4 +150,51 @@
         	</div>
         </div>
     </div>
+</div>
+<div class="card">
+    <div class="card-body col-sm-6">
+    	<table class="table" id="cajas_table">
+    		<thead>
+    			<tr>
+    				<th>Caja</th>
+    				<th>Nombre</th>
+    			</tr>
+    		</thead>
+    		<tbody id="tbody-tabla">
+				@foreach (old('items', $producto->articulos_caja->count() > 0 ? $producto->articulos_caja : ['']) as $articulocaja)
+    			<tr class="item-caja">
+                    <td>
+						<select name="cajas_id[]" class="form-control">
+							<option value="">-- Elija caja --</option>
+								@foreach ($caja_query as $caja)
+									<option value="{{ $caja->id }}"
+									@if (old('cajas.' . $loop->parent->index, optional($articulocaja)->caja_id) == $caja->id) selected @endif
+									>{{ $caja->descripcion }} {{ $caja->nombre }}</option>
+								@endforeach
+						</select>
+					</td>
+					<td>{{ $articulocaja->cajas->articulos->descripcion??'' }}
+					</td>
+					<td>
+						<button type="button" title="Elimina esta linea" style="padding:0;" class="btn-accion-tabla eliminarCaja tooltipsC">
+              				<i class="fa fa-trash text-danger"></i>
+						</button>
+					</td>
+				</tr>
+				@endforeach
+    		</tbody>
+   		</table>
+		@include('stock.product.tecnica.partials.template-caja')
+    	<div class="row">
+    		<div class="col-md-12">
+    			<button id="agrega_renglon_caja" class="pull-right btn btn-danger">+ Agrega rengl&oacute;n</button>
+            	@isset($edit)
+        			@include('includes.boton-form-editar')
+            	@else
+        			@include('includes.boton-form-crear')
+            	@endisset
+        	</div>
+		</div>
+   	</div>
+</div>
 @endisset

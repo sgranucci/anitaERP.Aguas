@@ -14,6 +14,7 @@ use App\Models\Ventas\Vendedor;
 use App\Models\Ventas\Condicionventa;
 use App\Models\Ventas\Transporte;
 use App\Models\Stock\Listaprecio;
+use App\Models\Stock\Mventa;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\ApiAnita;
 use Carbon\Carbon;
@@ -22,7 +23,7 @@ use Auth;
 class ClienteRepository implements ClienteRepositoryInterface
 {
     protected $model;
-    protected $tableAnita = ['climae', 'cliley'];
+    protected $tableAnita = ['climae', 'cliley', 'clicomi'];
     protected $keyField = 'codigo';
     protected $keyFieldAnita = 'clim_cliente';
 
@@ -42,6 +43,12 @@ class ClienteRepository implements ClienteRepositoryInterface
 		self::ultimoCodigo($codigo);
 		$data['codigo'] = $codigo;
 		$data['estado'] = '0';
+
+		if ($data['retieneiva'] == null)
+			$data['retieneiva'] = 'N';
+
+		if ($data['condicioniibb'] == null)
+			$data['condicioniibb'] = 'N';
 
         $cliente = $this->model->create($data);
 
@@ -321,7 +328,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 			// Lee las leyendas
 			$leyenda = "";
 			foreach ($dataleyAnita as $ley)
-				$leyenda .= $ley;	
+				$leyenda .= $ley->clil_leyenda;
 
 			$arr_campos = [
 				"nombre" => $data->clim_nombre,
@@ -349,7 +356,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 				"listaprecio_id" => $listaprecio_id,
 				"descuento" => $data->clim_descuento,
 				"cuentacontable_id" => $cuentacontable_id,
-				"vaweb" => $data->clim_va_web,
+				"vaweb" => ($data->clim_va_web ? $data->clim_va_web : 'N'),
 				"estado" => $data->clim_estado_cli,
 				"leyenda" => $leyenda,
 				"usuario_id" => $usuario_id,
@@ -515,6 +522,28 @@ class ClienteRepository implements ClienteRepositoryInterface
 
         	$apiAnita->apiCall($data);
 		}
+
+		// Graba comisiones
+		if ($request['vendedor_id'] > 0)
+		{
+			$mventa = Mventa::all();
+			foreach ($mventa as $marca)
+			{
+        		$data = array( 'tabla' => $this->tableAnita[2], 'acc' => 'insert',
+            				'campos' => '
+								clico_cliente,
+								clico_marca,
+								clico_vendedor
+										',
+            				'valores' => " 
+								'".str_pad($request['codigo'], 6, "0", STR_PAD_LEFT)."', 
+								'".$marca->id."', 
+								'".$request['vendedor_id']."' "
+						);
+
+        		$apiAnita->apiCall($data);
+			}
+		}
 	}
 
 	private function actualizarAnita($request, $id) {
@@ -523,6 +552,11 @@ class ClienteRepository implements ClienteRepositoryInterface
 		$fecha = $fecha->format('Ymd');
 
 		$this->setCamposAnita($request, $cuentacontable, $condicioniva, $condicioniibb, $codigotransporte);
+
+		if (array_key_exists('localidad_id', $request))
+			$localidad_id = $request['localidad_id'];
+		else
+			$localidad_id = 0;
 
 		$data = array( 'acc' => 'update', 'tabla' => $this->tableAnita[0], 
 				'valores' => " 
@@ -555,7 +589,7 @@ class ClienteRepository implements ClienteRepositoryInterface
                 clim_fecha_alta 	            = '".$fecha."',
                 clim_e_mail 	                = '".$request['email']."',
                 clim_url 	                    = '".$request['urlweb']."',
-                clim_cod_loc 	                = '".$request['localidad_id']."',
+                clim_cod_loc 	                = '".$localidad_id."',
                 clim_cod_prov 	                = '".$request['provincia_id']."',
                 clim_va_web	                    = '".$request['vaweb']."' "
 					,
@@ -585,6 +619,33 @@ class ClienteRepository implements ClienteRepositoryInterface
 						);
 
         	$apiAnita->apiCall($data);
+		}
+
+		// Borra comisiones
+        $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita[2], 
+				'whereArmado' => " WHERE clico_cliente = '".str_pad($id, 6, "0", STR_PAD_LEFT)."' " );
+        $apiAnita->apiCall($data);
+
+		// Graba comisiones
+		if ($request['vendedor_id'] > 0)
+		{
+			$mventa = Mventa::all();
+			foreach ($mventa as $marca)
+			{
+        		$data = array( 'tabla' => $this->tableAnita[2], 'acc' => 'insert',
+            				'campos' => '
+								clico_cliente,
+								clico_marca,
+								clico_vendedor
+										',
+            				'valores' => " 
+								'".str_pad($request['codigo'], 6, "0", STR_PAD_LEFT)."', 
+								'".$marca->id."', 
+								'".$request['vendedor_id']."' "
+						);
+
+        		$apiAnita->apiCall($data);
+			}
 		}
 	}
 

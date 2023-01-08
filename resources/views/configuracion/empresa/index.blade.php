@@ -50,7 +50,7 @@ Empresas
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-empresas', false))
+                       			@if (can('borrar-empresas', false))
                                 <form action="{{route('eliminar_empresa', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

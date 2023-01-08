@@ -17,6 +17,7 @@ class CrearTablaMoneda extends Migration
             $table->bigIncrements('id');
             $table->string('nombre',50);
             $table->string('abreviatura',10);
+            $table->string('codigo',50);
             $table->timestamps();
             $table->charset = 'utf8mb4';
             $table->collation = 'utf8mb4_spanish_ci';

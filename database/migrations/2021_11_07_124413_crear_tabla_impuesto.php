@@ -18,6 +18,7 @@ class CrearTablaImpuesto extends Migration
             $table->string('nombre',50);
 			$table->decimal('valor',6,3);
 			$table->date('fechavigencia');
+			$table->string('codigo',50);
             $table->timestamps();
             $table->charset = 'utf8mb4';
             $table->collation = 'utf8mb4_spanish_ci';

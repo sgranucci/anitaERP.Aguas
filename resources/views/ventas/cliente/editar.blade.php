@@ -9,6 +9,22 @@
 <script src="{{asset("assets/pages/scripts/ventas/cliente/domicilio.js")}}" type="text/javascript"></script>
 <script src="{{asset("assets/pages/scripts/ventas/cliente/domicilioentrega.js")}}" type="text/javascript"></script>
 <script src="{{asset("assets/pages/scripts/ventas/cliente/crear.js")}}" type="text/javascript"></script>
+<script src="{{asset("assets/pages/scripts/admin/imprimirHtml.js")}}" type="text/javascript"></script>
+<script>
+    $(function () {
+        $("#botontipoalta").click(function(){
+                var tipoalta = 'D';
+                
+                $("#tipoalta").val(tipoalta);
+                $("#botontipoalta").css('visibility', 'hidden');
+        });
+    });
+    function sub()
+	{
+        
+		$('#form-general').submit();
+	}
+</script>
 @endsection
 
 @section('contenido')
@@ -19,7 +35,17 @@
         <div class="card card-danger">
             <div class="card-header">
                 <h3 class="card-title">Editar Cliente </h3>&nbsp;ID:&nbsp;{{$data->id }}&nbsp;{{$data->nombre}}
+                
+                @if ($tipoalta == config('cliente.tipoalta')['PROVISORIO'][0])
+                    &nbsp; CLIENTE PROVISORIO
+                @endif
+
                 <div class="card-tools">
+                    @if ($tipoalta == config('cliente.tipoalta')['PROVISORIO'][0])
+                        <button type="button" id="botontipoalta" class="btn btn-info btn-sm">
+                            <i class="fa fa-bell"></i> Cambia a DEFINITIVO
+                        </button>
+                    @endif
 					<button type="button" id="botonestado" class="btn btn-info btn-sm">
                         <i class="fa fa-bell"></i> Estado {{ $data->descripcionestado }}
                     </button>
@@ -36,11 +62,12 @@
                     @include('ventas.cliente.form3')
                     @include('ventas.cliente.form4')
                     @include('ventas.cliente.form5')
+                    @include('ventas.cliente.suspensionmodal')
                 </div>
                 <div class="card-footer" style="padding-top: 0">
                 	<div class="row">
                    		<div class="col-lg-4">
-                        	@include('includes.boton-form-editar')
+                        	<button type="submit" onclick="sub()" class="btn btn-success">Actualizar</button>
                     	</div>
             			<div class="col-lg-8" align="right">
 							<button type="button" id="botonform1" class="btn btn-primary btn-sm">

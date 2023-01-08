@@ -62,4 +62,55 @@
         </div>
     </div>
 </div>
+<div class="card">
+    <div class="card-body col-sm-6">
+    	<table class="table" id="costos_table">
+    		<thead>
+    			<tr>
+    				<th>Tarea</th>
+    				<th>Costo</th>
+                    <th>Fecha actualizaci&oacute;n</th>
+    			</tr>
+    		</thead>
+    		<tbody id="tbody-tabla">
+				@foreach (old('items', $producto->articulos_costo->count() > 0 ? $producto->articulos_costo : ['']) as $articulocosto)
+    			<tr class="item-costo">
+                    <td>
+						<select name="tareas_id[]" class="form-control tarea">
+							<option value="">-- Elija tarea --</option>
+								@foreach ($tarea_query as $tarea)
+									<option value="{{ $tarea->id }}"
+									@if (old('tareas.' . $loop->parent->index, optional($articulocosto)->tarea_id) == $tarea->id) selected @endif
+									>{{ $tarea->nombre }}</option>
+								@endforeach
+						</select>
+					</td>
+                    <td>
+                        <input type="number" name="costos[]" class="form-control costo" value="{{old('costos', $articulocosto->costo ?? '')}}"/>
+                	</td>
+                    <td>
+                        <input type="date" name="fechas[]" class="form-control fecha" value="{{substr(optional($articulocosto)->updated_at ?? date('Y-m-d'),0,10)}}" readonly/>
+                    </td>
+                    <td>
+						<button type="button" title="Elimina esta linea" style="padding:0;" class="btn-accion-tabla eliminarCosto tooltipsC">
+              				<i class="fa fa-trash text-danger"></i>
+						</button>
+					</td>
+				</tr>
+				@endforeach
+    		</tbody>
+   		</table>
+		@include('stock.product.contaduria.partials.template-costo')
+    	<div class="row">
+    		<div class="col-md-12">
+    			<button id="agrega_renglon_costo" class="pull-right btn btn-danger">+ Agrega rengl&oacute;n</button>
+            	@isset($edit)
+        			@include('includes.boton-form-editar')
+            	@else
+        			@include('includes.boton-form-crear')
+            	@endisset
+        	</div>
+		</div>
+   	</div>
+</div>
 @endisset

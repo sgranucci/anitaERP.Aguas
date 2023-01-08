@@ -5,7 +5,7 @@ namespace App\Repositories\Configuracion;
 use App\Models\Configuracion\Condicioniva;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class CondicionivaRepository implements RepositoryInterface
+class CondicionivaRepository implements CondicionivaRepositoryInterface
 {
     protected $model;
 

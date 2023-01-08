@@ -47,6 +47,8 @@ class Pedido_Combinacion_TalleRepository implements Pedido_Combinacion_TalleRepo
 						'cantidad' => $cantidad,
 						'precio' => $precio,
 								]);
+
+		return($pedido_combinacion_talle);
     }
 
     public function delete($id)
@@ -59,7 +61,7 @@ class Pedido_Combinacion_TalleRepository implements Pedido_Combinacion_TalleRepo
 
     public function deleteporpedido_combinacion($pedido_combinacion_id)
     {
-    	$pedido_combinacion_talle = $this->model->where('pedido_combinacion_id', $pedido_combinacion_id)->destroy();
+    	$pedido_combinacion_talle = $this->model->where('pedido_combinacion_id', $pedido_combinacion_id)->delete();
 
 		return $pedido_combinacion_talle;
     }
@@ -82,6 +84,23 @@ class Pedido_Combinacion_TalleRepository implements Pedido_Combinacion_TalleRepo
         return $pedido_combinacion_talle;
     }
 
+    public function findporpedido_combinacion($pedido_combinacion_id)
+    {
+    	$pedido_combinacion_talle = $this->model->where('pedido_combinacion_id', $pedido_combinacion_id)->get();
+
+		return $pedido_combinacion_talle;
+    }
+
+    public function findporpedido_combinacion_medida($pedido_combinacion_id, $medida)
+    {
+		$talle = Talle::where('nombre',$medida)->first();
+		if ($talle)
+			$talle_id = $talle->id;
+
+    	$pedido_combinacion_talle = $this->model->where('pedido_combinacion_id', $pedido_combinacion_id)->where('talle_id',$talle_id)->first();
+
+		return $pedido_combinacion_talle;
+    }
     public function sincronizarConAnita()
 	{
 		ini_set('max_execution_time', '300');

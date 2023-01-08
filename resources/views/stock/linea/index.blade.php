@@ -90,7 +90,7 @@ M&oacute;dulos
                                    	<i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-lineas', false))
+                       			@if (can('borrar-lineas', false))
                                 	<form action="{{route('eliminar_linea', ['id' => $linea->id])}}" class="d-inline form-eliminar" method="POST">
                                    		@csrf @method("delete")
                                    		<button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

@@ -21,6 +21,7 @@
 			<strong>Fecha: {{date("d/m/Y", strtotime($pedido->fecha ?? ''))}} </strong>
 		</th>
 	</tr>
+	</thead>
 </table>
 <div class="row">
 <div class="card-body">

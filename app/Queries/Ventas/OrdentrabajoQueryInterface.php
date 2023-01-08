@@ -7,7 +7,10 @@ interface OrdentrabajoQueryInterface
     public function first();
     public function all();
     public function allQuery(array $campos);
+    public function leeOrdenTrabajo($id);
     public function allOrdentrabajoPorEstado($estado);
+    public function allOrdentrabajo();
+    public function leeOrdenTrabajoPorCodigo($codigo);
     public function traeOrdentrabajoPorId($id);
 }
 

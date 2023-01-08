@@ -28,29 +28,39 @@ Clientes
                 <table class="table table-striped table-bordered table-hover" id="tabla-data">
                     <thead>
                         <tr>
-                            <th class="width20">ID</th>
+                            <th class="width10">ID</th>
                             <th>Nombre</th>
+                            <th>Nombre de Fantas&iacute;a</th>
+                            <th>C.U.I.T.</th>
                             <th>Domicilio</th>
                             <th>Localidad</th>
-                            <th>C&oacute;digo Anita</th>
-                            <th class="width80" data-orderable="false"></th>
+                            <th>Provincia</th>
+                            <th class="width10">C&oacute;d.</th>
+                            <th class="width40" data-orderable="false"></th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($datas as $data)
-                        <tr>
+							@if ($data->estado == '1')
+                        		<tr class="table-danger">
+							@else
+                        		<tr>
+							@endif
                             <td>{{$data->id}}</td>
                             <td>{{$data->nombre}}</td>
-                            <td>{{$data->domicilio}}</td>
-                            <td>{{($data->localidades ?? '' ? $data->localidades->nombre : '')}}</td>
-                            <td>{{$data->codigo}}</td>
+                            <td>{{$data->fantasia}}</td>
+                            <td><small>{{$data->nroinscripcion}}</small></td>
+                            <td><small>{{$data->domicilio}}</small></td>
+                            <td><small>{{($data->localidades ?? '' ? $data->localidades->nombre : '')}}</small></td>
+                            <td><small>{{($data->provincias ?? '' ? $data->provincias->nombre : '')}}</small></td>
+                            <td><small>{{$data->codigo}}</small></td>
                             <td>
                        			@if (can('editar-clientes', false))
                                 	<a href="{{route('editar_cliente', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-clientes', false))
+                       			@if (can('borrar-clientes', false))
                                 <form action="{{route('eliminar_cliente', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

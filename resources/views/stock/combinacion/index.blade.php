@@ -97,7 +97,7 @@ function cambiarEstado(id, index){
             						{{ $combinacion->estado ?? '' }}
 								</span>
         						</td>
-                            	<td><img width=100px src="{{ isset($combinacion->foto) ? asset("storage/imagenes/fotos_articulos/$combinacion->foto") : '' }}"></td>
+                            	<td><img width=100px src="{{ isset($combinacion->foto) ? asset("storage/imagenes/fotos_articulos/$combinacion->foto") : asset("storage/imagenes/fotos_articulos/".$combinacion->articulos->sku."-".$combinacion->codigo.".jpg") }}"></td>
         						<td>
                        			@if (can('cambiar-estado-combinaciones', false))
                         		<span id="container-button-state{{$combinacion->id}}">
@@ -119,7 +119,7 @@ function cambiarEstado(id, index){
                                    		<i class="fa fa-qrcode"></i>
 									</a>
 								@endif
-                       			@if (can('eliminar-combinaciones', false))
+                       			@if (can('borrar-combinaciones', false))
                                 	<form action="{{route('eliminar_combinacion', ['id' => $combinacion->id])}}" class="d-inline form-eliminar" method="POST">
                                    		@csrf @method("delete")
                                    	<button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

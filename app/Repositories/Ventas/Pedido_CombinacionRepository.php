@@ -48,11 +48,11 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
         return $this->model->get();
     }
 
-	public function create(array $data, $pedido_id, $articulo_id, $combinacion_id, $numeroitem, $modulo_id, $cantidad, $precio, 
-	  						$listaprecio_id, $incluyeimpuesto, $moneda_id, $descuento, $categoria_id, $subcategoria_id, $linea_id,
-                            $ot_id, $observacion, $medidas, $funcion)
+	public function create(array $data, $pedido_id, $articulo_id, $combinacion_id, $numeroitem, $modulo_id, 
+	  $cantidad, $precio, $listaprecio_id, $incluyeimpuesto, $moneda_id, $descuento, 
+	  $categoria_id, $subcategoria_id, $linea_id, $ot_id, $observacion, $medidas, $lote_id, $funcion)
     {
-        $pedido_combinacion = $this->model->create([
+		$pedido_combinacion = $this->model->create([
 						'pedido_id' => $pedido_id,
 						'articulo_id' => $articulo_id,
 						'combinacion_id' => $combinacion_id,
@@ -68,15 +68,33 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 						'subcategoria_id' => $subcategoria_id,
 						'linea_id' => $linea_id,
 						'ot_id' => $ot_id,
+						'lote_id' => $lote_id,
 						'observacion' => $observacion
 								]);
 
 		// Graba anita
 		self::guardarAnita($data, $articulo_id, $combinacion_id, $numeroitem, $modulo_id, $cantidad, $precio, $listaprecio_id, 
-		  	$incluyeimpuesto, $moneda_id, $descuento, $medidas, $ot_id, $observacion, $funcion);
+		  	$incluyeimpuesto, $moneda_id, $descuento, $medidas, $observacion, $funcion);
 
 	  	return $pedido_combinacion;
 	}
+
+    public function update(array $data, $id)
+    {
+	  	$pedido = $this->model->findOrFail($id)->update($data);
+		//
+		// Actualiza anita
+		//self::actualizarAnita($data, $data['codigo']);
+
+		return $pedido;
+    }
+
+	public function updatePorOtId($ot_id)
+    {
+    	$pedido = $this->model->select('ot_id',$ot_id)->update(['ot_id'=>0]);
+
+        return $pedido;
+    }
 
     public function delete($id)
     {
@@ -86,15 +104,19 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 		return $pedido;
     }
 
-    public function deleteporpedido($pedido_id, $tipo, $letra, $sucursal, $nro)
+    public function deleteporpedido($pedido_id)
     {
     	$pedido = $this->model->where('pedido_id', $pedido_id)->delete();
 
-		// Elimina anita
-		self::eliminarAnita($tipo, $letra, $sucursal, $nro);
-
 		return $pedido;
     }
+
+	public function leePedidosSinOtPorFecha($hastafecha) {
+		return $this->model->join('pedido', 'pedido_combinacion.pedido_id', 'pedido.id')
+			->where('pedido.fecha','<=',$hastafecha)
+			->where('pedido_combinacion.ot_id',0)
+			->get();
+	}
 
     public function find($id)
     {
@@ -112,6 +134,25 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
         }
 
         return $pedido;
+    }
+
+	// Trae las referencias por item de pedido
+
+    public function findPorPedidoCombinacionId($pedido_combinacion_id)
+    {
+    	$pedido_combinacion = $this->model->select('pedido_combinacion.id as id',  
+									'ordentrabajo_combinacion_talle.pedido_combinacion_talle_id as pedido_combinacion_talle_id',
+									'ordentrabajo_combinacion_talle.ordentrabajo_stock_id as ordentrabajo_stock_id',
+									'pedido_combinacion_talle.pedido_combinacion_id as pedido_combinacion_id',
+									'ordentrabajo.id as ordentrabajo_id',
+									'ordentrabajo.codigo as codigo')
+										->join('pedido_combinacion_talle', 'pedido_combinacion_talle.pedido_combinacion_id', 'pedido_combinacion.id')
+										->join('ordentrabajo_combinacion_talle', 'ordentrabajo_combinacion_talle.pedido_combinacion_talle_id', 'pedido_combinacion_talle.id')
+										->join('ordentrabajo', 'ordentrabajo.id', 'ordentrabajo_combinacion_talle.ordentrabajo_id')
+										->where('pedido_combinacion.id', $pedido_combinacion_id)
+										->get();
+
+		return $pedido_combinacion;
     }
 
     public function sincronizarConAnita()
@@ -228,6 +269,12 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 						$data[$i]->penv_capellada)->first();
 					if ($combinacion)
 						$combinacion_id = $combinacion->id;
+					else
+					{
+        				$combinacion = Combinacion::select('id')->where('articulo_id', $articulo_id)->first();
+
+						$combinacion_id = $combinacion->id;
+					}
 				}
 	
         		$modulo = Modulo::select('id')->where('codigo', $data[$i]->penv_modulo1)->first();
@@ -294,7 +341,7 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 					"observacion" => $observacion,
 					"codigo" => $codigo
             		];
-		
+
 				if ($fl_crea_registro)
             		$this->model->create($arr_campos);
 				else
@@ -304,9 +351,11 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
     }
 
 	private function guardarAnita(array $data, $articulo_id, $combinacion_id, $numeroitem,
-					$modulo_id, $cantidad, $precio, $listaprecio_id, $incluyeimpuesto, $moneda_id, $descuento, $medidas, 
-					$ot_id, $observacion, $funcion)
+	  								$modulo_id, $cantidad, $precio, $listaprecio_id, $incluyeimpuesto, 
+	  								$moneda_id, $descuento, $medidas, $observacion, $funcion)
 	{
+		return 0;
+
         $apiAnita = new ApiAnita();
 
 		$jtalles = json_decode($medidas);
@@ -314,6 +363,8 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 		$codigo_pedido = $data['codigo'];
 		$fechapedido = $data['fecha'];
 		$fechaentrega = $data['fechaentrega'];
+		$vendedor = $data['vendedor_id'];
+		$nro_orden = $data['nro_orden'];
 		$cliente = '';
 		$sku = '';
 
@@ -323,7 +374,7 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 								$value->talle_id, $medida,
 								$articulo_id, $sku, $desc, $agrupacion, $linea, $unidad_medida, $tipoiva, 
 								$combinacion_id, $codigo_combinacion,
-								$fechapedido, $vendedor, $zonavta, $zonamult, $fechaentrega);
+								$fechapedido, $zonavta, $zonamult, $fechaentrega);
 
        		if ($value->cantidad != 0)
 			{
@@ -370,7 +421,7 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 						'".' '."', 
 						'".'N'."', 
 						'".$observacion."', 
-						'".($funcion == 'create' ? '-1' : $ot_id)."', 
+						'".($funcion == 'create' ? '-1' : $nro_orden)."', 
 						'".'0'."', 
 						'".'0'."', 
 						'".$codigo_combinacion."', 
@@ -386,7 +437,60 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 		}
 	}
 
+	public function actualizarAnitaEstado($estado, $codigo, $orden) {
+		return 0;
+        $apiAnita = new ApiAnita();
+
+		// Convierte tipo
+		$tipo = substr($codigo, 0, 3);
+		$letra = substr($codigo, 4, 1);
+		$sucursal = substr($codigo, 6, 5);
+		$nro = substr($codigo, 12, 8);
+
+		$data = array( 'acc' => 'update', 'tabla' => $this->tableAnita, 
+				'valores' => " 
+    			penv_imprime_ped       = '".$estado."' "
+					,
+				'whereArmado' => " WHERE penv_tipo = '".$tipo."' AND penv_letra = '".$letra."' 
+									AND penv_sucursal = '".$sucursal."' AND penv_nro = '".$nro."'
+									AND penv_orden = '".$orden."'" );
+        $apiAnita->apiCall($data);
+	}
+
+	public function actualizarAnitaNroOt($nro_orden, $codigo, $orden) {
+		return 0;
+        $apiAnita = new ApiAnita();
+
+		// Convierte tipo
+		$tipo = substr($codigo, 0, 3);
+		$letra = substr($codigo, 4, 1);
+		$sucursal = substr($codigo, 6, 5);
+		$nro = substr($codigo, 12, 8);
+
+		$data = array( 'acc' => 'update', 'tabla' => $this->tableAnita, 
+				'valores' => " 
+    			penv_nro_orden       = '".$nro_orden."' "
+					,
+				'whereArmado' => " WHERE penv_tipo = '".$tipo."' AND penv_letra = '".$letra."' 
+									AND penv_sucursal = '".$sucursal."' AND penv_nro = '".$nro."'
+									AND penv_orden = '".$orden."'" );
+        $apiAnita->apiCall($data);
+	}
+
+	public function cierrePedidoAnita($hastafecha) {
+		return 0;
+        $apiAnita = new ApiAnita();
+
+		$data = array( 'acc' => 'update', 'tabla' => $this->tableAnita, 
+				'valores' => " 
+    				penv_imprime_ped       = 'C',
+					penv_cantentr          = penv_cantidad",
+				'whereArmado' => " WHERE penv_fecha <= '".$hastafecha."' AND penv_nro_orden <= 0 AND penv_tipo='PED'");
+        $apiAnita->apiCall($data);
+	}
+
 	private function eliminarAnita($tipo, $letra, $sucursal, $nro, $numeroitem = null) {
+		return 0;
         $apiAnita = new ApiAnita();
 
 		if ($numeroitem)
@@ -431,7 +535,7 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 				$talle_id, &$medida,
 				$articulo_id, &$sku, &$desc, &$agrupacion, &$linea, &$unidadmedida, &$tipoiva, 
 				$combinacion_id, &$codigo_combinacion,
-				&$fechapedido, &$vendedor, &$zonavta, &$zonamult, &$fechaentrega)
+				&$fechapedido, &$zonavta, &$zonamult, &$fechaentrega)
 	{
     	$Cliente = $this->clienteQuery->traeClienteporId($cliente_id);
 		if ($Cliente)
@@ -439,15 +543,17 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 			$cliente = $Cliente->codigo;
 			$zonavta = $Cliente->zonavta_id;
 			$zonamult = $Cliente->provincia_id;
-			$vendedor = $Cliente->vendedor_id;
 		}
 		else
 		{
 			$cliente = ' ';
 			$zonavta = 0;
 			$zonamult = 0;
-			$vendedor = 0;
 		}
+		if ($zonavta == '')
+			$zonavta = 0;
+		if ($zonamult == '')
+			$zonamult = 0;
 
 		$tipo = substr($codigo_pedido, 0, 3);
 		$letra = substr($codigo_pedido, 4, 1);

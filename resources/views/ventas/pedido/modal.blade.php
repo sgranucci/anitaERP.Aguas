@@ -10,6 +10,10 @@
       <div class="modal-body">
         <form>
           <div class="form-group">
+            <label for="recipient-name" class="col-form-label">Cantidad m&oacute;dulos</label>
+            <input type="text" size="5" style="font-weight: bold; text-align: center;" id="cantmodulo" name="cantmodulo" value="1"></input>
+          </div>
+          <div class="form-group">
             <label for="recipient-name" class="col-form-label">Medidas</label>
             <div id="medidasModal"></div>
           </div>

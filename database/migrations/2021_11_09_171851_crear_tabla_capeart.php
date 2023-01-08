@@ -25,6 +25,7 @@ class CrearTablaCapeart extends Migration
             $table->foreign('color_id', 'fk_capeart_color')->references('id')->on('color')->onDelete('restrict')->onUpdate('restrict');
             $table->string('piezas', 255);
             $table->string('tipo', 1);
+            $table->string('tipocalculo', 1);
 			$table->decimal('consumo1',20,6);
 			$table->decimal('consumo2',20,6);
 			$table->decimal('consumo3',20,6);

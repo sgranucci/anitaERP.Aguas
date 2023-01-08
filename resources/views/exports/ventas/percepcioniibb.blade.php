@@ -40,23 +40,23 @@
 				else
 					$monto_bsas = 0;
 			@endphp
-           	<td align="right">{{number_format(floatval($gravado), 2)}}</td>
-           	<td align="right">{{number_format(floatval($monto_caba), 2)}}</td>
-           	<td align="right">{{number_format(floatval($data->tasa_padron_caba), 2)}}</td>
+           	<td align="right">{{round(floatval($gravado), 2)}}</td>
+           	<td align="right">{{round(floatval($monto_caba), 2)}}</td>
+           	<td align="right">{{round(floatval($data->tasa_padron_caba), 2)}}</td>
 			@php if (is_numeric($data->tasa_padron_caba))
 					$monto_padron_caba = $gravado * $data->tasa_padron_caba / 100; 
 				 else
 				 	$monto_padron_caba = 0;
 			@endphp
-           	<td align="right">{{number_format($monto_padron_caba, 2)}}</td>
-           	<td align="right">{{number_format(floatval($monto_bsas), 2)}}</td>
-           	<td align="right">{{number_format(floatval($data->tasa_padron_bsas), 2)}}</td>
+           	<td align="right">{{round($monto_padron_caba, 2)}}</td>
+           	<td align="right">{{round(floatval($monto_bsas), 2)}}</td>
+           	<td align="right">{{round(floatval($data->tasa_padron_bsas), 2)}}</td>
 			@php if (is_numeric($data->tasa_padron_bsas))
 					$monto_padron_bsas = $gravado * $data->tasa_padron_bsas / 100; 
 				 else
 					$monto_padron_bsas = 0;
 			@endphp
-           	<td align="right">{{number_format($monto_padron_bsas, 2)}}</td>
+           	<td align="right">{{round($monto_padron_bsas, 2)}}</td>
         </tr>
     @endforeach
 	</tbody>

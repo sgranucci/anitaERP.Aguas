@@ -73,7 +73,7 @@ Condiciones de Venta
                                    	<i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-condiciones-de-venta', false))
+                       			@if (can('borrar-condiciones-de-venta', false))
                                 	<form action="{{route('eliminar_condicionventa', ['id' => $condicionventa->id])}}" class="d-inline form-eliminar" method="POST">
                                    		@csrf @method("delete")
                                    		<button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

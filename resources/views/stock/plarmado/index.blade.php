@@ -44,7 +44,7 @@ Plantillas de Armado
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-plantilla-de-armado', false))
+                       			@if (can('borrar-plantilla-de-armado', false))
                                 <form action="{{route('eliminar_plarmado', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

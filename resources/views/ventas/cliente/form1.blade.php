@@ -124,7 +124,7 @@
 		<div class="row">
 			<div class="col-lg-12">
 				<div class="form-group row">
-    				<label for="domicilio" class="col-lg-3 col-form-label requerido">Direcci&oacuten</label>
+    				<label for="domicilio" class="col-lg-2 col-form-label requerido">Direcci&oacuten</label>
     				<div class="col-lg-4">
     					<input type="text" name="domicilio" id="domicilio" class="form-control" value="{{old('domicilio', $data->domicilio ?? '')}}" required/>
     				</div>
@@ -136,9 +136,17 @@
     					<label for="Tasacaba" style="padding: 0px;" class="col-form-label">Tasa CABA: {{$tasacaba}} %</label>
 					@endif
     				</div>
+					<div class="col-lg-2">
+						<label for="Tiposuspension" id="nombretiposuspension" style="padding: 0px;" class="col-form-label text-danger"></label>
+					</div>
 				</div>
 			</div>
 		</div>
         <input type="hidden" id="estado" name="estado" value="{{old('estado', $data->estado ?? '')}}" >
+		<input type="hidden" id="tipoalta" name="tipoalta" value="{{$tipoalta ?? ''}}" >
+		<input type="hidden" id="tiposuspension_id" name="tiposuspension_id" value="{{$data->tiposuspension_id ?? ''}}" >
+		<input type="hidden" id="tiposuspensioncliente_query" value="{{$tiposuspensioncliente_query ?? ''}}" >
 </div>
+
+
 

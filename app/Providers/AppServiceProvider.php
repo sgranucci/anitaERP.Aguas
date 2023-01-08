@@ -54,6 +54,11 @@ class AppServiceProvider extends ServiceProvider
         	'App\Queries\Ventas\ClienteQueryInterface',
         	'App\Queries\Ventas\ClienteQuery',
     	);
+		
+	    $this->app->bind(
+        	'App\Queries\Ventas\Cliente_ComisionQueryInterface',
+        	'App\Queries\Ventas\Cliente_ComisionQuery',
+    	);
 
 	    $this->app->bind(
         	'App\Queries\Ventas\Cliente_EntregaQueryInterface',
@@ -66,8 +71,103 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 	    $this->app->bind(
+        	'App\Repositories\Ventas\OrdentrabajoRepositoryInterface',
+        	'App\Repositories\Ventas\OrdentrabajoRepository',
+    	);
+
+	    $this->app->bind(
+        	'App\Repositories\Ventas\Ordentrabajo_Combinacion_TalleRepositoryInterface',
+        	'App\Repositories\Ventas\Ordentrabajo_Combinacion_TalleRepository',
+    	);
+
+	    $this->app->bind(
+        	'App\Repositories\Ventas\VentaRepositoryInterface',
+        	'App\Repositories\Ventas\VentaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Ventas\Venta_ImpuestoRepositoryInterface',
+        	'App\Repositories\Ventas\Venta_ImpuestoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Ventas\Cliente_CuentacorrienteRepositoryInterface',
+        	'App\Repositories\Ventas\Cliente_CuentacorrienteRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Ventas\Ordentrabajo_TareaRepositoryInterface',
+        	'App\Repositories\Ventas\Ordentrabajo_TareaRepository',
+    	);
+
+	    $this->app->bind(
+        	'App\Queries\Stock\ArticuloQueryInterface',
+        	'App\Queries\Stock\ArticuloQuery',
+    	);
+
+		$this->app->bind(
+        	'App\Queries\Stock\Articulo_MovimientoQueryInterface',
+        	'App\Queries\Stock\Articulo_MovimientoQuery',
+    	);
+
+	    $this->app->bind(
+        	'App\Repositories\Stock\Articulo_CajaRepositoryInterface',
+        	'App\Repositories\Stock\Articulo_CajaRepository',
+    	);
+		
+		$this->app->bind(
+        	'App\Repositories\Stock\LoteRepositoryInterface',
+        	'App\Repositories\Stock\LoteRepository',
+    	);
+	    
+		$this->app->bind(
+        	'App\Repositories\Stock\Articulo_CostoRepositoryInterface',
+        	'App\Repositories\Stock\Articulo_CostoRepository',
+    	);
+
+	    $this->app->bind(
         	'App\Repositories\Ventas\TransporteRepositoryInterface',
         	'App\Repositories\Ventas\TransporteRepository',
+    	);
+
+	    $this->app->bind(
+        	'App\Repositories\Ventas\MotivocierrepedidoRepositoryInterface',
+        	'App\Repositories\Ventas\MotivocierrepedidoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Ventas\TiposuspensionclienteRepositoryInterface',
+        	'App\Repositories\Ventas\TiposuspensionclienteRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Ventas\TipotransaccionRepositoryInterface',
+        	'App\Repositories\Ventas\TipotransaccionRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Ventas\PuntoventaRepositoryInterface',
+        	'App\Repositories\Ventas\PuntoventaRepository',
+    	);
+
+	    $this->app->bind(
+        	'App\Repositories\Produccion\TareaRepositoryInterface',
+        	'App\Repositories\Produccion\TareaRepository',
+    	);
+
+	    $this->app->bind(
+        	'App\Repositories\Produccion\OperacionRepositoryInterface',
+        	'App\Repositories\Produccion\OperacionRepository',
+    	);
+
+	    $this->app->bind(
+        	'App\Repositories\Produccion\EmpleadoRepositoryInterface',
+        	'App\Repositories\Produccion\EmpleadoRepository',
+    	);
+
+	    $this->app->bind(
+        	'App\Repositories\Produccion\MovimientoOrdentrabajoRepositoryInterface',
+        	'App\Repositories\Produccion\MovimientoOrdentrabajoRepository',
     	);
 
 	    $this->app->bind(
@@ -90,7 +190,17 @@ class AppServiceProvider extends ServiceProvider
         	'App\Repositories\Stock\MaterialavioRepository',
     	);
 
-	    $this->app->bind(
+		$this->app->bind(
+        	'App\Repositories\Stock\Articulo_MovimientoRepositoryInterface',
+        	'App\Repositories\Stock\Articulo_MovimientoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Stock\Articulo_Movimiento_TalleRepositoryInterface',
+        	'App\Repositories\Stock\Articulo_Movimiento_TalleRepository',
+    	);
+
+		$this->app->bind(
         	'App\Services\Ventas\PedidoService',
     	);
 
@@ -102,6 +212,11 @@ class AppServiceProvider extends ServiceProvider
 	    $this->app->bind(
         	'App\Repositories\Ventas\Pedido_CombinacionRepositoryInterface',
         	'App\Repositories\Ventas\Pedido_CombinacionRepository',
+    	);
+
+	    $this->app->bind(
+        	'App\Repositories\Ventas\Pedido_Combinacion_EstadoRepositoryInterface',
+        	'App\Repositories\Ventas\Pedido_Combinacion_EstadoRepository',
     	);
 
 	    $this->app->bind(
@@ -119,8 +234,17 @@ class AppServiceProvider extends ServiceProvider
         	'App\Queries\Ventas\Pedido_CombinacionQuery',
     	);
 
+		$this->app->bind(
+        	'App\Repositories\Configuracion\CondicionivaRepositoryInterface',
+        	'App\Repositories\Configuracion\CondicionivaRepository',
+    	);
+
 	    $this->app->bind(
         	'App\Services\Configuracion\IIBBService',
+    	);
+
+	    $this->app->bind(
+        	'App\Services\Configuracion\ImpuestoService',
     	);
     }
 }

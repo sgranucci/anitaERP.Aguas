@@ -9,7 +9,7 @@ use App\ApiAnita;
 
 class Moneda extends Model
 {
-    protected $fillable = ['nombre', 'abreviatura'];
+    protected $fillable = ['nombre', 'abreviatura', 'codigo'];
     protected $table = 'moneda';
     protected $keyField = 'id';
     protected $keyFieldAnita = 'mon_key';

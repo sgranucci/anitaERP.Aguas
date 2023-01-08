@@ -5,19 +5,6 @@ Pedidos de Clientes
 
 @section("scripts")
 <script src="{{asset("assets/pages/scripts/admin/index.js")}}" type="text/javascript"></script>
-
-<script>
- $.extend(true, $.fn.dataTable.defaults, {
-    cuota: [[ 1, 'desc' ]],
-    pageLength: 100,
-  });
-  $('.datatable-Order:not(.ajaxTable)').DataTable({ buttons: dtButtons })
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function(e){
-        $($.fn.dataTable.tables(true)).DataTable()
-            .columns.adjust();
-    });
-
-</script>
 @endsection
 
 <?php use App\Helpers\biblioteca ?>
@@ -30,6 +17,11 @@ Pedidos de Clientes
             <div class="card-header">
                 <h3 class="card-title">Pedidos de clientes</h3>
                 <div class="card-tools">
+                    <a href="{{route('cerrar_pedido')}}" class="btn btn-danger btn-sm">
+                       	@if (can('cierre-de-pedidos', false))
+                        	<i class="fa fa-fw fa-times-circle"></i> Cierre de pedidos
+						@endif
+                    </a>
                     <a href="{{route('crear_pedido')}}" class="btn btn-outline-secondary btn-sm">
                        	@if (can('crear-pedidos', false))
                         	<i class="fa fa-fw fa-plus-circle"></i> Nuevo registro
@@ -38,65 +30,47 @@ Pedidos de Clientes
                 </div>
             </div>
             <div class="card-body table-responsive p-0">
-                <table class="table table-striped table-bordered table-hover" id="tabla-data">
+                <table class="table table-striped table-bordered table-hover" id="tabla-data-2">
                     <thead>
                         <tr>
                             <th class="width20">ID</th>
                             <th>Fecha</th>
-                            <th>Cliente</th>
+                            <th class="width50">Cliente</th>
                             <th>Codigo Anita</th>
                             <th>Marca</th>
                             <th>Pares</th>
-                            <th>Items</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>
                     </thead>
                     <tbody>
 						@foreach($datas as $pedido)
-    						<tr data-entry-id="{{ $pedido->id }}">
+    						<tr data-entry-id="{{ $pedido['id'] }}">
         						<td>
-            						{{ $pedido->id ?? '' }}
+            						{{ $pedido['id'] ?? '' }}
         						</td>
         						<td>
-            						{{date("d/m/Y", strtotime($pedido->fecha ?? ''))}} 
+            						{{date("d/m/Y", strtotime($pedido['fecha'] ?? ''))}} 
         						</td>
         						<td>
-            						<b>{{ $pedido->clientes->nombre ?? '' }}</b>
+            						<b>{{ $pedido['nombrecliente'] ?? '' }}</b>
         						</td>
         						<td>
-                					<small> {{$pedido->codigo}}</small>
+                					<small> {{$pedido['codigo']}}</small>
         						</td>
         						<td>
-            						{{ $pedido->mventas->nombre ?? '' }}
+            						{{ $pedido['nombremarca'] ?? '' }}
         						</td>
         						<td>
-									@php
-										$pares = 0.;
-									@endphp
-									@foreach($pedido->pedido_combinaciones as $item)
-										@php
-											$pares += ($item->cantidad);
-										@endphp
-            						@endforeach
-            						{{ $pares ?? '' }}
-        						</td>
-        						<td>
-								<small>
-            						<ul style="padding:0;list-style:none;">
-									@foreach($pedido->pedido_combinaciones as $item)
-                						<li>{{ $item->articulos->sku }}-{{ $item->combinaciones->codigo }} {{ $item->articulos->descripcion }} ({{ number_format($item->cantidad, 0) }})</li>
-            						@endforeach
-            						</ul>
-								</small>
-        						</td>
+									{{ $pedido['pares'] }}
+								</td>
         						<td>
                        			@if (can('editar-pedidos', false))
-                                	<a href="{{route('editar_pedido', ['id' => $pedido->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">
+                                	<a href="{{route('editar_pedido', ['id' => $pedido['id']])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">
                                    	<i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-pedidos', false))
-                                	<form action="{{route('eliminar_pedido', ['id' => $pedido->id])}}" class="d-inline form-eliminar" method="POST">
+                       			@if (can('borrar-pedidos', false))
+                                	<form action="{{route('eliminar_pedido', ['id' => $pedido['id']])}}" class="d-inline form-eliminar" method="POST">
                                    		@csrf @method("delete")
                                    		<button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">
                                        	<i class="fa fa-times-circle text-danger"></i>
@@ -104,7 +78,7 @@ Pedidos de Clientes
                                 	</form>
 								@endif
                        			@if (can('listar-pedidos', false))
-                                	<a href="{{route('listar_pedido', ['id' => $pedido->id])}}" class="btn-accion-tabla tooltipsC" title="Listar el pedido">
+                                	<a href="{{route('listar_pedido', ['id' => $pedido['id']])}}" class="btn-accion-tabla tooltipsC" title="Listar el pedido">
                                    	<i class="fa fa-print"></i>
                                 	</a>
 								@endif

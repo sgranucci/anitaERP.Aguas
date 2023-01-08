@@ -55,8 +55,7 @@ class CondicionventaController extends Controller
 							['id' => '1', 'valor' => 'D', 'nombre'  => 'Dias'],
     						['id' => '2', 'valor' => 'F', 'nombre'  => 'Vto. fijo'],
     						['id' => '3', 'valor' => 'O', 'nombre'  => 'Vto. por operacion'],
-							['id' => '4', 'valor' => 'R', 'nombre'  => 'Vto. por rangos']
-								]);
+							]);
 
         return view('ventas.condicionventa.crear', compact('colTipoPlazo'));
     }
@@ -122,8 +121,7 @@ class CondicionventaController extends Controller
 							['id' => '1', 'valor' => 'D', 'nombre'  => 'Dias'],
     						['id' => '2', 'valor' => 'F', 'nombre'  => 'Vto. fijo'],
     						['id' => '3', 'valor' => 'O', 'nombre'  => 'Vto. por operacion'],
-							['id' => '4', 'valor' => 'R', 'nombre'  => 'Vto. por rangos']
-								]);
+							]);
 
         return view('ventas.condicionventa.editar', compact('condicionventa', 'colTipoPlazo'));
     }

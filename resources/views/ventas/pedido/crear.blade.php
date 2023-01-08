@@ -7,49 +7,28 @@
 <script src="{{asset("assets/pages/scripts/admin/crear.js")}}" type="text/javascript"></script>
 <script src="{{asset("assets/pages/scripts/ventas/pedido/crear.js")}}" type="text/javascript"></script>
 <script>
-function sub()
-{
-	$('#form-general').submit();
-}
-
-   function completarCliente_Entrega(cliente_id){
-        var loc_id, fl_tiene_entrega = false;
-        $.get('/anitaERP/public/ventas/leercliente_entrega/'+cliente_id, function(data){
-            var entr = $.map(data, function(value, index){
-                return [value];
-            });
-            $("#cliente_entrega_id").empty();
-            $("#cliente_entrega_id").append('<option value=""></option>');
-            $.each(entr, function(index,value){
-                $("#cliente_entrega_id").append('<option value="'+value.id+'">'+value.nombre+'</option>');
-				fl_tiene_entrega = true;
-            });
-			if (fl_tiene_entrega)
-			{
-			  $("#divcodigoentrega").show();
-			  $("#divlugar").hide();
-			}
-			else
-			{
-			  $("#divcodigoentrega").hide();
-			  $("#divlugar").show();
-			}
-        });
-        setTimeout(() => {
-        }, 3000);
-    }
+    var CLIENTE_STOCK_ID = "{{ config('cliente.CLIENTE_STOCK_ID') }}";
+	function sub()
+	{
+		$('#form-general').submit();
+	}
 
     $(function () {
         $("#cliente_id").change(function(){
             var cliente_id = $(this).val();
             completarCliente_Entrega(cliente_id);
-    	});
+            asignaDatosCliente(cliente_id, true);
+            setTimeout(() => {
+                muestraTipoSuspension();			
+            }, 1500);
+        });
 
 		$("#divlugar").show();
 		$("#divcodigoentrega").hide();
 
         var cliente_id = $("#cliente_id").val();
-        completarCliente_Entrega(cliente_id);
+		if (cliente_id > 0)
+        	completarCliente_Entrega(cliente_id);
 	  });
 
 </script>
@@ -73,7 +52,8 @@ function sub()
             <form action="{{route('guardar_pedido')}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
                 @csrf
                 <div class="card-body">
-                    @include('ventas.pedido.form')
+                    @php $datos = ["funcion" => "crear"]; @endphp
+                    @include('ventas.pedido.form', $datos)
                 </div>
                 <div class="card-footer">
                     <div class="row">

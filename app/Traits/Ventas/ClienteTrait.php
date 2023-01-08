@@ -25,4 +25,9 @@ trait ClienteTrait {
 		'0' => 'Activo',
 		'1' => 'Suspendido',
 		];
+
+	public static $enumModoFacturacion = [
+		'N' => 'Normal',
+		'C' => 'Factura de crédito',
+		];
 }

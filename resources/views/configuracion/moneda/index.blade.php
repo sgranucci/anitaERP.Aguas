@@ -31,6 +31,7 @@ Monedas
                             <th class="width20">ID</th>
                             <th>Nombre</th>
                             <th>Abreviatura</th>
+                            <th>C&oacute;digo</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>
                     </thead>
@@ -40,13 +41,14 @@ Monedas
                             <td>{{$data->id}}</td>
                             <td>{{$data->nombre}}</td>
                             <td>{{$data->abreviatura}}</td>
+                            <td>{{$data->codigo}}</td>
                             <td>
                        			@if (can('editar-monedas', false))
                                 	<a href="{{route('editar_moneda', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-monedas', false))
+                       			@if (can('borrar-monedas', false))
                                 <form action="{{route('eliminar_moneda', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

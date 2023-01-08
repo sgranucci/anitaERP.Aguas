@@ -61,7 +61,7 @@ function limpiaFiltros(){
                 <h3 class="card-title">Art&iacute;culos</h3>
                 <div class="card-tools">
                     <a href="{{route('product.create')}}" class="btn btn-outline-secondary btn-sm">
-                       	@if (can('crear-articulos', false))
+                       	@if (can('crear-articulos-disenio', false))
                         	<i class="fa fa-fw fa-plus-circle"></i> Nuevo registro
 						@endif
                     </a>

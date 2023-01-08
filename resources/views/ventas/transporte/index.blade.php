@@ -50,7 +50,7 @@ Transportes
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-transportes', false))
+                       			@if (can('borrar-transportes', false))
                                 <form action="{{route('eliminar_transporte', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

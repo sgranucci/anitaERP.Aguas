@@ -43,12 +43,12 @@
                             <td>{{$data->descarticulo}}</td>
                             <td>{{$data->sku}}</td>
                             <td>
-                       			@if (can('editar-materialcapellada', false))
+                       			@if (can('editar-capelladas', false))
                                 	<a href="{{route('editar_materialcapellada', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-capelladas', false))
+                       			@if (can('borrar-capelladas', false))
                                 <form action="{{route('eliminar_materialcapellada', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

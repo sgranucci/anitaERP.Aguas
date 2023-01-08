@@ -43,7 +43,7 @@ class RuleCliente implements Rule
 		case 'condicioniibb':
 			$cc = Arr::has(Cliente::$enumCondicioniibb, $value);
 			break;
-		}
+    }
 		return($cc);
     }
 

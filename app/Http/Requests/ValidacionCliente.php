@@ -38,7 +38,7 @@ class ValidacionCliente extends FormRequest
             'condicioniva_id' => ['integer', 'nullable'],
             'condicionventa_id' => ['integer', 'nullable'],
             'listaprecio_id' => ['integer', 'nullable'],
-            'cuentacontable_id' => ['required', 'nullable'],
+            'cuentacontable_id' => 'required',
             'nroinscripcion' => ['required', new RuleCliente('nroinscripcion')],
             'retieneiva' => ['required', new RuleCliente('retieneiva')],
             'nroiibb' => 'required|max:100|',

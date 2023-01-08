@@ -5,6 +5,38 @@
 
 @section("scripts")
 <script src="{{asset("assets/pages/scripts/admin/crear.js")}}" type="text/javascript"></script>
+<script>
+
+	$(function()
+	{
+		$('#agrega_renglon_caja').on('click', agregaRenglonCaja);
+		$('.eliminarCaja').on('click', borraRenglonCaja);
+	});
+
+    function agregaRenglonCaja() 
+	{
+    	if (event != undefined)
+    		event.preventDefault();
+
+    	var renglon = $('#template-renglon-caja').html();
+
+    	$("#cajas_table").append(renglon);
+
+		// Reactiva eventos
+		$('.eliminarCaja').off('click');
+		$('.eliminarCaja').on('click', borraRenglonCaja);
+    }
+
+    function borraRenglonCaja() 
+	{
+    	event.preventDefault();
+    	if (confirm("Desea borrar renglon?"))
+    	{
+    		$(this).parents('tr').remove();
+    	}
+    }
+
+</script>
 @endsection
 
 @section('contenido')

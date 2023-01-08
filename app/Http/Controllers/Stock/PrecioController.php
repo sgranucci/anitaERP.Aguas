@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Stock;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Imports\Stock\PrecioImport;
 use App\Models\Stock\Precio;
+use App\Services\Stock\PrecioService;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Seguridad\Usuario;
 use App\Models\Stock\Articulo;
@@ -12,12 +14,21 @@ use App\Models\Stock\Talle;
 use App\Models\Stock\Listaprecio;
 use App\Models\Configuracion\Moneda;
 use App\Http\Requests\ValidacionPrecio;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\HeadingRowImport;
 use Carbon\Carbon;
 use DB;
 use Auth;
 
 class PrecioController extends Controller
 {
+    protected $precioService;
+
+    public function __construct(PrecioService $precioservice)
+    {
+		$this->precioService = $precioservice;
+    }
+    
     /**
      * Display a listing of the resource.
      *
@@ -47,6 +58,8 @@ class PrecioController extends Controller
 
 	public function asignaPrecio($articulo_id, $talle_id)
 	{
+        $fechaHoy = Carbon::now();
+        
 		$talle_id = preg_replace('([^A-Za-z0-9,])', '', $talle_id);
 		$array_talle = explode(',', $talle_id);
 		if ($talle_id)
@@ -55,25 +68,14 @@ class PrecioController extends Controller
 
 			foreach($talle as $value)
 			{
-				$lista = 1;
-		
-				if ($value->nombre >= 16 && $value->nombre <= 26)
-					$lista = 1;
-				if ($value->nombre >= 27 && $value->nombre <= 33)
-					$lista = 2;
-				if ($value->nombre >= 34 && $value->nombre <= 40)
-					$lista = 3;
-				if ($value->nombre >= 41) 
-					$lista = 6;
-	
-				$precio = Precio::with('listaprecios')->where('articulo_id',$articulo_id)->where('listaprecio_id',$lista)->first();
-	
-				if ($precio)
+                $precio = $this->precioService->asignaPrecio($articulo_id, $value->id, $fechaHoy);
+
+				if (count($precio) > 0)
 				{
-					$precio_talle = $precio->precio;
-					$listaprecio_id = $precio->listaprecio_id;
-					$moneda_id = $precio->moneda_id;
-					$incluyeimpuesto = $precio->listaprecios->incluyeimpuesto;
+					$precio_talle = $precio[0]['precio'];
+					$listaprecio_id = $precio[0]['listaprecio_id'];
+					$moneda_id = $precio[0]['moneda_id'];
+					$incluyeimpuesto = $precio[0]['incluyeimpuesto'];
 				}
 				else
 				{
@@ -140,8 +142,8 @@ class PrecioController extends Controller
         $precio = Precio::where('id', $precio->id)->with('articulos:id,descripcion,sku')->with('listaprecios')->with('monedas')->with('usuarios')->first();
 
 		// Graba anita
-		$Precio = new Precio();
-        $Precio->guardarAnita($precio);
+		//$Precio = new Precio();
+        //$Precio->guardarAnita($precio);
 
         return redirect('stock/precio')->with('mensaje', 'Precio creado con exito');
     }
@@ -195,8 +197,8 @@ class PrecioController extends Controller
         $precio = Precio::where('id', $id)->with('articulos:id,descripcion,sku')->with('listaprecios')->with('monedas')->with('usuarios')->first();
 
 		// Actualiza anita
-		$Precio = new Precio();
-        $Precio->actualizarAnita($precio);
+		//$Precio = new Precio();
+        //$Precio->actualizarAnita($precio);
 
         return redirect('stock/precio')->with('mensaje', 'Precio actualizado con exito');
     }
@@ -214,8 +216,8 @@ class PrecioController extends Controller
         $precio = Precio::where('id', $id)->with('articulos:id,descripcion,sku')->with('listaprecios')->with('monedas')->with('usuarios')->first();
 
 		// Elimina anita
-		$Precio = new Precio();
-        $Precio->eliminarAnita($precio->articulos->sku, $precio->listaprecios->codigo);
+		//$Precio = new Precio();
+        //$Precio->eliminarAnita($precio->articulos->sku, $precio->listaprecios->codigo);
 
         if ($request->ajax()) {
             if (Precio::destroy($id)) {
@@ -225,6 +227,45 @@ class PrecioController extends Controller
             }
         } else {
             abort(404);
+        }
+    }
+
+	public function crearImportacion()
+    {
+        can('crear-precios');
+		
+		$listaprecio_query = Listaprecio::all();
+		$moneda_query = Moneda::all();
+
+        return view('stock.precio.crearimportacion', compact('listaprecio_query', 'moneda_query'));
+    }
+
+	public function importar(Request $request)
+    {
+        $this->validate(request(), [
+            'file' => 'required|mimetypes::'.
+                'application/vnd.ms-office,'.
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,'.
+                'application/vnd.ms-excel',
+        ]);
+
+        $rowEncabezado = 3;
+        $headings = (new HeadingRowImport($rowEncabezado))->toArray(request("file"));
+
+        try {
+            set_time_limit(0);
+
+            DB::beginTransaction();
+            Excel::import(new PrecioImport(request("fechavigencia"), request("moneda_id"), $headings), request("file"));
+            DB::commit();
+
+            return back()
+                ->with('mensaje', 'Precios importados correctamente');
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            
+            return back()
+                ->with('mensaje', $exception->getMessage());
         }
     }
 }

@@ -40,7 +40,10 @@ class CrearTablaPedidoCombinacion extends Migration
 			$table->unsignedBigInteger('linea_id')->nullable();
 			$table->foreign('linea_id', 'fk_pedido_articulo_linea')->references('id')->on('linea')->onUpdate('set null')->onDelete('set null');
             $table->unsignedBigInteger('ot_id')->nullable;
+            $table->unsignedBigInteger('lote_id')->nullable();
+			$table->foreign('lote_id', 'fk_pedido_combinacion_lote')->references('id')->on('lote')->onUpdate('restrict')->onDelete('restrict');
             $table->string('observacion',255)->nullable();
+            $table->string('estado',1)->nullable();
             $table->timestamps();
 			$table->softDeletes();
             $table->charset = 'utf8mb4';

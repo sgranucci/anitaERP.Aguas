@@ -17,7 +17,12 @@
             <div class="card-header">
                 <h3 class="card-title">Precios</h3>
                 <div class="card-tools">
-                    <a href="{{route('crear_precio')}}" class="btn btn-outline-secondary btn-sm">
+                    <a href="{{route('crear_importacion_precio')}}" class="btn btn-outline-secondary btn-sm">
+						@if (can('crear-precios', false))
+                        	<i class="fa fa-fw fa-plus-circle"></i> Sube precios de excel
+						@endif
+                    </a>
+					<a href="{{route('crear_precio')}}" class="btn btn-outline-secondary btn-sm">
                        	@if (can('crear-precios', false))
                         	<i class="fa fa-fw fa-plus-circle"></i> Nuevo registro
 						@endif
@@ -68,7 +73,7 @@
                                    	<i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-precios', false))
+                       			@if (can('borrar-precios', false))
                                 	<form action="{{route('eliminar_precio', ['id' => $precio->id])}}" class="d-inline form-eliminar" method="POST">
                                    		@csrf @method("delete")
                                    		<button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

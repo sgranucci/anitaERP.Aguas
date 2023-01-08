@@ -35,7 +35,19 @@ class ClienteQuery implements ClienteQueryInterface
 
     public function allQueryporEstado(array $campos, $estado)
     {
-        return $this->model->select($campos)->where('estado',$estado)->get();
+        return $this->model->select($campos)
+                ->orderBy('nombre','ASC')
+                ->where('estado',$estado)
+                ->where('nombre','!=',' ')->get();
+    }
+
+    public function allQueryCargaPedido(array $campos)
+    {
+        return $this->model->select($campos)
+                ->orderBy('nombre','ASC')
+                ->where([['estado','0'],['nombre','!=',' ']])
+                ->orWhere([['estado','!=','0'],['nombre','!=',' '],['tiposuspension_id','!=','1']])
+                ->get();
     }
 
     public function traeClienteporCodigo($codigo)
@@ -43,9 +55,49 @@ class ClienteQuery implements ClienteQueryInterface
         return $this->model->select('id','codigo')->where('codigo',$codigo)->first();
     }
 
-    public function traeClienteporId($id)
+    public function traeClienteporId($id, $campos = null)
     {
-        return $this->model->with('condicionivas')->where('id',$id)->first();
+	  	if ($campos)
+        	return $this->model->with('condicionivas')->select($campos)->where('id',$id)->first();
+		else
+        	return $this->model->with('condicionivas')->where('id',$id)->first();
     }
+
+    // Datos para informe maestro de clientes
+
+    public function generaDatosRepCliente($desdecliente_id, $hastacliente_id, $estado, $tiposuspensioncliente_id)
+    {
+        $data = $this->model->select('cliente.*')
+            ->with('localidades')
+            ->with('provincias')
+            ->with('tipossuspensioncliente')
+            ->orderBy('nombre','ASC');
+
+        switch($estado)
+        {
+            case 'TODOS':
+                $data = $data
+                    ->where([['nombre','!=',' ']])
+                    ->get();
+                break;
+            case 'ACTIVOS':
+                $data = $data
+                    ->where([['estado','0'],['nombre','!=',' ']])
+                    ->get();
+                break;
+            case 'SUSPENDIDOS':
+                if ($tiposuspensioncliente_id != 0)
+                    $data = $data
+                        ->where([['estado','!=','0'],['nombre','!=',' '],['tiposuspension_id',$tiposuspensioncliente_id]])
+                        ->get();
+                else
+                    $data = $data
+                        ->where([['estado','!=','0'],['nombre','!=',' ']])
+                        ->get();
+                break;
+        }
+        return $data;
+    }
+
 }
 

@@ -70,8 +70,8 @@ class PadroncabaRepository implements PadroncabaRepositoryInterface
 
         $fecha = Carbon::now();
 		$fecha = $fecha->format('Ymd');
-		$desde_fecha = date('Ym01', $fecha);
-		$hasta_fecha = date('Ym31', $fecha);
+		$desde_fecha = substr($fecha, 0, 6)."01";
+		$hasta_fecha = substr($fecha, 0, 6)."31";
 
         $apiAnita = new ApiAnita();
         $data = array( 

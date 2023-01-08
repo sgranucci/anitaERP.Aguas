@@ -52,10 +52,6 @@ class PedidoRepository implements PedidoRepositoryInterface
     {
         $pedido = $this->model->findOrFail($id)->update($data);
 		//
-		// Actualiza anita
-		if ($pedido)
-			self::actualizarAnita($data, $data['codigo']);
-
 		return $pedido;
     }
 
@@ -75,14 +71,18 @@ class PedidoRepository implements PedidoRepositoryInterface
         $pedido = $this->model->destroy($id);
 		return $pedido;
     }
-
+    
+	public function all()
+    {
+        return $this->model->get();
+    }
+	
     public function find($id)
     {
-        if (null == $pedido = $this->model->with("pedido_combinaciones")->find($id)) {
+        if (null == $pedido = $this->model->with("pedido_combinaciones")->with("clientes")->find($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
-
-        return $pedido;
+		return $pedido;
     }
 
     public function findOrFail($id)
@@ -204,7 +204,7 @@ class PedidoRepository implements PedidoRepositoryInterface
             	"condicionventa_id" => $condicionventa_id,
 				"vendedor_id" => $vendedor_id,
 				"transporte_id" => $transporte_id,
-				"mventa_id" => $data->penm_sucursal,
+				"mventa_id" => $data->penm_sucursal > 5 ? 1 : $data->penm_sucursal,
 				"estado" => $data->penm_estado,
 				"usuario_id" => $usuario_id,
 				"leyenda" => $data->penm_leyenda,
@@ -223,7 +223,9 @@ class PedidoRepository implements PedidoRepositoryInterface
         }
     }
 
-	private function guardarAnita($request) {
+	public function guardarAnita($request) {
+		return 0;
+
         $apiAnita = new ApiAnita();
 
 		$this->setCamposAnita($request, $cliente, $tipo, $letra, $sucursal, $nro, $fechapedido, $fechaentrega, $zonavta, $descuento, $fechahoy, $horahoy);
@@ -289,7 +291,7 @@ class PedidoRepository implements PedidoRepositoryInterface
 				'".$fechahoy."', 
 				'".$horahoy."', 
     			'".$request['estado']."',
-    			'".$request['leyenda']."',
+    			'".($request['leyenda']??' ')."',
 				'".' '."', 
 				'".' '."', 
 				'".'0'."', 
@@ -301,6 +303,7 @@ class PedidoRepository implements PedidoRepositoryInterface
 	}
 
 	private function actualizarAnita($request, $id) {
+		return 0;
         $apiAnita = new ApiAnita();
 
 		$this->setCamposAnita($request, $cliente, $tipo, $letra, $sucursal, $nro, $fechapedido, $fechaentrega, $zonavta, $descuento, $fechahoy, $horahoy);
@@ -319,7 +322,7 @@ class PedidoRepository implements PedidoRepositoryInterface
     			penm_fecha_ing        = '".$fechahoy."',
     			penm_hora_ing         = '".$horahoy."',
     			penm_estado           = '".$request['estado']."',
-    			penm_leyenda          = '".$request['leyenda']."',
+    			penm_leyenda          = '".$request['leyenda']??' '."',
     			penm_dto_integrado    = '".$request['descuentointegrado']."', 
     			penm_cod_entreg       = '".'0'."' "
 					,
@@ -329,6 +332,7 @@ class PedidoRepository implements PedidoRepositoryInterface
 	}
 
 	private function eliminarAnita($tipo, $letra, $sucursal, $nro) {
+		return 0;
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita, 
 				'whereArmado' => " WHERE penm_tipo = '".$tipo."' AND penm_letra = '".$letra."' 

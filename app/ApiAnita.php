@@ -16,7 +16,10 @@ class ApiAnita {
         $data["IFX_DB_PATH"] = env('ANITA_BDD_PATH')."/".env('ANITA_BDD');
         //dd($data);
         $curl = curl_init();        
-        $url = "http://".$this->servidorAnita."/api.php";
+        if ($data['tabla'] == 'subdiario')
+            $url = "http://".$this->servidorAnita."/apicontab.php";
+        else
+            $url = "http://".$this->servidorAnita."/api.php";
         //dd("url", $url);
         $data = json_encode($data);
         curl_setopt_array($curl, array(
@@ -30,7 +33,8 @@ class ApiAnita {
     }
 
     public function apiCall($data){
-	//dd(env('ANITA_BRIDGE_TYPE'));
+	//dd('anita.bridge'.env('ANITA_BRIDGE_TYPE'));
+	//dd(env('DB_CONNECTION'));
 
         if (env('ANITA_BRIDGE_TYPE') == "HTTP") { return $this->apiCallHttp($data); }
         $portSSH = (env('ANITA_PUERTO_SSH') == null ? "" : "-p ".env('ANITA_PUERTO_SSH'));

@@ -16,6 +16,9 @@ use App\Models\Stock\Avioart;
 use App\Models\Stock\Linea;
 use App\Models\Stock\Mventa;
 use App\Models\Stock\Categoria;
+use App\Models\Stock\Subcategoria;
+use App\Models\Stock\Precio;
+use App\Services\Stock\PrecioService;
 use App\Http\Requests\ValidacionCombinacion;
 use App\Http\Requests\ValidacionCombinacionTecnica;
 use App\Http\Requests\ValidacionCatalogo;
@@ -25,13 +28,17 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 use LynX39\LaraPdfMerger\Facades\PdfMerger;
+use Carbon\Carbon;
 use App;
 use PDF;
 
 class CombinacionController extends Controller
 {
-    public function __construct()
+	protected $precioService;
+
+    public function __construct(PrecioService $precioservice)
     {
+		$this->precioService = $precioservice;
         $this->middleware('auth');
     }
     
@@ -102,6 +109,11 @@ class CombinacionController extends Controller
         return view('stock.combinacion.index',compact('combinaciones','articulo'));
     }
 
+	public function leerCombinacionesActivas($id)
+    {
+        return Combinacion::select('id','codigo','nombre')->where('articulo_id',$id)->where('estado','A')->orderBy('codigo','asc')->get()->toArray();
+    }
+
 	public function leerCombinaciones($id)
     {
         return Combinacion::select('id','codigo','nombre')->where('articulo_id',$id)->orderBy('codigo','asc')->get()->toArray();
@@ -118,13 +130,79 @@ class CombinacionController extends Controller
     {
         $data = $request->all();
 
+		// Lee la primer combinacion para copiar datos default
+        $primer_combinacion = Combinacion::where("articulo_id",$data['articulo_id'])->with("capearts")->with("avioarts")->get()->first();
+
+		if ($primer_combinacion)
+		{
+        	$plarmado_id = $primer_combinacion->plarmado_id;
+        	$fondo_id = $primer_combinacion->fondo_id;
+        	$horma_id = $primer_combinacion->horma_id;
+        	$serigrafia_id = $primer_combinacion->serigrafia_id;
+		}
+		else
+		{
+        	$plarmado_id = $fondo_id = $horma_id = $serigrafia_id = null;
+		}
+		if (!array_key_exists('plvista_16_26', $data))
+		{
+			$data['plvista_16_26'] = 0;
+			$data['plvista_27_33'] = 0;
+			$data['plvista_34_40'] = 0;
+			$data['plvista_41_47'] = 0;
+		}
         $combinacion = Combinacion::create([
             'articulo_id' => $data['articulo_id'],
             'codigo' => $data['codigo'],
             'nombre' => $data['nombre'],
             'observacion' => $data['observacion'],
             'estado' => $data['estado'],
+            'plarmado_id' => $plarmado_id,
+            'fondo_id' => $fondo_id,
+            'horma_id' => $horma_id,
+            'serigrafia_id' => $serigrafia_id,
+			'plvista_16_26' => $data['plvista_16_26'],
+			'plvista_27_33' => $data['plvista_27_33'],
+			'plvista_34_40' => $data['plvista_34_40'],
+			'plvista_41_47' => $data['plvista_41_47'],
         ]);
+
+		if ($primer_combinacion)
+		{
+			foreach($primer_combinacion->capearts as $capeart)
+			{
+            	if ($capeart->piezas != '')
+				{
+        			$capeart = Capeart::create([
+            			'articulo_id' => $data['articulo_id'],
+                		'combinacion_id' => $combinacion->id,
+                		'material_id' => 563, 
+                		'color_id' => 1629,
+                		'piezas' => $capeart->piezas,
+                		'consumo1' => $capeart->consumo1,
+                		'consumo2' => $capeart->consumo2,
+                		'consumo3' => $capeart->consumo3,
+                		'consumo4' => $capeart->consumo4,
+                		'tipo' => $capeart->tipo,
+                		'tipocalculo' => $capeart->tipocalculo,
+            		]);
+				}
+            }
+			foreach($primer_combinacion->avioarts as $avioart)
+			{
+        		Avioart::create([
+                		'articulo_id' => $data['articulo_id'],
+                		'combinacion_id' => $combinacion->id,
+                		'material_id' => $avioart->material_id,
+                		'color_id' => 1629,
+                		'consumo1' => $avioart->consumo1,
+                		'consumo2' => $avioart->consumo2,
+                		'consumo3' => $avioart->consumo3,
+                		'consumo4' => $avioart->consumo4,
+                		'tipo' => $avioart->tipo,
+            		]);
+			}
+		}
 
         $combinacion = Combinacion::where("id",$combinacion->id)->with("articulos:id,sku,descripcion")->with("capearts")->get()->first();
 
@@ -142,6 +220,25 @@ class CombinacionController extends Controller
 		$articulo = Articulo::all();
 
         if( $type == "tecnica" ){
+			// Arma totales de control combinacion->capearts->consumo1
+        	$combinacion1 = Combinacion::where("articulo_id",$combinacion->articulo_id)->where("codigo", '1')->with("capearts")->get()->first();
+			$totConsumo = array();
+			$totConsumo[0] = $totConsumo[1] = $totConsumo[2] = $totConsumo[3] = 0.;
+			if ($combinacion1)
+			{
+				foreach($combinacion1->capearts as $capeart)
+				{
+					if ($capeart->tipocalculo == 'D' && $capeart->tipo == 'C')
+					{
+						$totConsumo[0] += $capeart->consumo1;
+						$totConsumo[1] += $capeart->consumo2;
+						$totConsumo[2] += $capeart->consumo3;
+						$totConsumo[3] += $capeart->consumo4;
+					}
+				}
+			}
+			$totControlConsumo = $totConsumo[0].','.$totConsumo[1].','.$totConsumo[2].','.$totConsumo[3];
+
 			$plvista = Plvista::orderBy('nombre')->get();
 			$fondo = Fondo::orderBy('nombre')->get();
 	
@@ -166,158 +263,11 @@ class CombinacionController extends Controller
            	['id' => 'E', 'nombre'  => 'Empaque'],
 					];
  
-            return view('stock.combinacion.tecnica.edit',compact('combinacion','id','plvista','plarmado','fondo','color','horma','serigrafia','capelladas','avios','articulo','tipos','tipos_avios'));
+            return view('stock.combinacion.tecnica.edit',compact('combinacion','id','plvista','plarmado','fondo','color','horma','serigrafia','capelladas','avios','articulo','tipos','tipos_avios', 'totControlConsumo'));
         }else{
             return view('stock.combinacion.diseno.edit',compact('combinacion','id','articulo'));
         }
         
-    }
-
-    public function catalogo()
-    {
-        $linea_query = Linea::orderByRaw('CAST(codigo AS UNSIGNED), codigo','asc')->where('nombre','!=',' ')->get();
-        $mventa_query = Mventa::orderBy('id','asc')->get();
-        $categoria_query = Categoria::orderBy('nombre','asc')->get();
-
-        return view('stock.combinacion.catalogo.create', compact('linea_query', 'mventa_query', 'categoria_query'));
-    }
-
-	public function crearCatalogo(ValidacionCatalogo $request)
-    {
-	  	ini_set('memory_limit', '512M');
-
-        $combinacion = Combinacion::select(
-								'combinacion.codigo as codigo',
-								'combinacion.nombre as nombre',
-								'articulo.sku as sku',
-								'articulo.descripcion as descripcion',
-								'articulo.mventa_id as marca',
-								'numeracion.nombre as numeracion',
-								'material.nombre as material',
-								'forro.nombre as forro',
-								'compfondo.nombre as fondo',
-								'combinacion.foto as foto',
-								'linea.nombre as linea',
-								'articulo.linea_id as linea_id',
-								'l1.precio as precio1',
-								'l2.precio as precio2',
-								'l3.precio as precio3',
-								'l4.precio as precio4',
-								'p1.nombre as nombrelista1',
-								'p2.nombre as nombrelista2',
-								'p3.nombre as nombrelista3',
-								'p4.nombre as nombrelista4',
-								)
-						->leftJoin('articulo','combinacion.articulo_id','articulo.id')
-						->leftJoin('linea','linea.id','articulo.linea_id')
-						->leftJoin('numeracion','numeracion.id','linea.numeracion_id')
-						->leftJoin('material','material.id','articulo.material_id')
-						->leftJoin('forro','forro.id','articulo.forro_id')
-						->leftJoin('compfondo','compfondo.id','articulo.compfondo_id')
-						->leftJoin('listaprecio as p1', function($joinp1)
-						{
-							$joinp1->where('p1.id','1');
-						})
-						->leftJoin('listaprecio as p2', function($joinp2)
-						{
-							$joinp2->where('p2.id','2');
-						})
-						->leftJoin('listaprecio as p3', function($joinp3)
-						{
-							$joinp3->where('p3.id','3');
-						})
-						->leftJoin('listaprecio as p4', function($joinp4)
-						{
-							$joinp4->where('p4.id','6');
-						})
-						->leftJoin('precio as l1', function($join1)
-						{
-							$join1->on('l1.articulo_id','=','combinacion.articulo_id')
-									->where('l1.listaprecio_id','=','1');
-						})
-						->leftJoin('precio as l2', function($join2)
-						{
-							$join2->on('l2.articulo_id','=','combinacion.articulo_id')
-									->where('l2.listaprecio_id','=','2');
-						})
-						->leftJoin('precio as l3', function($join3)
-						{
-							$join3->on('l3.articulo_id','=','combinacion.articulo_id')
-									->where('l3.listaprecio_id','=','3');
-						})
-						->leftJoin('precio as l4', function($join4)
-						{
-							$join4->on('l4.articulo_id','=','combinacion.articulo_id')
-									->where('l4.listaprecio_id','=','6');
-						})
-						->orderBy('linea', 'asc')
-						->orderBy('articulo.sku', 'asc')
-						->where('combinacion.estado', 'A')
-						->whereBetween('articulo.linea_id', array($request->desde_linea_id, $request->hasta_linea_id))
-					  	->when($request->mventa_id, function($query) use ($request) {
-     						$query->where('articulo.mventa_id', '=', $request->mventa_id); 
-							})
-					  	->when($request->categoria_id, function($query1) use ($request) {
-						  	if ($request->categoria_id != 'T')
-     							$query1->where('articulo.categoria_id', '=', $request->categoria_id); 
-						})->get();
-
-
-		$combinacion = $combinacion->groupBy(function($linea) {
-		  					return $linea->linea;
-						})->all();
-
-		if (count($combinacion) > 0)
-		{
-		  	$pdfMerger = PDFMerger::init();
-
-		  	foreach ($combinacion as $linea)
-			{
-			  	$items = collect();
-
-				foreach ($linea as $item)
-				{
-				  	$nombre_pdf = $item->linea;
-					$linea_id = $item->linea_id;
-				  	$items->push($item);
-				}
-				$modulos = Linea::select('linea.id', 
-						'linea.nombre as nombre', 
-						'modulo_talle.modulo_id as modulo_id', 
-						'modulo.nombre as modulo_nombre', 
-						'modulo_talle.talle_id as talle_id', 
-						'talle.nombre as talle', 
-						'modulo_talle.cantidad as cantidad')
-					->where('linea.id',$linea_id)
-            		->leftJoin('linea_modulo', 'linea_modulo.linea_id', '=', 'linea.id')
-					->leftJoin('modulo_talle', 'modulo_talle.modulo_id', '=', 'linea_modulo.modulo_id')
-            		->leftJoin('modulo', 'modulo.id', '=', 'linea_modulo.modulo_id')
-            		->leftJoin('talle', 'talle.id', '=', 'modulo_talle.talle_id')->get();
-
-				$modulos = $modulos->groupBy(function($modulo) {
-		  					return $modulo->modulo_nombre;
-						})->all();
-
-				$view =  \View::make('exports.stock.catalogo', compact('items', 'modulos'))
-				    ->render();
-				$path = storage_path('pdf/catalogo');
-
-        		$pdf = App::make('dompdf.wrapper');
-        		$pdf->loadHTML($view)->save($path.'/'.$nombre_pdf.'.pdf');
-        		$pdf->download($nombre_pdf.'.pdf');
-
-				$pdfMerger->addPDF($path.'/'.$nombre_pdf.'.pdf', 'all');
-			}
-			$pdfMerger->merge();
-			$pdfMerger->save($path.'/catalogo.pdf', "file");
-			return response()->download($path.'/catalogo.pdf');
-		}
-
-        $linea_query = Linea::orderBy('nombre','asc')->where('nombre','!=',' ')->get();
-        $mventa_query = Mventa::orderBy('nombre','asc')->get();
-        $categoria_query = Categoria::orderBy('nombre','asc')->get();
-
-        return view('stock.combinacion.catalogo.create', compact('linea_query', 'mventa_query', 'categoria_query'));
     }
 
     public function update(ValidacionCombinacion $request, $id)
@@ -360,17 +310,14 @@ class CombinacionController extends Controller
                 'colorfondo_id' => $request->colorfondo_id,
                 'horma_id' => $request->horma_id,
                 'serigrafia_id' => $request->serigrafia_id,
+				'plvista_16_26' => $request->plvista_16_26,
+				'plvista_27_33' => $request->plvista_27_33,
+				'plvista_34_40' => $request->plvista_34_40,
+				'plvista_41_47' => $request->plvista_41_47,
 				'foto' => ($nombre_foto != NULL ? $nombre_foto.'.jpg' : NULL),
             ]);
 
 		// Graba capeart
-		// Borra de anita todas las capelladas de la combinacion
-		$Capeart = new Capeart();
-        $Capeart->eliminarAnita($request->sku, $request->codigo);
-
-        $capeart = Capeart::where('combinacion_id', $request->combinacion_id)
-                            ->where('articulo_id', $request->articulo_id)->delete();
-
         $materiales = $request->input('materiales', []);
         $colores = $request->input('colores', []);
         $piezas = $request->input('piezas', []);
@@ -379,6 +326,14 @@ class CombinacionController extends Controller
         $consumo3 = $request->input('consumo3', []);
         $consumo4 = $request->input('consumo4', []);
         $tipos = $request->input('tipos', []);
+        $tiposcalculo = explode(',', $request->capeartTipoCalculo);
+
+		// Borra de anita todas las capelladas de la combinacion
+		$Capeart = new Capeart();
+        $Capeart->eliminarAnita($request->sku, $request->codigo);
+
+        $capeart = Capeart::where('combinacion_id', $request->combinacion_id)
+                            ->where('articulo_id', $request->articulo_id)->delete();
 
         for ($i_capeart=0; $i_capeart < count($materiales); $i_capeart++) 
 		{
@@ -387,7 +342,8 @@ class CombinacionController extends Controller
 				// Graba anita
 				$Capeart = new Capeart();
         		$Capeart->guardarAnita($request, $materiales[$i_capeart], $colores[$i_capeart], $piezas[$i_capeart],
-					$consumo1[$i_capeart], $consumo2[$i_capeart], $consumo3[$i_capeart], $consumo4[$i_capeart], $tipos[$i_capeart], $i_capeart);
+					$consumo1[$i_capeart], $consumo2[$i_capeart], $consumo3[$i_capeart], $consumo4[$i_capeart], $tipos[$i_capeart], 
+					$tiposcalculo[$i_capeart], $i_capeart);
 
         		$capeart = Capeart::create([
                 		'articulo_id' => $request->articulo_id, 
@@ -400,6 +356,7 @@ class CombinacionController extends Controller
                 		'consumo3' => $consumo3[$i_capeart],
                 		'consumo4' => $consumo4[$i_capeart],
                 		'tipo' => $tipos[$i_capeart],
+						'tipocalculo' => ($tiposcalculo[$i_capeart] == 'true' ? 'D' : 'P'),
             		]);
             }
         }
@@ -505,6 +462,173 @@ class CombinacionController extends Controller
     	} else {
     		return response()->json(['mensaje' => 'ng']);
     	}
+    }
+
+    public function catalogo()
+    {
+        $linea_query = Linea::orderByRaw('CAST(codigo AS UNSIGNED), codigo','asc')->where('nombre','!=',' ')->get();
+		$linea_query->prepend((object) ['id'=>'0','nombre'=>'Primera','codigo'=>'0','tiponumeracion_id'=>'0','maxhorma'=>'0','numeracion_id'=>'0','listaprecio_id'=>'0','created_at'=>'','updated_at'=>'']);
+		$linea_query->push((object) ['id'=>'999999','nombre'=>'Ultima','codigo'=>'999999','tiponumeracion_id'=>'0','maxhorma'=>'0','numeracion_id'=>'0','listaprecio_id'=>'0','created_at'=>'','updated_at'=>'']);
+        $mventa_query = Mventa::orderBy('id','asc')->get();
+        $categoria_query = Categoria::orderBy('nombre','asc')->get();
+		$subcategoria_query = Subcategoria::orderBy('nombre','asc')->get();
+
+        return view('stock.combinacion.catalogo.create', compact('linea_query', 'mventa_query', 'categoria_query',
+			'subcategoria_query'));
+    }
+
+	public function crearCatalogo(ValidacionCatalogo $request)
+    {
+	  	ini_set('memory_limit', '512M');
+	  	ini_set('max_execution_time', '2400');
+
+		$subcategorias = $request->input('subcategoria_id', []);
+
+        $_fecha = Carbon::now();
+		$fecha_hoy = \Carbon\Carbon::parse($_fecha)->format("d/m/Y");
+
+        $combinacion = Combinacion::select(
+								'combinacion.codigo as codigo',
+								'combinacion.nombre as nombre',
+								'articulo.id as articulo_id',
+								'articulo.sku as sku',
+								'articulo.descripcion as descripcion',
+								'articulo.mventa_id as marca',
+								'numeracion.nombre as numeracion',
+								'material.nombre as material',
+								'forro.nombre as forro',
+								'compfondo.nombre as fondo',
+								'combinacion.foto as foto',
+								'linea.nombre as linea',
+								'articulo.linea_id as linea_id',
+								'p1.nombre as nombrelista1',
+								'p2.nombre as nombrelista2',
+								'p3.nombre as nombrelista3',
+								'p4.nombre as nombrelista4',
+								)
+						->leftJoin('articulo','combinacion.articulo_id','articulo.id')
+						->leftJoin('linea','linea.id','articulo.linea_id')
+						->leftJoin('numeracion','numeracion.id','linea.numeracion_id')
+						->leftJoin('material','material.id','articulo.material_id')
+						->leftJoin('forro','forro.id','articulo.forro_id')
+						->leftJoin('compfondo','compfondo.id','articulo.compfondo_id')
+						->leftJoin('listaprecio as p1', function($joinp1)
+						{
+							$joinp1->where('p1.id','1');
+						})
+						->leftJoin('listaprecio as p2', function($joinp2)
+						{
+							$joinp2->where('p2.id','2');
+						})
+						->leftJoin('listaprecio as p3', function($joinp3)
+						{
+							$joinp3->where('p3.id','3');
+						})
+						->leftJoin('listaprecio as p4', function($joinp4)
+						{
+							$joinp4->where('p4.id','6');
+						})
+						->orderBy('linea', 'asc')
+						->orderBy('articulo.sku', 'asc')
+						->where('combinacion.estado', 'A')
+						->whereBetween('articulo.linea_id', array($request->desde_linea_id, $request->hasta_linea_id))
+					  	->when($request->mventa_id, function($query) use ($request) {
+     						$query->where('articulo.mventa_id', '=', $request->mventa_id); 
+							})
+					  	->when($request->categoria_id, function($query1) use ($request) {
+						  	if ($request->categoria_id != 'T')
+     							$query1->where('articulo.categoria_id', '=', $request->categoria_id); 
+							})
+						->when($subcategorias, function($query2) use ($subcategorias) {
+							if ($subcategorias[0] != 'T')
+								$query2->whereIn('articulo.subcategoria_id', $subcategorias); 
+							})
+						->get();
+
+		$combinacion = $combinacion->groupBy(function($linea) {
+		  					return $linea->linea;
+						})->all();
+
+		if (count($combinacion) > 0)
+		{
+		  	$pdfMerger = PDFMerger::init();
+
+		  	foreach ($combinacion as $linea)
+			{
+			  	$items = collect();
+
+				foreach ($linea as $item)
+				{
+				  	$nombre_pdf = $item->linea;
+					$linea_id = $item->linea_id;
+					$tiponumeracion = Linea::select('tiponumeracion_id')->where('id',$linea_id)->first();
+					
+					// Asigna precio por vigencia
+					$precios = $this->precioService->
+						asignaPrecioPorTipoNumeracion($item->articulo_id, 
+													$tiponumeracion->tiponumeracion_id, 
+													$_fecha);
+ 					
+					// Asigna precio por vigencia
+					$item->precio4 = 0;
+					foreach ($precios as $precio)
+					{
+						if ($precio['listaprecio_id'] == 1)
+							$item->precio1 = $precio['precio'];
+							
+						if ($precio['listaprecio_id'] == 2)
+							$item->precio2 = $precio['precio'];
+						
+						if ($precio['listaprecio_id'] == 3)
+							$item->precio3 = $precio['precio'];
+					
+						if ($precio['listaprecio_id'] >= 4)
+							$item->precio1 = $precio['precio'];
+					}
+				  	$items->push($item);
+				}
+				$modulos = Linea::select('linea.id', 
+						'linea.nombre as nombre', 
+						'modulo_talle.modulo_id as modulo_id', 
+						'modulo.nombre as modulo_nombre', 
+						'modulo_talle.talle_id as talle_id', 
+						'talle.nombre as talle', 
+						'modulo_talle.cantidad as cantidad')
+					->where('linea.id',$linea_id)
+            		->leftJoin('linea_modulo', 'linea_modulo.linea_id', '=', 'linea.id')
+					->leftJoin('modulo_talle', 'modulo_talle.modulo_id', '=', 'linea_modulo.modulo_id')
+            		->leftJoin('modulo', 'modulo.id', '=', 'linea_modulo.modulo_id')
+            		->leftJoin('talle', 'talle.id', '=', 'modulo_talle.talle_id')->get();
+
+				$modulos = $modulos->groupBy(function($modulo) {
+		  					return $modulo->modulo_nombre;
+						})->all();
+
+				$view =  \View::make('exports.stock.catalogo', compact('items', 'modulos'))
+				    ->render();
+				$path = storage_path('pdf/catalogo');
+
+        		$pdf = App::make('dompdf.wrapper');
+        		$pdf->setPaper('legal','portrait');
+        		$pdf->loadHTML($view)->save($path.'/'.$nombre_pdf.'.pdf');
+        		$pdf->download($nombre_pdf.'.pdf');
+
+				$pdfMerger->addPDF($path.'/'.$nombre_pdf.'.pdf', 'all');
+			}
+			$pdfMerger->merge();
+			$pdfMerger->save($path.'/catalogo.pdf', "file");
+			return response()->download($path.'/catalogo.pdf');
+		}
+
+        $linea_query = Linea::orderByRaw('CAST(codigo AS UNSIGNED), codigo','asc')->where('nombre','!=',' ')->get();
+		$linea_query->prepend((object) ['id'=>'0','nombre'=>'Primera','codigo'=>'0','tiponumeracion_id'=>'0','maxhorma'=>'0','numeracion_id'=>'0','listaprecio_id'=>'0','created_at'=>'','updated_at'=>'']);
+		$linea_query->push((object) ['id'=>'999999','nombre'=>'Ultima','codigo'=>'999999','tiponumeracion_id'=>'0','maxhorma'=>'0','numeracion_id'=>'0','listaprecio_id'=>'0','created_at'=>'','updated_at'=>'']);
+		$mventa_query = Mventa::orderBy('nombre','asc')->get();
+        $categoria_query = Categoria::orderBy('nombre','asc')->get();
+		$subcategoria_query = Subcategoria::orderBy('nombre','asc')->get();
+
+        return view('stock.combinacion.catalogo.create', compact('linea_query', 'mventa_query', 'categoria_query',
+								'subcategoria_query'));
     }
 
 }

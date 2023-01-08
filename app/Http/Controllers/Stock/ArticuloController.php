@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\OC\OC_Product;
 use App\Models\Contable\Cuentacontable;
 use App\Models\Stock\Articulo;
+use App\Models\Stock\Articulo_Caja;
+use App\Models\Stock\Articulo_Costo;
 use App\Models\Stock\Categoria;
 use App\Models\Stock\Subcategoria;
 use App\Models\Stock\Linea;
@@ -23,7 +25,13 @@ use App\Models\Stock\Contrafuerte;
 use App\Models\Stock\Combinacion;
 use App\Models\Stock\Capeart;
 use App\Models\Stock\Avioart;
+use App\Models\Stock\Precio;
+use App\Models\Stock\Caja;
+use App\Models\Produccion\Tarea;
 use App\Models\Configuracion\Impuesto;
+use App\Services\Stock\PrecioService;
+use App\Repositories\Stock\Articulo_CajaRepositoryInterface;
+use App\Repositories\Stock\Articulo_CostoRepositoryInterface;
 use App\Http\Controllers\Controller;
 use QrCode;
 use Illuminate\Support\Facades\Validator;
@@ -34,12 +42,21 @@ use App\Http\Requests\ValidacionArticulo;
 use App\Http\Requests\ValidacionArticuloTecnica;
 use App\Http\Requests\ValidacionArticuloContaduria;
 use App\ApiAnita;
+use Carbon\Carbon;
 
 class ArticuloController extends Controller
 {
-    public function __construct()
+	private $articulo_cajaRepository;
+	private $articulo_costoRepository;
+	protected $precioService;
+
+    public function __construct(Articulo_CajaRepositoryInterface $articulo_cajaRepository,
+								Articulo_CostoRepositoryInterface $articulo_costoRepository,
+								PrecioService $precioservice)
     {
-        $this->middleware('auth');
+        $this->articulo_cajaRepository = $articulo_cajaRepository;
+		$this->articulo_costoRepository = $articulo_costoRepository;
+		$this->precioService = $precioservice;
     }
     
     public function index(Request $request){
@@ -50,7 +67,6 @@ class ArticuloController extends Controller
         	$Articulo = new Articulo();
         	$Articulo->sincronizarConAnita();
 		}
-
         $hay_combinaciones = Combinacion::first();
 		if (!$hay_combinaciones)
 		{
@@ -68,6 +84,17 @@ class ArticuloController extends Controller
 		{
 			$Avioart = new Avioart();
         	$Avioart->sincronizarConAnita();
+		}
+        $hay_articulo_caja = Articulo_Caja::first();
+		if (!$hay_articulo_caja)
+		{
+        	$Articulo_Caja = new Articulo_Caja();
+        	$Articulo_Caja->sincronizarConAnita();
+		}
+        $hay_articulo_costo = Articulo_Costo::first();
+		if (!$hay_articulo_costo)
+		{
+        	$this->articulo_costoRepository->sincronizarConAnita();
 		}
 
         $combinaciones = Combinacion::where("estado", "I")->count();
@@ -95,7 +122,7 @@ class ArticuloController extends Controller
 		}
 
 		// Aplica los filtros si es que hay definidos
-		if ($filtros != '')
+		if ($filtros != '' && $filtros['filter_column'] ?? '')
 		{
 			for ($ii = 1; $ii <= count($filtros['filter_column']); $ii++)
 			{
@@ -181,6 +208,131 @@ class ArticuloController extends Controller
         return json_encode(["ok"]);
 	}
 
+	// Consulta productos desde QR de etiquetas
+
+	public function consultaProducto($sku) {
+
+        //$articulo = Articulo::where("sku",$sku)->first();
+		//$combinacion = '';
+		//if ($articulo)
+		//{
+        	//$combinacion = Combinacion::where("articulo_id",$articulo->id)->where("estado",'A')->get();
+
+        	//return view("stock.product.consultaproducto",compact('articulo', 'combinacion'));
+		//}
+
+	  	ini_set('memory_limit', '512M');
+	  	ini_set('max_execution_time', '2400');
+
+        $_fecha = Carbon::now();
+		$fecha_hoy = \Carbon\Carbon::parse($_fecha)->format("d/m/Y");
+
+        $combinacion = Combinacion::select(
+								'combinacion.codigo as codigo',
+								'combinacion.nombre as nombre',
+								'articulo.id as articulo_id',
+								'articulo.sku as sku',
+								'articulo.descripcion as descripcion',
+								'articulo.mventa_id as marca',
+								'numeracion.nombre as numeracion',
+								'material.nombre as material',
+								'forro.nombre as forro',
+								'compfondo.nombre as fondo',
+								'combinacion.foto as foto',
+								'linea.nombre as linea',
+								'articulo.linea_id as linea_id',
+								'p1.nombre as nombrelista1',
+								'p2.nombre as nombrelista2',
+								'p3.nombre as nombrelista3',
+								'p4.nombre as nombrelista4',
+								)
+						->leftJoin('articulo','combinacion.articulo_id','articulo.id')
+						->leftJoin('linea','linea.id','articulo.linea_id')
+						->leftJoin('numeracion','numeracion.id','linea.numeracion_id')
+						->leftJoin('material','material.id','articulo.material_id')
+						->leftJoin('forro','forro.id','articulo.forro_id')
+						->leftJoin('compfondo','compfondo.id','articulo.compfondo_id')
+						->leftJoin('listaprecio as p1', function($joinp1)
+						{
+							$joinp1->where('p1.id','1');
+						})
+						->leftJoin('listaprecio as p2', function($joinp2)
+						{
+							$joinp2->where('p2.id','2');
+						})
+						->leftJoin('listaprecio as p3', function($joinp3)
+						{
+							$joinp3->where('p3.id','3');
+						})
+						->leftJoin('listaprecio as p4', function($joinp4)
+						{
+							$joinp4->where('p4.id','6');
+						})
+						->orderBy('linea', 'asc')
+						->orderBy('articulo.sku', 'asc')
+						->where('combinacion.estado', 'A')
+						->where('articulo.sku', $sku)
+						->get();
+
+		$combinacion = $combinacion->groupBy(function($linea) {
+		  					return $linea->linea;
+						})->all();
+
+		if (count($combinacion) > 0)
+		{
+		  	foreach ($combinacion as $linea)
+			{
+			  	$items = collect();
+
+				foreach ($linea as $item)
+				{
+				  	$nombre_pdf = $item->linea;
+					$linea_id = $item->linea_id;
+					$tiponumeracion = Linea::select('tiponumeracion_id')->where('id',$linea_id)->first();
+
+					// Asigna precio por vigencia
+					$precios = $this->precioService->
+						asignaPrecioPorTipoNumeracion($item->articulo_id, 
+													$tiponumeracion->tiponumeracion_id, 
+													$_fecha);
+ 					
+					// Asigna precio por vigencia
+					$item->precio4 = 0;
+					foreach ($precios as $precio)
+					{
+						if ($precio['listaprecio_id'] == 1)
+							$item->precio1 = $precio['precio'];
+						if ($precio['listaprecio_id'] == 2)
+							$item->precio2 = $precio['precio'];
+						if ($precio['listaprecio_id'] == 3)
+							$item->precio3 = $precio['precio'];
+						if ($precio['listaprecio_id'] >= 4)
+							$item->precio1 = $precio['precio'];
+					}
+				  	$items->push($item);
+				}
+				$modulos = Linea::select('linea.id', 
+						'linea.nombre as nombre', 
+						'modulo_talle.modulo_id as modulo_id', 
+						'modulo.nombre as modulo_nombre', 
+						'modulo_talle.talle_id as talle_id', 
+						'talle.nombre as talle', 
+						'modulo_talle.cantidad as cantidad')
+					->where('linea.id',$linea_id)
+            		->leftJoin('linea_modulo', 'linea_modulo.linea_id', '=', 'linea.id')
+					->leftJoin('modulo_talle', 'modulo_talle.modulo_id', '=', 'linea_modulo.modulo_id')
+            		->leftJoin('modulo', 'modulo.id', '=', 'linea_modulo.modulo_id')
+            		->leftJoin('talle', 'talle.id', '=', 'modulo_talle.talle_id')->get();
+
+				$modulos = $modulos->groupBy(function($modulo) {
+		  					return $modulo->modulo_nombre;
+						})->all();
+
+        		return view("exports.stock.catalogo",compact('items', 'modulos'));
+			}
+		}
+	}
+
 	// Lista etiqueta QR
 
 	public function download(Request $request, $sku, $codigo) {
@@ -194,19 +346,19 @@ class ArticuloController extends Controller
 		$etiqueta = "";
 		foreach($combinacion as $comb)
 		{
-			if (($codigo != "TODO" ? $comb->codigo == $codigo : $comb->estado == 'A'))
+			if (($codigo != "TODO" ? $comb->codigo == $codigo : true))
 			{
-			  	$qr = 'https://ferlimayoristas.com.ar/index.php?route=product/product&product_id=' . '1' . '0000' . 
-					$articulo->sku . '0000' . $comb->codigo;
+			  	$qr = 'https://ferlimayoristas.com.ar/index.php?route=product/product&product_id=' . '1' . '0000' .  $articulo->sku . '0000' . $comb->codigo;
+			  	//$qr = 'https://ferlimayoristas.com.ar/index.php?route=product/allproduct&search='.$articulo->descripcion; 
 
 				$cod = substr($articulo->sku,0,-2);
 				$sku = substr($articulo->sku,-2);
+				$nombre1 = "";
+				$nombre2 = "";
 				$nombre1 = substr($comb->nombre,0,15);
 				$nombre2 = substr($comb->nombre,15,15);
 
-				if ($etiqueta == "")
-					$etiqueta = "\nN\n";
-
+				$etiqueta .= "\nN\n";
 				$etiqueta .= "q800\n";
 				$etiqueta .= "A750,5,1,2,2,1,N,\"".$articulo->descripcion."\"\n";
 				$etiqueta .= "A680,5,1,1,2,2,N,\"".$cod."-".$sku."\"\n";
@@ -228,7 +380,7 @@ class ArticuloController extends Controller
 
 		Storage::disk('local')->delete($nombreEtiqueta);
 
-        return redirect()->back()->with('status','El producto seleccionado no existe o no esta activo.');
+        return redirect()->back()->with('status','El producto seleccionado se imprimio con exito.');
     }
 
     public function create()
@@ -311,9 +463,11 @@ class ArticuloController extends Controller
     						->with('tipocorteforros')
     						->with('forros')
     						->with('compfondos')
+    						->with('articulos_caja')
+							->with('articulos_costo')
 							->where('id', $id)->get()->first();
 
-        $categoria = Categoria::orderBy('nombre')->get();
+		$categoria = Categoria::orderBy('nombre')->get();
         $subcategoria = Subcategoria::orderBy('nombre')->get();
         $unidadmedida = Unidadmedida::orderBy('nombre')->get();
         $marca = Mventa::orderBy('nombre')->get();
@@ -326,14 +480,22 @@ class ArticuloController extends Controller
         $punteras = Puntera::orderBy('nombre')->get();
         $contrafuertes = Contrafuerte::orderBy('nombre')->get();
 
-        if( $type == "tecnica" ){
-            return view('stock.product.tecnica.edit',compact('producto','id', 'categoria', 'marca','linea','compfondo','forro','usosArticulos','tipoCorte','punteras','capellada','unidadmedida','contrafuertes','filtros'));
-        }elseif( $type == "contaduria" ){
+        if( $type == "tecnica" )
+		{
+        	$caja_query = Caja::select('caja.id', 'caja.nombre', 
+				'articulo.descripcion')
+            	->leftjoin('articulo','articulo.id','caja.articulo_id')
+				->orderBy('caja.nombre')->get();
+
+            return view('stock.product.tecnica.edit',compact('producto','id', 'categoria', 'marca','linea','compfondo','forro','usosArticulos','tipoCorte','punteras','capellada','unidadmedida','contrafuertes','filtros','caja_query'));
+        } elseif( $type == "contaduria" ){
                 
         		$ctamae = Cuentacontable::orderBy('codigo')->get();
         		$codimp = Impuesto::all();
-                
-                return view('stock.product.contaduria.edit',compact('producto','id', 'categoria', 'marca','linea','compfondo','forro','usosArticulos','tipoCorte','punteras','ctamae','codimp','capellada','unidadmedida','filtros'));
+
+				$tarea_query = Tarea::all();
+				
+                return view('stock.product.contaduria.edit',compact('producto','id', 'categoria', 'marca','linea','compfondo','forro','usosArticulos','tipoCorte','punteras','ctamae','codimp','capellada','unidadmedida','filtros','tarea_query'));
         }else{
 
             return view('stock.product.diseno.edit',compact('producto','id', 'categoria', 'subcategoria', 'marca','linea','compfondo','forro','usosArticulos','tipoCorte','punteras','capellada','unidadmedida','filtros'));    
@@ -352,8 +514,8 @@ class ArticuloController extends Controller
 							->with('unidadesdemedidas')->with('unidadesdemedidasalternativas')->with('cuentascontablesventas')
     						->with('cuentascontablescompras')->with('cuentascontablesimpinternos')->with('usoarticulos')
     						->with('materiales')->with('tipocortes')->with('punteras')->with('contrafuertes') 
-							->with('tipocorteforros')->with('forros')->with('compfondos')->where('id', $request->id)->
-							get()->first();
+							->with('tipocorteforros')->with('forros')->with('compfondos')->with('articulos_caja')->
+							where('id', $request->id)->get()->first();
 
 		// Actualiza anita
 		$Articulo = new Articulo();
@@ -366,15 +528,37 @@ class ArticuloController extends Controller
 	{
         can('actualizar-articulos-tecnica');
 
-        Articulo::findOrFail($request->id)->update($request->all());
+		DB::beginTransaction();
+		try 
+		{
+			Articulo::findOrFail($request->id)->update($request->all());
+
+			// Actualiza articulos caja
+			$cajas_id = $request->input('cajas_id', []);
+
+			$this->articulo_cajaRepository->deletePorArticulo($request->id, $request->sku);
+			for ($i = 0; $i < count($cajas_id); $i++)
+			{
+				if ($cajas_id[$i])
+					$articulo_caja = $this->articulo_cajaRepository->create(['articulo_id' => $id,
+																			'caja_id' => $cajas_id[$i],
+																			'sku' => $request->sku
+																			]);
+			}
+			DB::commit();
+		} catch (\Exception $e) {
+			DB::rollback();
+			dd($e->getMessage());
+			return $e->getMessage();
+		}
 
 		// Lee nuevo precio con relaciones para interface Anita
         $producto = Articulo::with('categorias')->with('subcategorias')->with('lineas')->with('mventas')->with('impuestos')
 							->with('unidadesdemedidas')->with('unidadesdemedidasalternativas')->with('cuentascontablesventas')
     						->with('cuentascontablescompras')->with('cuentascontablesimpinternos')->with('usoarticulos')
     						->with('materiales')->with('tipocortes')->with('punteras')->with('contrafuertes') 
-							->with('tipocorteforros')->with('forros')->with('compfondos')->where('id', $request->id)->
-							get()->first();
+							->with('tipocorteforros')->with('forros')->with('compfondos')->with('articulos_caja')->
+							where('id', $request->id)->get()->first();
 
 		// Actualiza anita
 		$Articulo = new Articulo();
@@ -386,9 +570,32 @@ class ArticuloController extends Controller
     public function updateContaduria(ValidacionArticuloContaduria $request, $id)
 	{
         can('actualizar-articulos-contaduria');
+		
+		DB::beginTransaction();
+		try 
+		{
+			Articulo::findOrFail($request->id)->update($request->all());
+			
+			// Actualiza articulos costos
+			$tareas_id = $request->input('tareas_id', []);
+			$costos = $request->input('costos', []);
 
-        Articulo::findOrFail($request->id)->update($request->all());
-
+			$this->articulo_costoRepository->deletePorArticulo($request->id);
+			for ($i = 0; $i < count($tareas_id); $i++)
+			{
+				if ($tareas_id[$i])
+					$articulo_costo = $this->articulo_costoRepository->create(['articulo_id' => $id,
+																			'tarea_id' => $tareas_id[$i],
+																			'costo' => $costos[$i]
+																			]);
+			}
+			DB::commit();
+		} catch (\Exception $e) {
+			DB::rollback();
+			dd($e->getMessage());
+			return $e->getMessage();
+		}
+		
 		// Lee nuevo precio con relaciones para interface Anita
         $producto = Articulo::with('categorias')->with('subcategorias')->with('lineas')->with('mventas')->with('impuestos')
 							->with('unidadesdemedidas')->with('unidadesdemedidasalternativas')->with('cuentascontablesventas')

@@ -14,7 +14,7 @@ use Auth;
 class Combinacion extends Model
 {
     protected $fillable = [ 'articulo_id', 'codigo', 'nombre', 'observacion', 'forro_id', 'colorforro_id', 'plvista_id', 'plarmado_id',
-            'fondo_id', 'colorfondo_id', 'horma_id', 'serigrafia_id', 'estado', 'plvista_16_26', 'plvista_17_33', 'plvista_34_40', 'plvista_41_45',
+            'fondo_id', 'colorfondo_id', 'horma_id', 'serigrafia_id', 'estado', 'plvista_16_26', 'plvista_27_33', 'plvista_34_40', 'plvista_41_47',
             'usuarioultcambio_id', 'foto' ];
     protected $table = 'combinacion';
     protected $tableAnita = ['combinacion', 'stkfich'];
@@ -25,6 +25,11 @@ class Combinacion extends Model
     public function articulos()
     {
         return $this->belongsTo(Articulo::class, 'articulo_id');
+    }
+
+	public function pedido_combinaciones()
+    {
+        return $this->hasMany(Pedido_combinacion::class, 'id');
     }
 
     public function forros()
@@ -457,5 +462,29 @@ class Combinacion extends Model
 				'whereArmado' => " WHERE stkfi_articulo = '".str_pad($articulo, 13, "0", STR_PAD_LEFT)."' AND stkfi_combinacion = '".$combinacion."' ");
         $apiAnita->apiCall($data);
 	}
-}
 
+    public function actualizaEstadoAnita() {
+	  	ini_set('memory_limit', '512M');
+        $apiAnita = new ApiAnita();
+		$data = array( 'acc' => 'list', 
+		  				'campos' => "co2_articulo, co2_combinacion, co2_estado", 
+		  				'tabla' => "comb2" );
+        $dataAnita = json_decode($apiAnita->apiCall($data));
+
+		foreach($dataAnita as $data)
+		{
+			if ($data->co2_estado == 'A')
+			{
+        		$articulo = Articulo::select('id', 'sku')->where('sku' , ltrim($data->co2_articulo, '0'))->first();
+				if ($articulo)
+				{
+					$articulo_id = $articulo->id;
+
+        			$combinaciones = Combinacion::where("articulo_id", "=", $articulo_id)->where("codigo","=",$data->co2_combinacion)->
+								update(array("estado" => $data->co2_estado));
+				}
+			}
+		}
+	}
+
+}

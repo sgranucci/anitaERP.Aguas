@@ -44,7 +44,7 @@
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-tipo-articulo', false))
+                       			@if (can('borrar-tipo-articulo', false))
                                 <form action="{{route('eliminar_tipoarticulo', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

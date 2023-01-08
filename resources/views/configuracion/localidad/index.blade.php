@@ -52,7 +52,7 @@ Localidades
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-localidades', false))
+                       			@if (can('borrar-localidades', false))
                                 <form action="{{route('eliminar_localidad', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

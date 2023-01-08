@@ -16,8 +16,6 @@ if (!function_exists('getMenuActivo')) {
 if (!function_exists('canUser')) {
     function can($permiso, $redirect = true)
     {
-	  	// Por ahora queda asi
-            return true;
         if (session()->get('rol_nombre') == 'administrador') {
             return true;
         } else {
@@ -39,4 +37,94 @@ if (!function_exists('canUser')) {
             return true;
         }
     }
+}
+
+/**
+ * Funcion para devolver la fecha inicial y final de una
+ * semana dada.
+ *
+ * @param integer $week
+ * @param integer $year
+ *
+ * @return array array con clave->valor
+ */
+function getFirstDayWeek($week, $year)
+{
+    $dt = new DateTime();
+    $return['start'] = $dt->setISODate($year, $week)->format('Y-m-d');
+    $return['end'] = $dt->modify('+6 days')->format('Y-m-d');
+    return $return;
+}
+
+// Calcula consumo 
+
+function calculaConsumo(&$consumo, $nombretalle, $cantidad, $consumo1, $consumo2, $consumo3, $consumo4)
+{
+    $consumo = 0;
+	if ($nombretalle >= config('consprod.DESDE_INTERVALO1') && $nombretalle <= config('consprod.HASTA_INTERVALO1'))
+    	$consumo = $cantidad * $consumo1;
+	if ($nombretalle >= config('consprod.DESDE_INTERVALO2') && $nombretalle <= config('consprod.HASTA_INTERVALO2'))
+		$consumo = $cantidad * $consumo2;
+	if ($nombretalle >= config('consprod.DESDE_INTERVALO3') && $nombretalle <= config('consprod.HASTA_INTERVALO3'))
+		$consumo = $cantidad * $consumo3;
+	if ($nombretalle >= config('consprod.DESDE_INTERVALO4') && $nombretalle <= config('consprod.HASTA_INTERVALO4'))
+		$consumo = $cantidad * $consumo4;
+}
+
+// Genera rango de articulos para reportes
+
+function generaRangoArticulo($desdearticulo_id, $hastaarticulo_id, $articuloQuery)
+{
+    // Prepara titulos de rangos
+    $desdeArticuloRango = $hastaArticuloRango = '';
+    if ($desdearticulo_id == 0)
+        $desdeArticulo = 'Primero';
+    else
+    {
+        $articulo = $articuloQuery->traeArticuloPorId($desdearticulo_id);
+        if ($articulo)
+        {
+            $desdeArticulo = $articulo->descripcion;
+            $desdeArticuloRango = $articulo->descripcion;
+        }
+        else	
+        {
+            $desdeArticulo = '--';
+            $desdeArticuloRango = '';
+        }
+    }
+    
+    if ($hastaarticulo_id == 99999999)
+        $hastaArticulo = 'Ultimo';
+    else
+    {
+        $articulo = $articuloQuery->traeArticuloPorId($hastaarticulo_id);
+        if ($articulo)
+        {
+            $hastaArticulo = $articulo->descripcion;
+            $hastaArticuloRango = $articulo->descripcion;
+        }
+        else	
+            $hastaArticulo = '--';
+    }
+    return ['desdearticulotitulo' => $desdeArticulo, 'hastaarticulotitulo' => $hastaArticulo,
+            'desdearticulorango' => $desdeArticuloRango, 'hastaarticulorango' => $hastaArticuloRango];
+}
+
+// Genera keys para guardar datos en cache por usuario
+
+function generaKey($key)
+{
+    return $key.'-'.auth()->id();
+}
+
+// Redondea numeros
+function redondear($n, $dec, $prec) 
+{
+    $red = Round($n, $dec);
+    $ent = floor($red); // Parte entera
+    $dec = $red - $ent; // Parte decimal
+    $r = ceil($dec / $prec) * $prec; // Decimal redondeado
+    
+    return $ent + ($r / 100);
 }

@@ -48,7 +48,7 @@
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-contrafuertes', false))
+                       			@if (can('borrar-contrafuertes', false))
                                 <form action="{{route('eliminar_contrafuerte', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

@@ -33,6 +33,9 @@ Listas de precio
                             <th>F&oacute;rmula</th>
                             <th class="width80">Incluye Impuesto</th>
                             <th class="width80">C&oacute;digo lista</th>
+                            <th>Desde talle</th>
+                            <th>Hasta talle</th>
+                            <th>Tipo numeraci&oacute;n</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>
                     </thead>
@@ -44,13 +47,16 @@ Listas de precio
                             <td>{{$data->formula}}</td>
                             <td>{{($data->incluyeimpuesto == '1' ? 'S' : 'N')}}</td>
                             <td>{{$data->codigo}}</td>
+                            <td>{{$data->desdetalle}}</td>
+                            <td>{{$data->hastatalle}}</td>
+                            <td>{{$data->tiposnumeracion->nombre ?? ''}}</td>
                             <td>
                        			@if (can('editar-listaprecio', false))
                                 	<a href="{{route('editar_listaprecio', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-listaprecio', false))
+                       			@if (can('borrar-listaprecio', false))
                                 <form action="{{route('eliminar_listaprecio', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

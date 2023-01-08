@@ -48,7 +48,7 @@
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-serigrafias', false))
+                       			@if (can('borrar-serigrafias', false))
                                 <form action="{{route('eliminar_serigrafia', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

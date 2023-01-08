@@ -54,6 +54,7 @@ class CrearTablaCliente extends Migration
             $table->string('vaweb',1);
             $table->string('estado',1);
             $table->string('leyenda',2048);
+            $table->string('modofacturacion',1);
 			$table->unsignedBigInteger('usuario_id')->nullable();
             $table->foreign('usuario_id', 'fk_cliente_usuario')->references('id')->on('usuario')->onDelete('set null')->onUpdate('set null');
             $table->timestamps();

@@ -9,5 +9,6 @@ interface ClienteQueryInterface
     public function allQuery(array $campos);
     public function traeClienteporCodigo($codigo);
     public function traeClienteporId($codigo);
+    public function allQueryCargaPedido(array $campos);
 }
 

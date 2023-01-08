@@ -10,7 +10,7 @@ use Auth;
 
 class Capeart extends Model
 {
-    protected $fillable = ['articulo_id', 'combinacion_id', 'material_id', 'color_id', 'piezas', 'tipo', 'consumo1', 'consumo2', 'consumo3', 'consumo4', 'usuarioultcambio_id'];
+    protected $fillable = ['articulo_id', 'combinacion_id', 'material_id', 'color_id', 'piezas', 'tipo', 'tipocalculo', 'consumo1', 'consumo2', 'consumo3', 'consumo4', 'usuarioultcambio_id'];
     protected $table = 'capeart';
     protected $keyField = 'id';
     protected $keyFieldAnita = ['capea_articulo', 'capea_combinacion', 'capea_orden'];
@@ -113,7 +113,8 @@ class Capeart extends Model
 				capea_consumo3,
 				capea_consumo4,
 				capea_combinacion,
-				capea_tipo
+				capea_tipo,
+				capea_tipo_calculo
 			',
             'whereArmado' => " WHERE ".$this->keyFieldAnita[0]." = '".$articulo.
 							"' AND ".$this->keyFieldAnita[1]." = '".$combinacion.
@@ -157,6 +158,7 @@ class Capeart extends Model
 				"color_id" => $color_id,
 				"piezas" => $data->capea_piezas,
 				"tipo" => $data->capea_tipo,
+				"tipocalculo" => $data->capea_tipo_calculo,
 				"consumo1" => $data->capea_consumo1,
 				"consumo2" => $data->capea_consumo2,
 				"consumo3" => $data->capea_consumo3,
@@ -166,7 +168,7 @@ class Capeart extends Model
         }
     }
 
-	public function guardarAnita($request, $materiales, $colores, $piezas, $consumo1, $consumo2, $consumo3, $consumo4, $tipos, $orden) {
+	public function guardarAnita($request, $materiales, $colores, $piezas, $consumo1, $consumo2, $consumo3, $consumo4, $tipo, $tipocalculo, $orden) {
         $apiAnita = new ApiAnita();
 
 		$material_sku = NULL;
@@ -178,6 +180,9 @@ class Capeart extends Model
         $color = Color::select('id', 'codigo')->where('id' , $colores)->first();
 		if ($color)
 			$color = $color->codigo;
+
+		if ($tipo == '')
+			$tipo = 'C';
 
         $data = array( 'acc' => 'insert',
 			'tabla' => $this->table, 
@@ -192,7 +197,8 @@ class Capeart extends Model
 				capea_consumo3,
 				capea_consumo4,
 				capea_combinacion,
-				capea_tipo
+				capea_tipo,
+				capea_tipo_calculo
 				',
             'valores' => "
 				'".str_pad($request->sku, 13, "0", STR_PAD_LEFT)."', 
@@ -205,7 +211,8 @@ class Capeart extends Model
 				'".$consumo3."',
 				'".$consumo4."',
 				'".$request->codigo."', 
-				'".$tipos."'"
+				'".$tipo."',
+				'".($tipocalculo == 'true' ? 'D' : 'P')."'"
         );
         $apiAnita->apiCall($data);
 	}

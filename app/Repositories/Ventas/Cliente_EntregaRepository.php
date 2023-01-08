@@ -75,8 +75,12 @@ class Cliente_EntregaRepository implements Cliente_EntregaRepositoryInterface
 	{
 		if ($funcion == 'update')
 		{
-			// Borra los registros antes de grabar nuevamente
-       		$this->delete($id, $data['codigo']);
+			// Elimina anita
+			self::eliminarAnita($data['codigo']);
+
+			// Trae todos los id
+        	$cliente_entrega = $this->model->where('cliente_id', $id)->get()->pluck('id')->toArray();
+			$q_cliente_entrega = count($cliente_entrega);
 		}
 
 		$nombres = $data['nombres'];
@@ -91,27 +95,74 @@ class Cliente_EntregaRepository implements Cliente_EntregaRepositoryInterface
 		$codigospostales = $data['codigospostales'];
 		$transportes_id = $data['transportes_id'];
 
+   		$cliente = $this->modelCliente->find($id);
+		if ($cliente)
+		{
+			$zonavta_id = $cliente->zonavta_id;
+		  	$subzonavta_id = $cliente->subzonavta_id;
+			$vendedor_id = $cliente->vendedor_id;
+		}
+
 		// Borra de anita
 		self::eliminarAnita($data['codigo']);
 
-		for ($i_entrega = 0; $i_entrega < count($nombres); $i_entrega++)
+		if ($funcion == 'update')
 		{
-		  	//* Valida si se cargo el lugar de entrega
-		  	if ($nombres[$i_entrega] != '' && $domicilios[$i_entrega] != '')
+			$_id = $cliente_entrega;
+
+			// Borra los que sobran
+			if ($q_cliente_entrega > count($nombres))
+			{
+				for ($d = count($nombres); $d < $q_cliente_entrega; $d++)
+        			$this->model->find($_id[$d])->delete();
+			}
+
+			// Actualiza los que ya existian
+			for ($i = 0; $i < $q_cliente_entrega && $i < count($nombres); $i++)
+			{
+				if ($i < count($nombres))
+				{
+					$provincia = Provincia::find($provincias_id[$i])->first();
+					if ($provincia)
+		  				$pais_id = $provincia->pais_id;
+					else
+		  				$pais_id = 1;
+
+					$cliente_entrega = $this->model->findOrFail($_id[$i])->update([
+								'cliente_id' => $id,
+								'nombre' => $nombres[$i],
+								'codigo' => $i,
+								'domicilio' => $domicilios[$i],
+								'localidad_id' => $localidades_id[$i],
+								'provincia_id' => $provincias_id[$i],
+								'pais_id' => $pais_id,
+								'codigopostal' => $codigospostales[$i],
+								'zonavta_id' => $zonavta_id,
+								'subzonavta_id' => $subzonavta_id,
+								'vendedor_id' => $vendedor_id,
+								'transporte_id' => $transportes_id[$i],
+								]);
+
+					// Guarda en anita
+					self::guardarAnita($data, $i);
+				}
+			}
+			if ($q_cliente_entrega > count($nombres))
+				$i = $d; 
+		}
+		else
+			$i = 0;
+
+		for ($i_entrega = $i; $i_entrega < count($nombres); $i_entrega++)
+		{
+		 	//* Valida si se cargo el lugar de entrega
+		 	if ($nombres[$i_entrega] != '') 
 			{
 				$provincia = Provincia::find($provincias_id[$i_entrega])->first();
 				if ($provincia)
-			  		$pais_id = $provincia->pais_id;
+		  			$pais_id = $provincia->pais_id;
 				else
-			  		$pais_id = 1;
-	
-       			$cliente = $this->modelCliente->find($id);
-				if ($cliente)
-				{
-			  		$zonavta_id = $cliente->zonavta_id;
-			  		$subzonavta_id = $cliente->subzonavta_id;
-			  		$vendedor_id = $cliente->vendedor_id;
-				}
+		  			$pais_id = 1;
 	
 				$cliente_entrega = $this->model->create([
 								'cliente_id' => $id,
@@ -212,11 +263,11 @@ class Cliente_EntregaRepository implements Cliente_EntregaRepositoryInterface
 					"vendedor_id" => $Cliente->vendedor_id,
 					"transporte_id" => $Cliente->transporte_id,
             		];
-		
+
 				if ($fl_crea_registro)
             		$this->model->create($arr_campos);
 				else
-            		$this->model->where('cliente_id', $cliente->id)->where('codigo', $data->entc_lugar)->update($arr_campos);
+            		$this->model->where('cliente_id', $Cliente->id)->where('codigo', $data->entc_lugar)->update($arr_campos);
 			}
         }
     }
@@ -259,7 +310,7 @@ class Cliente_EntregaRepository implements Cliente_EntregaRepositoryInterface
 				'".$codigospostales[$linea]."',
 				'".$codigotransporte."' "
         );
-        $apiAnita->apiCall($data);
+        $ret = $apiAnita->apiCall($data);
 	}
 
 	private function eliminarAnita($cliente) {

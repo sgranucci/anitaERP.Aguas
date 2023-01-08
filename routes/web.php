@@ -376,6 +376,8 @@ Route::get('stock/precio/{id}/editar', 'Stock\PrecioController@editar')->name('e
 Route::put('stock/precio/{id}', 'Stock\PrecioController@actualizar')->name('actualizar_precio');
 Route::delete('stock/precio/{id}', 'Stock\PrecioController@eliminar')->name('eliminar_precio');
 Route::get('stock/asignaprecio/{id}/{talle?}', 'Stock\PrecioController@asignaPrecio')->name('asigna_precio');
+Route::get('stock/precio/crearimportacionprecio', 'Stock\PrecioController@crearImportacion')->name('crear_importacion_precio');
+Route::post('stock/importarprecio', 'Stock\PrecioController@importar')->name('importar_precio');
 
 /* 
  * Unidades de medida
@@ -443,10 +445,30 @@ Route::get('stock/caja/{id}/editar', 'Stock\CajaController@editar')->name('edita
 Route::put('stock/caja/{id}', 'Stock\CajaController@actualizar')->name('actualizar_caja');
 Route::delete('stock/caja/{id}', 'Stock\CajaController@eliminar')->name('eliminar_caja');
 
+/* 
+ * Lotes de stock
+ */
+
+ Route::get('stock/lote', 'Stock\LoteController@index')->name('lote');
+ Route::get('stock/lote/crear', 'Stock\LoteController@crear')->name('crear_lote');
+ Route::post('stock/lote', 'Stock\LoteController@guardar')->name('guardar_lote');
+ Route::get('stock/lote/{id}/editar', 'Stock\LoteController@editar')->name('editar_lote');
+ Route::put('stock/lote/{id}', 'Stock\LoteController@actualizar')->name('actualizar_lote');
+ Route::delete('stock/lote/{id}', 'Stock\LoteController@eliminar')->name('eliminar_lote');
+ 
 // Reportes de stock
 
+// Catalogo de productos
 Route::get('stock/catalogo', 'Stock\CombinacionController@catalogo')->name('catalogo');
 Route::post('stock/crearCatalogo', 'Stock\CombinacionController@crearCatalogo')->name('crear_catalogo');
+
+// Combinaciones
+Route::get('stock/repcombinacion', 'Stock\RepCombinacionController@index')->name('rep_combinacion');
+Route::post('stock/crearrepcombinacion', 'Stock\RepCombinacionController@crearReporteCombinacion')->name('crear_repcombinacion');
+
+// Stock OT
+Route::get('stock/repstockot', 'Stock\RepStockOtController@index')->name('rep_stockot');
+Route::post('stock/crearrepstockot', 'Stock\RepStockOtController@crearReporteStockOt')->name('crear_repstockot');
 
 /* 
  * Impuestos
@@ -493,6 +515,8 @@ Route::put('contable/cuentacontable/{id}', 'Contable\CuentacontableController@ac
 Route::get('contable/cuentacontable/{id}/eliminar', 'Contable\CuentacontableController@eliminar')->name('eliminar_cuentacontable');
 Route::post('contable/cuentacontable/guardar-orden', 'Contable\CuentacontableController@guardarOrden')->name('guardar_orden');
 
+Route::get('stock/producto/{id}', 'Stock\ArticuloController@consultaProducto')->name('consultar_producto');
+
 Route::get('stock/products', 'Stock\ArticuloController@index')->name('products.index');
 Route::get('stock/products/list', 'Stock\ArticuloController@list')->name('products.list');
 Route::get('stock/product/{sku}/{codigo}', 'Stock\ArticuloController@download')->name('product.download');
@@ -505,6 +529,7 @@ Route::delete('stock/product/delete/{id}', 'Stock\ArticuloController@delete')->n
 Route::post('stock/product/limpiafiltro', 'Stock\ArticuloController@limpiafiltro')->name('product.limpiafiltro');
 
 Route::get('stock/leercombinaciones/{id}', 'Stock\CombinacionController@leerCombinaciones')->name('leer_combinaciones');
+Route::get('stock/leercombinacionesactivas/{id}', 'Stock\CombinacionController@leerCombinacionesActivas')->name('leer_combinaciones_activas');
 Route::get('stock/leermodulos/{id}/{modulo?}', 'Stock\LineaController@leerModulos')->name('leer_modulos');
 Route::get('stock/leertalles/{id}', 'Stock\ModuloController@leerTalles')->name('leer_talles');
 
@@ -524,16 +549,41 @@ Route::put('stock/combinacion/save', 'Stock\CombinacionController@save')->name('
 Route::delete('stock/combinacion/delete/{id}', 'Stock\CombinacionController@delete')->name('eliminar_combinacion');
 Route::get('stock/combinacion/product/{sku}', 'Stock\CombinacionController@create')->name('combinacion.product');
 
+// Modulo de ventas
 // Reportes de ventas
 
+// Percepciones de IIBB
 Route::get('ventas/reppercepcioniibb', 'Ventas\ReppercepcioniibbController@index')->name('listar_percepcioniibb');
 Route::post('ventas/crearreppercepcioniibb', 'Ventas\ReppercepcioniibbController@crearReporteControlPercepcionesIIBB')->name('crear_reppercepcioniibb');
 
-// Etiquetas de OT
-Route::get('ventas/repetiquetaot', 'Ventas\OrdentrabajoController@index')->name('repetiquetaot');
-Route::post('ventas/crearetiquetaot', 'Ventas\OrdentrabajoController@crearEtiquetaOt')->name('crear_repetiquetaot');
+// Pedidos
+Route::get('ventas/reppedido', 'Ventas\PedidoController@indexReportePedido')->name('rep_pedido');
+Route::post('ventas/crearreppedido', 'Ventas\PedidoController@crearReportePedido')->name('crear_reppedido');
 
-/* Modulo de ventas
+// Totales de Pedidos
+Route::get('ventas/reptotalpedido', 'Ventas\PedidoController@indexReporteTotalPedido')->name('rep_totalpedido');
+Route::post('ventas/crearreptotalpedido', 'Ventas\PedidoController@crearReporteTotalPedido')->name('crear_reptotalpedido');
+
+// General de Pedidos
+Route::get('ventas/repgeneralpedido', 'Ventas\PedidoController@indexReporteGeneralPedido')->name('rep_generalpedido');
+Route::post('ventas/crearrepgeneralpedido', 'Ventas\PedidoController@crearReporteGeneralPedido')->name('crear_repgeneralpedido');
+
+// Consumo de materiales
+Route::get('ventas/repconsumomaterial', 'Ventas\PedidoController@indexReporteConsumoMaterial')->name('rep_consumomaterial');
+Route::post('ventas/crearrepconsumomaterial', 'Ventas\PedidoController@crearReporteConsumoMaterial')->name('crear_repconsumomaterial');
+
+// Etiquetas de OT
+Route::get('ventas/repetiquetaot', 'Ventas\OrdentrabajoController@indexEtiqueta')->name('repetiquetaot');
+Route::post('ventas/crearetiquetaot', 'Ventas\OrdentrabajoController@crearEtiquetaOt')->name('crear_repetiquetaot');
+Route::get('ventas/generazpl', 'Ventas\OrdentrabajoController@generaZPL')->name('genera_zpl');
+
+// Emision de OT
+Route::get('ventas/repemisionot', 'Ventas\OrdentrabajoController@indexEmisionOT')->name('repemisionot');
+Route::post('ventas/crearemisionot', 'Ventas\OrdentrabajoController@crearEmisionOt')->name('crear_repemisionot');
+
+// Clientes
+Route::get('ventas/repcliente', 'Ventas\ClienteController@indexReporteCliente')->name('rep_cliente');
+Route::post('ventas/crearrepcliente', 'Ventas\ClienteController@crearReporteCliente')->name('crear_repcliente');
 
 /* 
  * Vendedores
@@ -591,16 +641,62 @@ Route::put('ventas/transporte/{id}', 'Ventas\TransporteController@actualizar')->
 Route::delete('ventas/transporte/{id}', 'Ventas\TransporteController@eliminar')->name('eliminar_transporte');
 
 /* 
+ * Motivos de cierre de pedido
+ */
+
+Route::get('ventas/motivocierrepedido', 'Ventas\MotivocierrepedidoController@index')->name('motivocierrepedido');
+Route::get('ventas/motivocierrepedido/crear', 'Ventas\MotivocierrepedidoController@crear')->name('crear_motivocierrepedido');
+Route::post('ventas/motivocierrepedido', 'Ventas\MotivocierrepedidoController@guardar')->name('guardar_motivocierrepedido');
+Route::get('ventas/motivocierrepedido/{id}/editar', 'Ventas\MotivocierrepedidoController@editar')->name('editar_motivocierrepedido');
+Route::put('ventas/motivocierrepedido/{id}', 'Ventas\MotivocierrepedidoController@actualizar')->name('actualizar_motivocierrepedido');
+Route::delete('ventas/motivocierrepedido/{id}', 'Ventas\MotivocierrepedidoController@eliminar')->name('eliminar_motivocierrepedido');
+
+/* 
+ * Tipos suspension de clientes
+ */
+
+Route::get('ventas/tiposuspensioncliente', 'Ventas\TiposuspensionclienteController@index')->name('tiposuspensioncliente');
+Route::get('ventas/tiposuspensioncliente/crear', 'Ventas\TiposuspensionclienteController@crear')->name('crear_tiposuspensioncliente');
+Route::post('ventas/tiposuspensioncliente', 'Ventas\TiposuspensionclienteController@guardar')->name('guardar_tiposuspensioncliente');
+Route::get('ventas/tiposuspensioncliente/{id}/editar', 'Ventas\TiposuspensionclienteController@editar')->name('editar_tiposuspensioncliente');
+Route::put('ventas/tiposuspensioncliente/{id}', 'Ventas\TiposuspensionclienteController@actualizar')->name('actualizar_tiposuspensioncliente');
+Route::delete('ventas/tiposuspensioncliente/{id}', 'Ventas\TiposuspensionclienteController@eliminar')->name('eliminar_tiposuspensioncliente');
+
+/* 
+ * Tipos de transacciones de ventas
+ */
+
+Route::get('ventas/tipotransaccion', 'Ventas\TipotransaccionController@index')->name('tipotransaccion');
+Route::get('ventas/tipotransaccion/crear', 'Ventas\TipotransaccionController@crear')->name('crear_tipotransaccion');
+Route::post('ventas/tipotransaccion', 'Ventas\TipotransaccionController@guardar')->name('guardar_tipotransaccion');
+Route::get('ventas/tipotransaccion/{id}/editar', 'Ventas\TipotransaccionController@editar')->name('editar_tipotransaccion');
+Route::put('ventas/tipotransaccion/{id}', 'Ventas\TipotransaccionController@actualizar')->name('actualizar_tipotransaccion');
+Route::delete('ventas/tipotransaccion/{id}', 'Ventas\TipotransaccionController@eliminar')->name('eliminar_tipotransaccion');
+
+/* 
+ * Puntos de venta
+ */
+
+Route::get('ventas/puntoventa', 'Ventas\PuntoventaController@index')->name('puntoventa');
+Route::get('ventas/puntoventa/crear', 'Ventas\PuntoventaController@crear')->name('crear_puntoventa');
+Route::post('ventas/puntoventa', 'Ventas\PuntoventaController@guardar')->name('guardar_puntoventa');
+Route::get('ventas/puntoventa/{id}/editar', 'Ventas\PuntoventaController@editar')->name('editar_puntoventa');
+Route::put('ventas/puntoventa/{id}', 'Ventas\PuntoventaController@actualizar')->name('actualizar_puntoventa');
+Route::delete('ventas/puntoventa/{id}', 'Ventas\PuntoventaController@eliminar')->name('eliminar_puntoventa');
+
+/* 
  * Clientes
  */
 
 Route::get('ventas/cliente', 'Ventas\ClienteController@index')->name('cliente');
-Route::get('ventas/cliente/crear', 'Ventas\ClienteController@crear')->name('crear_cliente');
+Route::get('ventas/cliente/crear/{tipoalta?}', 'Ventas\ClienteController@crear')->name('crear_cliente');
 Route::post('ventas/cliente', 'Ventas\ClienteController@guardar')->name('guardar_cliente');
+Route::post('ventas/clienteprovisorio', 'Ventas\ClienteController@guardarClienteProvisorio')->name('guardar_cliente_provisorio');
 Route::get('ventas/cliente/{id}/editar', 'Ventas\ClienteController@editar')->name('editar_cliente');
 Route::put('ventas/cliente/{id}', 'Ventas\ClienteController@actualizar')->name('actualizar_cliente');
 Route::delete('ventas/cliente/{id}', 'Ventas\ClienteController@eliminar')->name('eliminar_cliente');
 Route::get('ventas/leercliente_entrega/{cliente_id}', 'Ventas\ClienteController@leerCliente_Entrega')->name('leer_cliente_entrega');
+Route::get('ventas/leercliente/{cliente_id}', 'Ventas\ClienteController@leerCliente')->name('leer_cliente');
 
 /* 
  * Pedidos
@@ -613,4 +709,110 @@ Route::get('ventas/pedido/{id}/editar', 'Ventas\PedidoController@editar')->name(
 Route::put('ventas/pedido/{id}', 'Ventas\PedidoController@actualizar')->name('actualizar_pedido');
 Route::delete('ventas/pedido/{id}', 'Ventas\PedidoController@eliminar')->name('eliminar_pedido');
 Route::get('ventas/listarpedido/{id}/{cliente_id?}', 'Ventas\PedidoController@listarPedido')->name('listar_pedido');
+Route::get('ventas/listarprefactura/{id}/{itemid}', 'Ventas\PedidoController@listarPreFactura')->name('listar_prefactura');
+Route::get('ventas/anularitempedido/{id}/{codigoot}/{motivocierrepedido_id}/{cliente_id?}', 'Ventas\PedidoController@anularItemPedido')->name('anular_item_pedido');
+Route::get('ventas/pedido/cerrar', 'Ventas\PedidoController@cerrarPedido')->name('cerrar_pedido');
+Route::post('ventas/pedido/ejecutacierre', 'Ventas\PedidoController@ejecutaCierre')->name('ejecuta_cierre_pedido');
+
+/* 
+ * Ordenes de trabajo
+ */
+
+Route::get('ventas/ordenestrabajo', 'Ventas\OrdentrabajoController@index')->name('ordentrabajo');
+Route::get('ventas/consultaordenestrabajo', 'Ventas\OrdentrabajoController@index')->name('consulta_ordentrabajo');
+Route::get('ventas/ordenestrabajo/crear', 'Ventas\OrdentrabajoController@crear')->name('crear_ordentrabajo');
+Route::get('ventas/ordenestrabajo/{id}/editar', 'Ventas\OrdentrabajoController@editar')->name('editar_ordentrabajo');
+Route::put('ventas/ordenestrabajo/{id}', 'Ventas\OrdentrabajoController@actualizar')->name('actualizar_ordentrabajo');
+Route::delete('ventas/ordenestrabajo/{id}', 'Ventas\OrdentrabajoController@eliminar')->name('eliminar_ordentrabajo');
+Route::post('ventas/pedido/consultapendientesot', 'Ventas\PedidoController@consultarPendienteOt')->name('consultar_pendiente_ot');
+Route::post('ventas/ordenestrabajo/generar', 'Ventas\OrdentrabajoController@generar')->name('generar_ordentrabajo');
+Route::get('ventas/guardaordenestrabajo/{origen}/{ids}/{checkotstock}/{ordentrabajo_stock_codigo}/{leyenda?}', 'Ventas\OrdentrabajoController@guardar')->name('guardar_ordentrabajo');
+Route::get('ventas/listaordenestrabajo/{id}', 'Ventas\OrdentrabajoController@listar')->name('listar_ordentrabajo');
+Route::get('ventas/estadoot/{id}', 'Ventas\OrdentrabajoController@estadoOt')->name('estado_ot');
+
+/* PRODUCCION */
+
+/* 
+ * Tareas
+ */
+
+Route::get('produccion/tarea', 'Produccion\TareaController@index')->name('tarea');
+Route::get('produccion/tarea/crear', 'Produccion\TareaController@crear')->name('crear_tarea');
+Route::post('produccion/tarea', 'Produccion\TareaController@guardar')->name('guardar_tarea');
+Route::get('produccion/tarea/{id}/editar', 'Produccion\TareaController@editar')->name('editar_tarea');
+Route::put('produccion/tarea/{id}', 'Produccion\TareaController@actualizar')->name('actualizar_tarea');
+Route::delete('produccion/tarea/{id}', 'Produccion\TareaController@eliminar')->name('eliminar_tarea');
+
+/* 
+ * Empleados
+ */
+
+Route::get('produccion/empleado', 'Produccion\EmpleadoController@index')->name('empleado');
+Route::get('produccion/empleado/crear', 'Produccion\EmpleadoController@crear')->name('crear_empleado');
+Route::post('produccion/empleado', 'Produccion\EmpleadoController@guardar')->name('guardar_empleado');
+Route::get('produccion/empleado/{id}/editar', 'Produccion\EmpleadoController@editar')->name('editar_empleado');
+Route::put('produccion/empleado/{id}', 'Produccion\EmpleadoController@actualizar')->name('actualizar_empleado');
+Route::delete('produccion/empleado/{id}', 'Produccion\EmpleadoController@eliminar')->name('eliminar_empleado');
+
+/* 
+ * Operaciones
+ */
+
+Route::get('produccion/operacion', 'Produccion\OperacionController@index')->name('operacion');
+Route::get('produccion/operacion/crear', 'Produccion\OperacionController@crear')->name('crear_operacion');
+Route::post('produccion/operacion', 'Produccion\OperacionController@guardar')->name('guardar_operacion');
+Route::get('produccion/operacion/{id}/editar', 'Produccion\OperacionController@editar')->name('editar_operacion');
+Route::put('produccion/operacion/{id}', 'Produccion\OperacionController@actualizar')->name('actualizar_operacion');
+Route::delete('produccion/operacion/{id}', 'Produccion\OperacionController@eliminar')->name('eliminar_operacion');
+
+/* 
+ * Movimientos de OT
+ */
+
+Route::get('produccion/movimientoordentrabajo', 'Produccion\MovimientoOrdentrabajoController@index')->name('movimientoordentrabajo');
+Route::get('produccion/movimientoordentrabajo/crear', 'Produccion\MovimientoOrdentrabajoController@crear')->name('crear_movimientoordentrabajo');
+Route::post('produccion/movimientoordentrabajo', 'Produccion\MovimientoOrdentrabajoController@guardar')->name('guardar_movimientoordentrabajo');
+Route::get('produccion/movimientoordentrabajo/{id}/editar', 'Produccion\MovimientoOrdentrabajoController@editar')->name('editar_movimientoordentrabajo');
+Route::put('produccion/movimientoordentrabajo/{id}', 'Produccion\MovimientoOrdentrabajoController@actualizar')->name('actualizar_movimientoordentrabajo');
+Route::delete('produccion/movimientoordentrabajo/{id}', 'Produccion\MovimientoOrdentrabajoController@eliminar')->name('eliminar_movimientoordentrabajo');
+
+// Llamadas desde consulta de OT
+Route::post('produccion/empacarTarea', 'Produccion\MovimientoOrdentrabajoController@empacarTarea')->name('empacar_tarea');
+Route::post('ventas/actualizarpedido', 'Ventas\PedidoController@actualizaItemPedido')->name('actualizar_pedido_desdeoc');
+Route::get('produccion/leerTareas/{ot_id}', 'Produccion\MovimientoOrdentrabajoController@leerTareas')->name('leer_tareas');
+Route::post('ventas/facturarItemOt', 'Ventas\FacturacionController@facturarItemOt')->name('facturar_item_ot');
+
+// Reportes de produccion
+
+// Estado de OT
+Route::get('produccion/repestadoot', 'Produccion\RepEstadoOtController@index')->name('rep_estadoot');
+Route::post('produccion/crearrepestadoot', 'Produccion\RepEstadoOtController@crearReporteEstadoOt')->name('crear_repestadoot');
+
+// Total de pares
+Route::get('produccion/reptotalpares', 'Produccion\RepTotalParesController@index')->name('rep_totalpares');
+Route::post('produccion/crearreptotlapares', 'Produccion\RepTotalParesController@crearReporteTotalPares')->name('crear_reptotalpares');
+
+// Liquidacion de tareas
+Route::get('produccion/repliquidaciontarea', 'Produccion\RepLiquidacionTareaController@index')->name('rep_liquidaciontarea');
+Route::post('produccion/crearrepliquidaciotarea', 'Produccion\RepLiquidacionTareaController@crearReporteLiquidacionTarea')->name('crear_repliquidaciontarea');
+
+// Consumo de OT
+Route::get('produccion/repconsumoot', 'Produccion\RepConsumoOtController@index')->name('rep_consumoot');
+Route::post('produccion/crearrepconsumoot', 'Produccion\RepConsumoOtController@crearReporteConsumoOt')->name('crear_repconsumoot');
+
+// Consumo de Cajas
+Route::get('produccion/repconsumocaja', 'Produccion\RepConsumoCajaController@index')->name('rep_consumocaja');
+Route::post('produccion/crearrepconsumocaja', 'Produccion\RepConsumoCajaController@crearReporteConsumoCaja')->name('crear_repconsumocaja');
+
+// Programacion de Armado
+Route::get('produccion/repprogarmado', 'Produccion\RepProgArmadoController@index')->name('rep_progarmado');
+Route::post('produccion/crearrepprogarmado', 'Produccion\RepProgArmadoController@crearReporteProgArmado')->name('crear_repprogarmado');
+
+// Graficos
+Route::get('graficos/velas', 'Graficos\GraficosController@index')->name('grafico_vela');
+Route::get('graficos/reporte', 'Graficos\GraficosController@indexReporteLecturas')->name('reporte_lecturas');
+Route::post('graficos/crearreplecturas', 'Graficos\GraficosController@crearReporteLecturas')->name('crear_replecturas');
+Route::get('graficos/leerDatosLecturas/{fecha}/{dias}', 'Graficos\GraficosController@leerDatosLecturas')->name('leer_datos_lecturas');
+Route::get('graficos/reporteindicadores', 'Graficos\GraficosController@indexReporteIndicadores')->name('reporte_indicadores');
+Route::post('graficos/crearindicadores', 'Graficos\GraficosController@crearReporteIndicadores')->name('crear_repindicadores');
 

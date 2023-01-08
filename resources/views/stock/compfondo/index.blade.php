@@ -44,7 +44,7 @@
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-composicion-fondos', false))
+                       			@if (can('borrar-composicion-fondos', false))
                                 <form action="{{route('eliminar_compfondo', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

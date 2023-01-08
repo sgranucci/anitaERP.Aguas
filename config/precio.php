@@ -1,0 +1,2 @@
+<?php
+// Constantes de precios

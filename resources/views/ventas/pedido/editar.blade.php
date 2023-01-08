@@ -8,68 +8,56 @@
 <script src="{{asset("assets/pages/scripts/ventas/pedido/crear.js")}}" type="text/javascript"></script>
 
 <script>
+    var CLIENTE_STOCK_ID = "{{ config('cliente.CLIENTE_STOCK_ID') }}";
+    var PROFORMA = "{{ config('cliente.PROFORMA') }}";
+    var MOROSO = "{{ config('cliente.MOROSO') }}";
+    var NO_FACTURAR = "{{ config('cliente.NO_FACTURAR') }}";
+
 	function sub()
 	{
 	  	// Validar precio en 0
         $(".precio").each(function(){
             precio = $(this).val();
 
-			if (precio == 0)
-			{
-			  	alert("No puede generar pedidos con precio 0");
-				return false;
-			}
+			//if (precio == 0)
+			//{
+			  	//alert("No puede generar pedidos con precio 0");
+				//return false;
+			//}
         });
 	  
 		$('#form-general').submit();
 	}
 
-   function completarCliente_Entrega(cliente_id){
-        var loc_id, fl_tiene_entrega = false;
-        $.get('/anitaERP/public/ventas/leercliente_entrega/'+cliente_id, function(data){
-            var entr = $.map(data, function(value, index){
-                return [value];
-            });
-            $("#cliente_entrega_id").empty();
-            $("#cliente_entrega_id").append('<option value=""></option>');
-            $.each(entr, function(index,value){
-                $("#cliente_entrega_id").append('<option value="'+value.id+'">'+value.nombre+'</option>');
-				fl_tiene_entrega = true;
-            });
-			if (fl_tiene_entrega)
-			{
-			  $("#divcodigoentrega").show();
-			  $("#divlugar").hide();
-			}
-			else
-			{
-			  $("#divcodigoentrega").hide();
-			  $("#divlugar").show();
-			}
-        });
-        setTimeout(() => {
-        }, 3000);
-    }
-
     $(function () {
         $("#cliente_id").change(function(){
             var cliente_id = $(this).val();
             completarCliente_Entrega(cliente_id);
-    	});
 
+            asignaDatosCliente(cliente_id, true);
+
+            setTimeout(() => {
+                muestraTipoSuspension();			
+            }, 1500);
+    	});
+       
 		$("#divlugar").show();
+		$("#divcodigoentrega").hide();
 
         var cliente_id = $("#cliente_id").val();
         completarCliente_Entrega(cliente_id);
+        asignaDatosCliente(cliente_id, false);
+
+        setTimeout(() => {
+            muestraTipoSuspension();
+        }, 1000);
 
         if ($("#cliente_entrega_id_previa").val() != "") {
             setTimeout(() => {
                     $("#cliente_entrega_id").val($("#cliente_entrega_id_previa").val());
             }, 1000);
         }
-
 	  });
-
 </script>
 @endsection
 
@@ -86,18 +74,36 @@
                     <a href="{{route('pedido')}}" class="btn btn-outline-info btn-sm">
                         <i class="fa fa-fw fa-reply-all"></i> Volver al listado
                     </a>
+					<button type="submit" onclick="preparaPreFactura()" class="btn btn-primary">
+                    	<i class="fa fa-fw fa-print"></i>
+						Pre-Factura
+					</button>
+                    <button type="submit" onclick="preparaFactura()" class="btn btn-primary">
+                    	<i class="fa fa-fw fa-print"></i>
+						Factura
+					</button>
                 </div>
             </div>
             <form action="{{route('actualizar_pedido', ['id' => $pedido->id])}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
                 @csrf @method("put")
                 <div class="card-body">
         			<input type="hidden" id="codigo" name="codigo" value="{{$pedido->codigo}}" >
-                    @include('ventas.pedido.form')
+        			<input type="hidden" id="pedidoid" name="pedidoid" value="{{$pedido->id}}" >
+                    @php $datos = ["funcion" => "editar"]; @endphp
+                    @include('ventas.pedido.form', $datos)
                 </div>
                 <div class="card-footer">
                     <div class="row">
                         <div class="col-lg-6">
 							<button type="submit" onclick="sub()" class="btn btn-success">Actualizar</button>
+							<button type="submit" onclick="imprimePreFactura()" style="display:none;" id="imprimePreFactura" class="btn btn-success">
+                            	<i class="fa fa-print"></i>
+								Imprime pre-factura
+							</button>
+                            <button type="submit" onclick="generaFactura()" style="display:none;" id="generaFactura" class="btn btn-success">
+                            	<i class="fa fa-print"></i>
+								Genera factura
+							</button>
                         </div>
                     </div>
                 </div>

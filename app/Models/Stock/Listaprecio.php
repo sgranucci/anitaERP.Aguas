@@ -7,12 +7,14 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\ApiAnita;
 use App\Models\Seguridad\Usuario;
+use App\Models\Stock\Tiponumeracion;
 use Carbon\Carbon;
 use Auth;
 
 class Listaprecio extends Model
 {
-    protected $fillable = ['nombre', 'formula', 'incluyeimpuesto', 'codigo', 'usuarioultcambio_id'];
+    protected $fillable = ['nombre', 'formula', 'incluyeimpuesto', 'codigo', 'desdetalle', 'hastatalle', 
+                            'tiponumeracion_id', 'usuarioultcambio_id'];
     protected $table = 'listaprecio';
     protected $tableAnita = 'premae';
     protected $keyField = 'codigo';
@@ -21,6 +23,11 @@ class Listaprecio extends Model
     public function usuario()
     {
         return $this->belongsTo(Usuario::class, 'usuarioultcambio_id');
+    }
+
+    public function tiposnumeracion()
+    {
+        return $this->belongsTo(Tiponumeracion::class, 'tiponumeracion_id');
     }
 
 	public function lineas()

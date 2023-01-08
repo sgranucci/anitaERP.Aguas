@@ -19,6 +19,8 @@ jQuery(document).ready(function($){
         $('.mi-selector').select2();
     });
 });
+$("#ordenestrabajo").focus();
+
 </script>
 
 @endsection
@@ -31,6 +33,11 @@ jQuery(document).ready(function($){
         <div class="card card-danger">
             <div class="card-header">
                 <h3 class="card-title">Datos Emisi&oacuten de etiquetas OT</h3>
+                <div class="card-tools">
+                    <a href="{{route('genera_zpl')}}" class="btn btn-outline-info btn-sm">
+                        <i class="fa fa-fw fa-reply-all"></i> Genera Foto para Etiqueta
+                    </a>
+            	</div>
             </div>
             <form action="{{route('crear_repetiquetaot')}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
                 @csrf @method("post")

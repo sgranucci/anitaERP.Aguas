@@ -44,7 +44,7 @@ Subzonas de venta
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-subzonas-de-venta', false))
+                       			@if (can('borrar-subzonas-de-venta', false))
                                 <form action="{{route('eliminar_subzonavta', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

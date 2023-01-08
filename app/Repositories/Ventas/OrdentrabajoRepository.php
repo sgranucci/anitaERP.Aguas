@@ -6,6 +6,7 @@ use App\Models\Ventas\Ordentrabajo;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\ApiAnita;
 use Auth;
+use DB;
 
 class OrdentrabajoRepository implements OrdentrabajoRepositoryInterface
 {
@@ -36,33 +37,30 @@ class OrdentrabajoRepository implements OrdentrabajoRepositoryInterface
 
     public function create(array $data)
     {
-        $ordentrabajo = $this->model->create($data);
-		//
-		// Graba anita
-		self::guardarAnita($data);
+		$dataErp = array(
+						'fecha' => $data['fecha'],
+						'codigo' => $data['nro_orden'],
+            			'leyenda' => $data['observacion'],
+            			'estado' => $data['estado'],
+						'usuario_id' => $data['usuario_id']
+						);
+
+        $ordentrabajo = $this->model->create($dataErp);
+
+		return $ordentrabajo;
     }
 
     public function update(array $data, $id)
     {
-        $ordentrabajo = $this->model->findOrFail($id)
-            ->update($data);
-		//
-		// Actualiza anita
-		self::actualizarAnita($data, $data['codigo']);
+        $ordentrabajo = $this->model->findOrFail($id)->update($data);
 
 		return $ordentrabajo;
-
-        //return $this->model->where('id', $id)
-         //   ->update($data);
     }
 
     public function delete($id)
     {
     	$ordentrabajo = $this->model->find($id);
-		//
-		// Elimina anita
-		self::eliminarAnita($ordentrabajo->codigo);
-
+		
         $ordentrabajo = $this->model->destroy($id);
 
 		return $ordentrabajo;
@@ -72,6 +70,16 @@ class OrdentrabajoRepository implements OrdentrabajoRepositoryInterface
     {
         if (null == $ordentrabajo = $this->model->find($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
+        }
+
+        return $ordentrabajo;
+    }
+
+    public function findPorCodigo($codigo)
+    {
+        if (null == $ordentrabajo = $this->model->where('codigo',$codigo)->first() )
+		{
+            throw new ModelNotFoundException("OT no encontrada");
         }
 
         return $ordentrabajo;
@@ -92,10 +100,11 @@ class OrdentrabajoRepository implements OrdentrabajoRepositoryInterface
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 
 						'campos' => "$this->keyFieldAnita as $this->keyField, $this->keyFieldAnita", 
-						'tabla' => $this->tableAnita );
+            			'whereArmado' => " WHERE ordtm_fecha>20211000 ",
+						'tabla' => $this->tableAnita[0] );
         $dataAnita = json_decode($apiAnita->apiCall($data));
 
-        $datosLocal = self::all();
+        $datosLocal = $this->model->get();
         $datosLocalArray = [];
         foreach ($datosLocal as $value) {
             $datosLocalArray[] = $value->{$this->keyField};
@@ -108,24 +117,40 @@ class OrdentrabajoRepository implements OrdentrabajoRepositoryInterface
         }
     }
 
-    public function traerRegistroDeAnita($key){
+    private function traerRegistroDeAnita($key){
         $apiAnita = new ApiAnita();
         $data = array( 
-            'acc' => 'list', 'tabla' => $this->tableAnita, 
+            'acc' => 'list', 
+			'tabla' => $this->tableAnita[0], 
             'campos' => '
-			expr_codigo,
-    		expr_nombre,
-    		expr_direccion,
-    		expr_localidad,
-    		expr_provincia,
-    		expr_cod_postal,
-    		expr_telefono,
-    		expr_cuit,
-    		expr_cond_iva,
-    		expr_nro_interno,
-			expr_pat_vehiculo,
-			expr_pag_acoplado,
-			expr_hs_entrega
+			ordtm_cliente,
+    		ordtm_nro_orden,
+    		ordtm_tipo,    
+    		ordtm_letra,    
+    		ordtm_sucursal,
+    		ordtm_nro,     
+    		ordtm_nro_renglon,
+    		ordtm_fecha,  
+    		ordtm_estado,
+    		ordtm_observacion,
+    		ordtm_alfa_cliente,
+			ordtm_articulo,   
+			ordtm_color,      
+			ordtm_forro,    
+			ordtm_alfa_art,
+			ordtm_linea,
+			ordtm_fondo,
+			ordtm_color_fondo,
+			ordtm_capellada,
+			ordtm_color_cap,
+			ordtm_color_forro,
+			ordtm_tipo_fact,
+			ordtm_letra_fact,
+			ordtm_suc_fact,
+			ordtm_nro_fact,
+			ordtm_aplique,
+			ordtm_fl_impresa,
+			ordtm_fl_stock
 			',
             'whereArmado' => " WHERE ".$this->keyFieldAnita." = '".$key."' " 
         );
@@ -136,122 +161,155 @@ class OrdentrabajoRepository implements OrdentrabajoRepositoryInterface
         if (count($dataAnita) > 0) {
             $data = $dataAnita[0];
 
-        	$provincia = Provincia::select('id', 'nombre')->where('id' , $data->expr_provincia)->first();
-			if ($provincia)
-				$provincia_id = $provincia->id;
-			else
-				$provincia_id = NULL;
-	
-        	$localidad = Localidad::select('id', 'nombre')->where('id' , $data->expr_localidad)->first();
-			if ($localidad)
-				$localidad_id = $localidad->id;
-			else
-				$localidad_id = NULL;
-	
-			$condicioniva_id = 1;
-			switch($data->expr_cond_iva)
-			{
-			case '0':
-				$condicioniva_id = 1;
-				break;
-			case '3':
-				$condicioniva_id = 3;
-				break;
-			case '4':
-				$condicioniva_id = 2;
-				break;
-			case '5':
-				$condicioniva_id = 4;
-				break;
-			}
-
 			$arr_campos = [
-				"nombre" => $data->expr_nombre,
-				"codigo" => $data->expr_codigo,
-				"domicilio" => $data->expr_direccion,
-				"provincia_id" => $provincia_id,
-				"localidad_id" => $localidad_id,
-				"codigopostal" => $data->expr_cod_postal,
-				"telefono" => $data->expr_telefono,
-				"email" => '',
-				"nroinscripcion" => $data->expr_cuit,
-				"condicioniva_id" => $condicioniva_id,
-				"patentevehiculo" => $data->expr_pat_vehiculo,
-				"patenteacoplado" => $data->expr_pag_acoplado,
-				"horarioentrega" => $data->expr_hs_entrega,
+				"fecha" => $data->ordtm_fecha,
+				"codigo" => $data->ordtm_nro_orden,
+				"leyenda" => $data->ordtm_observacion,
+				"estado" => $data->ordtm_estado,
+				"usuario_id" => $usuario_id,
             	];
 	
         	$ordentrabajo = $this->model->create($arr_campos);
         }
     }
 
-	public function guardarAnita($request) {
+	private function guardarAnita($request) {
+		return 0;
         $apiAnita = new ApiAnita();
 
-		$this->setCondicionIvaAnita($request, $condicioniva);
-
-        $data = array( 'tabla' => $this->tableAnita, 'acc' => 'insert',
+        $data = array( 'tabla' => $this->tableAnita[0], 'acc' => 'insert',
             'campos' => ' 
-				expr_codigo,
-    			expr_nombre,
-    			expr_direccion,
-    			expr_localidad,
-    			expr_provincia,
-    			expr_cod_postal,
-    			expr_telefono,
-    			expr_cuit,
-    			expr_cond_iva,
-    			expr_nro_interno,
-				expr_pat_vehiculo,
-				expr_pag_acoplado,
-				expr_hs_entrega
+				ordtm_cliente,
+    			ordtm_nro_orden,
+    			ordtm_tipo,    
+    			ordtm_letra,    
+    			ordtm_sucursal,
+    			ordtm_nro,     
+    			ordtm_nro_renglon,
+    			ordtm_fecha,  
+    			ordtm_estado,
+    			ordtm_observacion,
+    			ordtm_alfa_cliente,
+				ordtm_articulo,   
+				ordtm_color,      
+				ordtm_forro,    
+				ordtm_alfa_art,
+				ordtm_linea,
+				ordtm_fondo,
+				ordtm_color_fondo,
+				ordtm_capellada,
+				ordtm_color_cap,
+				ordtm_color_forro,
+				ordtm_tipo_fact,
+				ordtm_letra_fact,
+				ordtm_suc_fact,
+				ordtm_nro_fact,
+				ordtm_aplique,
+				ordtm_fl_impresa,
+				ordtm_fl_stock
 				',
             'valores' => " 
-				'".$request['codigo']."', 
-				'".$request['nombre']."',
-				'".$request['domicilio']."',
-				'".$request['desc_localidad']."',
-				'".$request['desc_provincia']."',
-				'".$request['codigopostal']."',
-				'".$request['telefono']."',
-				'".$request['nroinscripcion']."',
-				'".$condicioniva_id."',
-				'0',
-				'".$request['patentevehiculo']."',
-				'".$request['patenteacoplado']."',
-				'".$request['horarioentrega']."' "
+				'".$request['cliente']."',
+				'".$request['nro_orden']."', 
+				'".$request['tipo']."',
+				'".$request['letra']."',
+				'".$request['sucursal']."',
+				'".$request['nro']."',
+				'".$request['nro_renglon']."',
+				'".date('Ymd', strtotime($request['fecha']))."',
+				'".$request['estado']."',
+				'".$request['observacion']."',
+				'".$request['alfa_cliente']."',
+				'".$request['articulo']."',
+				'".$request['color']."',
+				'".$request['forro']."',
+				'".$request['alfa_art']."',
+				'".$request['linea']."',
+				'".$request['fondo']."',
+				'".$request['color_fondo']."',
+				'".$request['capellada']."',
+				'".$request['color_cap']."',
+				'".$request['color_forro']."',
+				'".$request['tipo_fact']."',
+				'".$request['letra_fact']."',
+				'".$request['suc_fact']."',
+				'".$request['nro_fact']."',
+				'".$request['aplique']."',
+				'".$request['fl_impresa']."',
+				'".$request['fl_stock']."' "
         );
-        $apiAnita->apiCall($data);
+        return $apiAnita->apiCall($data);
 	}
 
-	public function actualizarAnita($request, $id) {
+	private function actualizarAnita($request, $id) {
+		return 0;
         $apiAnita = new ApiAnita();
 
 		$this->setCondicionIvaAnita($request, $condicioniva);
 
-		$data = array( 'acc' => 'update', 'tabla' => $this->tableAnita, 
+		$data = array( 'acc' => 'update', 'tabla' => $this->tableAnita[0], 
 				'valores' => " 
-                expr_codigo 	                = '".$request['codigo']."',
-                expr_nombre 	                = '".$request['nombre']."',
-                expr_direccion 	                = '".$request['domicilio']."',
-                expr_localidad 	                = '".$request['desc_localidad']."',
-                expr_provincia 	                = '".$request['desc_provincia']."',
-                expr_cod_postal 	            = '".$request['codigopostal']."',
-                expr_telefono 	                = '".$request['telefono']."',
-                expr_cuit 	                    = '".$request['nroinscripcion']."',
-                expr_cond_iva 	                = '".$condicioniva."',
-                expr_pat_vehiculo 	            = '".$request['patentevehiculo']."',
-                expr_pag_acoplado 	            = '".$request['patenteacoplado']."',
-                expr_hs_entrega	                = '".$request['horarioentrega']."' "
+                ordtm_cliente         = '".$request['cliente']."',
+    			ordtm_nro_orden       = '".$request['nro_orden']."',
+    			ordtm_tipo,           = '".$request['tipo']."',
+    			ordtm_letra,          = '".$request['letra']."',
+    			ordtm_sucursal        = '".$request['sucursal']."',
+    			ordtm_nro,            = '".$request['nro']."',
+    			ordtm_nro_renglon     = '".$request['nro_renglon']."',
+    			ordtm_fecha,          = '".$request['fecha']."',
+    			ordtm_estado          = '".$request['estado']."',
+    			ordtm_observacion     = '".$request['observacion']."',
+    			ordtm_alfa_cliente    = '".$request['alfa_cliente']."',
+				ordtm_articulo,       = '".$request['articulo']."',
+				ordtm_color,          = '".$request['color']."',
+				ordtm_forro,          = '".$request['forro']."',
+				ordtm_alfa_art        = '".$request['alfa_art']."',
+				ordtm_linea           = '".$request['linea']."',
+				ordtm_fondo           = '".$request['fondo']."',
+				ordtm_color_fondo     = '".$request['color_fondo']."',
+				ordtm_capellada       = '".$request['capellada']."',
+				ordtm_color_cap       = '".$request['color_cap']."',
+				ordtm_color_forro     = '".$request['color_forro']."',
+				ordtm_tipo_fact       = '".$request['tipo_fact']."',
+				ordtm_letra_fact      = '".$request['letra_fact']."',
+				ordtm_suc_fact        = '".$request['suc_fact']."',
+				ordtm_nro_fact        = '".$request['nro_fact']."',
+				ordtm_aplique         = '".$request['aplique']."',
+				ordtm_fl_impresa      = '".$request['fl_impresa']."',
+				ordtm_fl_stock        = '".$request['fl_stock']."' "
 					,
-				'whereArmado' => " WHERE expr_codigo = '".$id."' " );
+				'whereArmado' => " WHERE ordtm_nro_orden = '".$id."' " );
         $apiAnita->apiCall($data);
 	}
 
-	public function eliminarAnita($id) {
+	private function eliminarAnita($id) {
+		return 0;
         $apiAnita = new ApiAnita();
-        $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita, 
-				'whereArmado' => " WHERE expr_codigo = '".$id."' " );
+        $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita[0], 
+				'whereArmado' => " WHERE ordtm_nro_orden = '".$id."' " );
+        $apiAnita->apiCall($data);
+	}
+
+	// Devuelve ultimo codigo de orden de trabajo + 1 para agregar nuevos en Anita
+
+	public function ultimoCodigoAnita(&$nro) {
+		$ordentrabajo = $this->model->max('codigo');
+		$nro = 0;
+		if ($ordentrabajo)
+			$nro = $ordentrabajo;
+		$nro = $nro + 1;
+	}
+
+	// Actualiza numerador de OT en Anita
+
+	public function actualizarNumeradorOtAnita($nro) {
+		return 0;
+        $apiAnita = new ApiAnita();
+        $data = array( 'acc' => 'update', 
+				'tabla' => 'numerador',
+				'valores' => "num_ult_numero = '".$nro."' ",
+				'whereArmado' => " WHERE num_clave = '031' " 
+				);
         $apiAnita->apiCall($data);
 	}
 }

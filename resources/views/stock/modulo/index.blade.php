@@ -74,7 +74,7 @@ M&oacute;dulos
                                    	<i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-modulos', false))
+                       			@if (can('borrar-modulos', false))
                                 	<form action="{{route('eliminar_modulo', ['id' => $modulo->id])}}" class="d-inline form-eliminar" method="POST">
                                    		@csrf @method("delete")
                                    		<button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

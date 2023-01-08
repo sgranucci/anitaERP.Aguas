@@ -19,6 +19,7 @@ use App\Models\Ventas\Vendedor;
 use App\Models\Ventas\Condicionventa;
 use App\Models\Configuracion\Condicioniva;
 use App\Models\Stock\Listaprecio;
+use App\Models\Ventas\Tiposuspensioncliente;
 use App\Traits\Ventas\ClienteTrait;
 
 class Cliente extends Model
@@ -29,7 +30,8 @@ class Cliente extends Model
     protected $fillable = ['nombre','codigo','contacto','fantasia','email','telefono','urlweb','domicilio','localidad_id',
 							'provincia_id','pais_id','zonavta_id','subzonavta_id','vendedor_id','nroinscripcion','condicioniva_id',
 							'retieneiva','nroiibb','condicioniibb','condicionventa_id','listaprecio_id','cuentacontable_id','vaweb',
-							'estado','usuario_id','codigopostal','transporte_id','descuento','leyenda'];
+							'estado','usuario_id','codigopostal','transporte_id','descuento','leyenda','tiposuspension_id',
+                            'tipoalta','modofacturacion'];
     protected $table = 'cliente';
 	protected $dates = ['deleted_at'];
 
@@ -42,6 +44,11 @@ class Cliente extends Model
 	{
     	return $this->hasMany(Cliente_Archivo::class, 'cliente_id');
 	}
+
+    public function tipossuspensioncliente()
+    {
+        return $this->belongsTo(Tiposuspensioncliente::class, 'tiposuspension_id');
+    }
 
     public function localidades()
     {

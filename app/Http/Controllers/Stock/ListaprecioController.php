@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Stock;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Stock\Listaprecio;
+use App\Models\Stock\Tiponumeracion;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Seguridad\Usuario;
 use App\Models\Stock\Tipoarticulo;
@@ -21,8 +22,8 @@ class ListaprecioController extends Controller
     public function index()
     {
         can('listar-listaprecio');
-        $datas = Listaprecio::with('usuario:id,nombre')->get();
-
+        $datas = Listaprecio::with('usuario:id,nombre')->with('tiposnumeracion')->get();
+        
 		if ($datas->isEmpty())
 		{
 			$Listaprecio = new Listaprecio();
@@ -42,8 +43,9 @@ class ListaprecioController extends Controller
     public function crear()
     {
         can('crear-listaprecio');
+        $tiponumeracion_query = Tiponumeracion::all();
 
-        return view('stock.listaprecio.crear');
+        return view('stock.listaprecio.crear', compact('tiponumeracion_query'));
     }
 
     /**
@@ -59,6 +61,9 @@ class ListaprecioController extends Controller
 			"formula" => $request->formula,
 			"incluyeimpuesto" => $request->incluyeimpuesto,
 			"codigo" => $request->codigo,
+            "desdetalle" => $request->desdetalle,
+            "hastatalle" => $request->hastatalle,
+            "tiponumeracion_id" => $request->tiponumeracion_id,
 			"usuarioultcambio_id" => Auth::user()->id,
 				]);
 
@@ -81,8 +86,9 @@ class ListaprecioController extends Controller
         can('editar-listaprecio');
 
         $data = Listaprecio::findOrFail($id);
+        $tiponumeracion_query = Tiponumeracion::all();
 
-        return view('stock.listaprecio.editar', compact('data'));
+        return view('stock.listaprecio.editar', compact('data', 'tiponumeracion_query'));
     }
 
     /**
@@ -102,6 +108,9 @@ class ListaprecioController extends Controller
 		$listaprecio->formula = $request->formula;
 		$listaprecio->incluyeimpuesto = $request->incluyeimpuesto;
 		$listaprecio->codigo = $request->codigo;
+        $listaprecio->desdetalle = $request->desdetalle;
+        $listaprecio->hastatalle = $request->hastatalle;
+        $listaprecio->tiponumeracion_id = $request->tiponumeracion_id;
 		$listaprecio->usuarioultcambio_id = Auth::user()->id;
 
 		$listaprecio->save();

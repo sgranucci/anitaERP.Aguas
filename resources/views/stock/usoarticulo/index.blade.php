@@ -44,7 +44,7 @@ Uso de art&iacute;culos
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-uso-de-articulos', false))
+                       			@if (can('borrar-uso-de-articulos', false))
                                 <form action="{{route('eliminar_usoarticulo', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

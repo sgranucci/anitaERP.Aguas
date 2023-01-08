@@ -10,6 +10,8 @@ use App\Models\Seguridad\Usuario;
 use App\Models\Contable\Cuentacontable;
 use App\Models\Configuracion\Impuesto;
 use App\Models\Ventas\Pedido_Combinacion;
+use App\Models\Stock\Articulo_Caja;
+use App\Models\Stock\Articulo_Costo;
 use Carbon\Carbon;
 use Auth;
 
@@ -24,6 +26,16 @@ class Articulo extends Model
     protected $tableAnita = 'stkmae';
     protected $keyField = 'sku';
     protected $keyFieldAnita = 'stkm_articulo';
+
+	public function articulos_caja()
+    {
+        return $this->hasMany(Articulo_Caja::class)->with('cajas');
+    }
+
+	public function articulos_costo()
+    {
+        return $this->hasMany(Articulo_Costo::class)->with('tareas');
+    }
 
 	public function precios()
     {

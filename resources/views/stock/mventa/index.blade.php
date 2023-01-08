@@ -44,7 +44,7 @@ Marcas de venta
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-marcas-de-venta', false))
+                       			@if (can('borrar-marcas-de-venta', false))
                                 <form action="{{route('eliminar_mventa', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

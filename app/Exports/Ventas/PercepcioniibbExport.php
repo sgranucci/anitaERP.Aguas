@@ -52,14 +52,14 @@ class PercepcioniibbExport implements FromView, WithColumnFormatting, WithMappin
                                         veni_letra=ven_letra and
                                         veni_sucursal=ven_sucursal and
                                         veni_nro=ven_nro and
-                                        veni_provincia=901) as monto_caba,
+                                        (veni_provincia=901 or veni_provincia=1)) as monto_caba,
                 rpcaba_percepcion as tasa_padron_caba,
                 (select max(veni_importe) from venibr
                                         where veni_tipo=ven_tipo and
                                         veni_letra=ven_letra and
                                         veni_sucursal=ven_sucursal and
                                         veni_nro=ven_nro and
-                                        veni_provincia=902) as monto_bsas,
+                                        (veni_provincia=2 or veni_provincia=902)) as monto_bsas,
                 rpibr_percepcion as tasa_padron_bsas
             ' , 
             'whereArmado' => " WHERE ven_cliente=clim_cliente AND
@@ -78,13 +78,13 @@ class PercepcioniibbExport implements FromView, WithColumnFormatting, WithMappin
     {
         return [
             'A' => NumberFormat::FORMAT_TEXT,
-            'F' => NumberFormat::FORMAT_CURRENCY_USD_SIMPLE,
-            'G' => NumberFormat::FORMAT_CURRENCY_USD_SIMPLE,
+            'F' => NumberFormat::FORMAT_GENERAL,
+            'G' => NumberFormat::FORMAT_GENERAL,
             'H' => NumberFormat::FORMAT_GENERAL,
-            'I' => NumberFormat::FORMAT_CURRENCY_USD_SIMPLE,
-            'J' => NumberFormat::FORMAT_CURRENCY_USD_SIMPLE,
+            'I' => NumberFormat::FORMAT_GENERAL,
+            'J' => NumberFormat::FORMAT_GENERAL,
             'K' => NumberFormat::FORMAT_GENERAL,
-            'L' => NumberFormat::FORMAT_CURRENCY_USD_SIMPLE,
+            'L' => NumberFormat::FORMAT_GENERAL,
         ];
     }
 

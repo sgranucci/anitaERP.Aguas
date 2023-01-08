@@ -46,7 +46,7 @@ Tipo de cortes
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-tipo-cortes', false))
+                       			@if (can('borrar-tipo-cortes', false))
                                 <form action="{{route('eliminar_tipocorte', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

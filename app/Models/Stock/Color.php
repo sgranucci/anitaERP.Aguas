@@ -65,7 +65,7 @@ class Color extends Model
 	public function actualizarAnita($request) {
         $apiAnita = new ApiAnita();
 		$data = array( 'acc' => 'update', 'tabla' => 'color', 
-				'valores' => " col_desc = '".$request->nombre."' , col_codigo = '".$request->codigo."'", 
+				'valores' => " col_desc = '".$request->nombre."'",
 				'whereArmado' => " WHERE col_color = '".$request->codigo."' " );
         $apiAnita->apiCall($data);
 	}

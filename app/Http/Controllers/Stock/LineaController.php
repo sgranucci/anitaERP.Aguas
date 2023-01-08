@@ -51,10 +51,11 @@ class LineaController extends Controller
 
 			if ($linea)
 			{
-				if ($modulo_id != null)
-					$modulos = Modulo::select('id','nombre')->whereIn('id',$linea->modulos)->orWhere('id','=',$modulo_id)->get()->toArray();
+				$mod = $linea->modulos->pluck('id')->toArray();
+				if ($modulo_id != null && $modulo_id != 0)
+					$modulos = Modulo::select('id','nombre')->whereIn('id',$mod)->orWhere('id','=',$modulo_id)->get()->toArray();
 				else
-					$modulos = Modulo::select('id','nombre')->whereIn('id',$linea->modulos)->get()->toArray();
+					$modulos = Modulo::select('id','nombre')->whereIn('id',$mod)->get()->toArray();
 			}
 		}
 

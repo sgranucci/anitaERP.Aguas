@@ -20,7 +20,7 @@
     @foreach ($items ?? '' as $data)
 		@if ($data['linea_id'] != $linea_actual)
 			@if ($linea_actual != '')
-    			<tbody>
+    			</tbody>
 				</table>
 				<div style="page-break-after:always;"></div>
 			@endif
@@ -31,7 +31,7 @@
 				<strong>Forro: {{$data['forro'] ?? ''}}</strong><br>
 				<strong>Fondo: {{$data['fondo'] ?? ''}}</strong>
 			</div>
-			<table class="table table-sm table-bordered table-striped">
+			<table class="table table-sm table-bordered">
     		@foreach ($modulos ?? '' as $mod)
     				<tr>
 						<th scope="row">M&oacute;dulo</th>
@@ -50,7 +50,7 @@
 			@endforeach
 			</table>
 
-			<table class="table table-bordered table-striped">
+			<table class="table table-bordered">
 			<thead>
     			<tr>
 					<th>Foto</th>
@@ -63,11 +63,22 @@
 		@endif
         <tr>
 			<td>
-				<img src="{{ asset('storage/imagenes/fotos_articulos/'.$data['foto']) }}" width="150" height="150" />
+				@if ($data['foto'] != '')
+					<img src="{{ asset('storage/imagenes/fotos_articulos/'.$data['foto']) }}" width="220" height="220" />
+				@else
+					<img src="{{ asset('storage/imagenes/fotos_articulos/'.$data['sku'].'-'.$data['codigo'].'.jpg') }}" width="220" height="220" />
+				@endif
 			</td>
-			<td>{{$data['sku'] ?? ''}}-{{$data['codigo'] ?? ''}}</td>
-			<td>{{$data['nombre'] ?? ''}}</td>
 			<td>
+			<small>
+			{{$data['sku'] ?? ''}}-{{$data['codigo'] ?? ''}}</td>
+			</small>
+			<td>
+			<small>
+			{{$data['nombre'] ?? ''}}</td>
+			</small>
+			<td>
+			<small>
 			@if ($data['precio1'] != 0)
 				{{ $data['nombrelista1'] }} {{ number_format($data['precio1'],2) }}<br> 
 			@endif
@@ -80,10 +91,11 @@
 			@if ($data['precio4'] != 0)
 				{{ $data['nombrelista4'] }} {{ number_format($data['precio4'], 2)}}
 			@endif
+			</small>
 			</td>
         </tr>
 	@endforeach
-    <tbody>
+    </tbody>
 	</table>
 </div>
 </div>

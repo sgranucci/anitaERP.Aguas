@@ -30,14 +30,18 @@ $( "#botonform0" ).click(function() {
         @include('includes.mensaje')
         <div class="card card-danger">
             <div class="card-header">
-                <h3 class="card-title">Crear Cliente</h3>
+                <h3 class="card-title">Crear Cliente @if ($tipoalta == 'P') Provisorio @endif</h3>
                 <div class="card-tools">
                     <a href="{{route('cliente')}}" class="btn btn-outline-info btn-sm">
                         <i class="fa fa-fw fa-reply-all"></i> Volver al listado
                     </a>
                 </div>
             </div>
-            <form action="{{route('guardar_cliente')}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
+            @if ($tipoalta == 'P')
+                <form action="{{route('guardar_cliente_provisorio')}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
+            @else
+                <form action="{{route('guardar_cliente')}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
+            @endif
                 @csrf
                 <div class="card-body" style="padding-bottom: 0; padding-top: 5px;">
                     @include('ventas.cliente.form1')

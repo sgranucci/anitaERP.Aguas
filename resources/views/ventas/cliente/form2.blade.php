@@ -8,8 +8,12 @@
     				</div>
 				</div>
 				<div class="form-group row">
-    				<label for="retieneiva" class="col-lg-4 col-form-label requerido">Retiene iva</label>
-					<select name="retieneiva" class="col-lg-3 form-control" required>
+					@if ($tipoalta != 'P')
+    					<label for="retieneiva" class="col-lg-4 col-form-label requerido">Retiene iva</label>
+					@else
+						<label for="retieneiva" class="col-lg-4 col-form-label">Retiene iva</label>
+					@endif
+					<select name="retieneiva" class="col-lg-3 form-control" @if ($tipoalta != 'P') required @endif>
     					<option value="">-- Elija retiene iva --</option>
         				@foreach ($retieneiva_enum as $value => $retieneiva)
         					<option value="{{ $value }}"
@@ -19,9 +23,28 @@
 					</select>
 				</div>
 				<div class="form-group row">
-    				<label for="nroiibb" class="col-lg-4 col-form-label requerido">Nro.IIBB</label>
+					@if ($tipoalta != 'P')
+    					<label for="modofacturacion" class="col-lg-4 col-form-label requerido">Modo facturaci&oacute;n</label>
+					@else
+						<label for="modofacturacion" class="col-lg-4 col-form-label">Modo facturaci&oacute;n</label>
+					@endif
+					<select name="modofacturacion" class="col-lg-3 form-control" @if ($tipoalta != 'P') required @endif>
+    					<option value="">-- Elija modo de facturac&oacute;n --</option>
+        				@foreach ($modofacturacion_enum as $value => $modofacturacion)
+        					<option value="{{ $value }}"
+        						@if (old('modofacturacion', $data->modofacturacion ?? '') == $value) selected @endif
+        						>{{ $modofacturacion }}</option>
+        				@endforeach
+					</select>
+				</div>
+				<div class="form-group row">
+					@if ($tipoalta != 'P')
+    					<label for="nroiibb" class="col-lg-4 col-form-label requerido">Nro.IIBB</label>
+					@else
+						<label for="nroiibb" class="col-lg-4 col-form-label">Nro.IIBB</label>
+					@endif
     				<div class="col-lg-8">
-    					<input type="text" name="nroiibb" id="nroiibb" class="form-control" value="{{old('nroiibb', $data->nroiibb ?? '')}}" required/>
+    					<input type="text" name="nroiibb" id="nroiibb" class="form-control" value="{{old('nroiibb', $data->nroiibb ?? '')}}" @if ($tipoalta != 'P') required @endif/>
     				</div>
 				</div>
         		<div class="form-group row">
@@ -99,8 +122,12 @@
         			</div>
         		</div>
 				<div class="form-group row">
-    				<label for="condicioniibb" class="col-lg-4 col-form-label requerido">Condici&oacute;n IIBB</label>
-					<select name="condicioniibb" class="col-lg-5 form-control">
+					@if ($tipoalta != 'P') 
+    					<label for="condicioniibb" class="col-lg-4 col-form-label requerido">Condici&oacute;n IIBB</label>
+					@else
+						<label for="condicioniibb" class="col-lg-4 col-form-label">Condici&oacute;n IIBB</label>
+					@endif
+					<select name="condicioniibb" class="col-lg-5 form-control" @if ($tipoalta != 'P') required @endif>
     					<option value="">-- Elija condici&oacute;n IIBB --</option>
         				@foreach ($condicioniibb_enum as $value => $condicioniibb)
         					<option value="{{ $value }}"
@@ -136,8 +163,12 @@
         			</select>
         		</div>
         		<div class="form-group row">
-    				<label for="cuentacontable" class="col-lg-4 col-form-label requerido">Cuenta contable</label>
-        			<select name="cuentacontable_id" id="cuentacontable_id" data-placeholder="Cuenta contable para imputaciones" class="col-lg-8 form-control" data-fouc required>
+					@if ($tipoalta != 'P') 
+    					<label for="cuentacontable" class="col-lg-4 col-form-label requerido">Cuenta contable</label>
+					@else
+						<label for="cuentacontable" class="col-lg-4 col-form-label">Cuenta contable</label>
+					@endif
+        			<select name="cuentacontable_id" id="cuentacontable_id" data-placeholder="Cuenta contable para imputaciones" class="col-lg-8 form-control" data-fouc @if ($tipoalta != 'P') required @endif>
         				<option value="">-- Seleccionar Cta. Contable --</option>
         				@foreach($cuentacontable_query as $key => $value)
         					@if( (int) $value->id == (int) old('cuentacontable_id', $data->cuentacontable_id ?? ''))

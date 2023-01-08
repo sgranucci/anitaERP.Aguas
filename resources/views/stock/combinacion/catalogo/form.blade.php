@@ -12,11 +12,21 @@
 	</select>
 </div>
 <div class="form-group row">
-	<label for="categoria_id" class="col-lg-4 col-form-label requerido">Categor&iacute;a</label>
+	<label for="categoria_id" class="col-lg-4 col-form-label">Categor&iacute;a</label>
 	<select id="categoria_id" name="categoria_id" class="col-lg-8 form-control">
    		<option value="">-- Seleccionar --</option>
-        	<option value="T">Todas las categor&iacute;as</option>    
+        	<option value="T" selected>Todas las categor&iacute;as</option>    
         @foreach($categoria_query as $key => $value)
+        	<option value="{{ $value->id }}">{{ $value->nombre }}</option>    
+    	@endforeach
+   	</select>
+</div>
+<div class="form-group row">
+	<label for="subcategoria_id" class="col-lg-4 col-form-label">Sub Categor&iacute;a</label>
+	<select id="subcategoria_id" name="subcategoria_id[]" multiple class="col-lg-8 form-control">
+   		<option value="">-- Seleccionar --</option>
+        	<option value="T" selected>Todas las subcategor&iacute;as</option>    
+        @foreach($subcategoria_query as $key => $value)
         	<option value="{{ $value->id }}">{{ $value->nombre }}</option>    
     	@endforeach
    	</select>

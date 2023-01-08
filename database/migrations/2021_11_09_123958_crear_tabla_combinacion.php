@@ -38,7 +38,7 @@ class CrearTablaCombinacion extends Migration
             $table->foreign('serigrafia_id', 'fk_combinacion_serigrafia')->references('id')->on('serigrafia')->onDelete('set null')->onUpdate('set null');
             $table->string('estado', 1);
 			$table->decimal('plvista_16_26',20,6)->nullable;
-			$table->decimal('plvista_17_33',20,6)->nullable;
+			$table->decimal('plvista_27_33',20,6)->nullable;
 			$table->decimal('plvista_34_40',20,6)->nullable;
 			$table->decimal('plvista_41_45',20,6)->nullable;
             $table->unsignedBigInteger('usuarioultcambio_id')->nullable();

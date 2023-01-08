@@ -52,7 +52,7 @@ Provincias
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-provincias', false))
+                       			@if (can('borrar-provincias', false))
                                 <form action="{{route('eliminar_provincia', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

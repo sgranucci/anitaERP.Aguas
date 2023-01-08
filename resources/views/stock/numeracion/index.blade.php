@@ -48,7 +48,7 @@
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-numeraciones', false))
+                       			@if (can('borrar-numeraciones', false))
                                 <form action="{{route('eliminar_numeracion', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

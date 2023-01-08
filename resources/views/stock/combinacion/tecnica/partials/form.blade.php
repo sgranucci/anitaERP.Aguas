@@ -49,7 +49,7 @@
         				<input type="file" name="foto_up" id="foto" data-initial-preview="{{isset($combinacion->foto) ? asset("storage/imagenes/fotos_articulos/$combinacion->foto") : ''}}" accept="image/*"/>
     				</div>
 				</div>
-        	</div>
+			</div>
     		<div class="col-sm-6">
 				<div class="form-group row">
     				<label for="fondo_id" class="col-lg-4 col-form-label requerido">Fondo</label>
@@ -103,6 +103,30 @@
                         @endforeach
                     </select>
                 </div>
+				<div class="form-group row">
+    				<label for="consumoplantilla" class="col-lg-4 col-form-label">Consumo Plantilla 16/26</label>
+    				<div class="col-lg-4">
+        				<input type="number" name="plvista_16_26" id="plvista_16_26" value="{{$combinacion->plvista_16_26}}">
+    				</div>
+				</div>
+				<div class="form-group row">
+    				<label for="consumoplantilla" class="col-lg-4 col-form-label">Consumo Plantilla 27/33</label>
+    				<div class="col-lg-4">
+        				<input type="number" name="plvista_27_33" id="plvista_27_33" value="{{$combinacion->plvista_27_33}}">
+    				</div>
+				</div>
+				<div class="form-group row">
+    				<label for="consumoplantilla" class="col-lg-4 col-form-label">Consumo Plantilla 34/40</label>
+    				<div class="col-lg-4">
+        				<input type="number" name="plvista_34_40" id="plvista_34_40" value="{{$combinacion->plvista_34_40}}">
+    				</div>
+				</div>
+				<div class="form-group row">
+    				<label for="consumoplantilla" class="col-lg-4 col-form-label">Consumo Plantilla 41/47</label>
+    				<div class="col-lg-4">
+        				<input type="number" name="plvista_41_47" id="plvista_41_47" value="{{$combinacion->plvista_41_47}}">
+    				</div>
+				</div>
             </div>
         </div>
     </div>
@@ -110,6 +134,7 @@
 
 <div class="card">
     <div class="card-body">
+
     <table class="table" id="capelladas_table">
     	<thead>
     		<tr>
@@ -121,12 +146,24 @@
     			<th>34/40</th>
     			<th>41/45</th>
     			<th>Tipo</th>
+    			<th>D</th>
+				<th><input id="marcarTodos" title="Marca todos los consumos" type="checkbox" autocomplete="off" value="">
     		</tr>
     	</thead>
     	<tbody>
 		 	@if (count($combinacion->capearts) > 0)
+				@for ($i = 0; $i < 3; $i++)
 				@foreach (old('capelladas', $combinacion->capearts ? $combinacion->capearts : ['']) as $combinacion_capeart)
-               		<tr id="capellada{{ $loop->index }}">
+					
+					@php ($fl_imprime = false)
+					@if (($i == 0 && $combinacion_capeart->tipo == 'C') ||
+						($i == 1 && $combinacion_capeart->tipo == 'B') ||
+						($i == 2 && $combinacion_capeart->tipo == 'F'))
+						@php ($fl_imprime = true)
+					@endif
+
+					@if ($fl_imprime)
+               		<tr id="capellada{{ $loop->index }}" class="item-capellada">
                 		<td>
                 			<select name="materiales[]" class="form-control">
                 				<option value="">-- Elija material --</option>
@@ -152,23 +189,23 @@
                 				value="{{ (old('piezas.' . $loop->index) ?? optional($combinacion_capeart)->piezas) ?? '' }}" />
                 		</td>
                 		<td>
-                			<input type="number" name="consumo1[]" class="form-control"
+                			<input type="number" name="consumo1[]" class="form-control consumo1"
                 				value="{{ (old('consumo1.' . $loop->index) ?? optional($combinacion_capeart)->consumo1) ?? '0' }}" />
                 		</td>
                 		<td>
-                			<input type="number" name="consumo2[]" class="form-control"
+                			<input type="number" name="consumo2[]" class="form-control consumo2"
                 				value="{{ (old('consumo2.' . $loop->index) ?? optional($combinacion_capeart)->consumo2) ?? '0' }}" />
                 		</td>
                 		<td>
-                			<input type="number" name="consumo3[]" class="form-control"
+                			<input type="number" name="consumo3[]" class="form-control consumo3"
                 				value="{{ (old('consumo3.' . $loop->index) ?? optional($combinacion_capeart)->consumo3) ?? '0' }}" />
                 		</td>
                 		<td>
-                			<input type="number" name="consumo4[]" class="form-control"
+                			<input type="number" name="consumo4[]" class="form-control consumo4"
                 				value="{{ (old('consumo4.' . $loop->index) ?? optional($combinacion_capeart)->consumo4) ?? '0' }}" />
                 		</td>
 						<td>
-                			<select name="tipos[]" class="form-control requerido" required>
+                			<select name="tipos[]" class="form-control tipomaterial requerido" required>
                 				<option value="">-- Elija tipo de material --</option>
                 				@foreach ($tipos as $tipo)
                 					<option value="{{ $tipo['id'] }}"
@@ -178,68 +215,26 @@
                 			</select>
                 		</td>
 						<td>
-						</td>
+							<input name="tiposcalculo[]" class="tipoCalculo" title="Calculo Definitivo o Provisorio" type="checkbox" autocomplete="off" value=""
+                			@if (old('tiposcalculo.'. $loop->index, optional($combinacion_capeart)->tipocalculo) == 'D') checked @endif
+							> 
+                		</td>
+						<td>
+							<button type="button" title="Elimina esta linea" style="padding:0;" class="btn-accion-tabla eliminarCapeart tooltipsC">
+                           		<i class="fa fa-trash text-danger"></i>
+							</button>
+                		</td>
                 	</tr>
+					@endif
            		@endforeach
-				<tr id="capellada{{ count(old('capearts', $combinacion->capearts->count() ? $combinacion->capearts : [''])) }}"></tr>
-			@else
-            	<tr id="capellada0">
-            		<td>
-						<select name="materiales[]" class="form-control">
-                			<option value="">-- Elija medida/talle --</option>
-                			@foreach ($capelladas as $material)
-                				<option value="{{ $material->id }}"> {{ $material->descripcion }}
-                				</option>
-                			@endforeach
-                		</select>
-               		</td>
-					<td>
-                		<select name="colores[]" class="form-control">
-                			<option value="">-- Elija color --</option>
-                			@foreach ($color as $capellada_color)
-                				<option value="{{ $capellada_color->id }}" >{{ $capellada_color->nombre }}</option>
-                			@endforeach
-                		</select>
-					</td>
-                	<td>
-                		<input type="text" name="piezas[]" class="form-control"
-                			value="{{ old('piezas.1') ?? '' }}" />
-                	</td>
-                	<td>
-                		<input type="number" name="consumo1[]" class="form-control"
-                			value="{{ old('consumo1.1') ?? '0' }}" />
-                	</td>
-                	<td>
-                		<input type="number" name="consumo2[]" class="form-control"
-                			value="{{ old('consumo2.1') ?? '0' }}" />
-                	</td>
-                	<td>
-                		<input type="number" name="consumo3[]" class="form-control"
-                			value="{{ old('consumo3.1') ?? '0' }}" />
-                	</td>
-                	<td>
-                		<input type="number" name="consumo4[]" class="form-control"
-                			value="{{ old('consumo4.1') ?? '0' }}" />
-                	</td>
-					<td>
-                		<select name="tipos[]" class="form-control requerido" required>
-                			<option value="">-- Elija tipo de material --</option>
-                			@foreach ($tipos as $tipo)
-                				<option value="{{ $tipo['id'] }}" >{{ $tipo['nombre'] }}</option>
-                			@endforeach
-                		</select>
-                	</td>
-					<td>
-					</td>
-           		</tr>
-            	<tr id="capellada1"></tr>
+           		@endfor
 			@endif
             </tbody>
             </table>
+			@include('stock.combinacion.tecnica.partials.template-capellada')
             <div class="row">
                 <div class="col-md-12">
-                    <button id="add_row" class="pull-right btn btn-danger">+ Agrega rengl&oacute;n</button>
-                    <button id='delete_row' class="pull-right btn btn-danger">- Borra rengl&oacute;n</button>
+                    <button id="agrega_renglon_capellada" class="pull-right btn btn-danger">+ Agrega rengl&oacute;n</button>
                 </div>
             </div>
         </div>
@@ -352,7 +347,7 @@
                 			value="{{ old('consumo4_avios.1') ?? '0' }}" />
                 	</td>
 					<td>
-                		<select name="tipos_avios[]" class="form-control requerido" required>
+                		<select name="tipos_avios[]" class="form-control">
                 			<option value="">-- Elija tipo de avio --</option>
                 			@foreach ($tipos_avios as $tipo)
                 				<option value="{{ $tipo['id'] }}"

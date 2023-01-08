@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use App\Models\Stock\Mventa;
+use App\Models\Stock\Lote;
 use App\Models\Ventas\Cliente;
 use App\Models\Ventas\Cliente_Entrega;
 use App\Models\Ventas\Condicionventa;
@@ -28,15 +29,22 @@ class Pedido extends Model
 						'fecha',
 						'fechaentrega'
 						];
+	protected $casts = ['fecha' => 'datetime:d-m-Y'];
 
 	public function pedido_combinaciones()
 	{
-    	return $this->hasMany(Pedido_Combinacion::class, 'pedido_id')->with('articulos')->with('pedido_combinacion_talles');
+    	return $this->hasMany(Pedido_Combinacion::class, 'pedido_id')
+                    ->with('articulos')
+                    ->with('combinaciones')
+                    ->with('pedido_combinacion_talles')
+                    ->with('pedido_combinacion_estados')
+                    ->with('ordenestrabajo')
+                    ->with('lotes');
 	}
 
     public function clientes()
     {
-        return $this->belongsTo(Cliente::class, 'cliente_id');
+        return $this->belongsTo(Cliente::class, 'cliente_id')->with('tipossuspensioncliente');
     }
 
     public function condicionesdeventa()
@@ -73,6 +81,15 @@ class Pedido extends Model
 	{
 		$data = Cliente_entrega::find($this->cliente_entrega_id);
 		return ($data ? $data->nombre : '');
+	}
+
+	public function scopeWithWhereHasOtArticuloCombinacion($query, $articulo_id, $combinacion_id)
+	{
+		return $query->with(['pedido_combinaciones' => function ($q) use($articulo_id, $combinacion_id) {
+				$q->where('ot_id',0)->where('articulo_id',$articulo_id)->where('combinacion_id',$combinacion_id);
+				}, 'pedido_combinaciones.combinaciones'])->whereHas('pedido_combinaciones', function ($q) use ($articulo_id, $combinacion_id) {
+					$q->where('ot_id',0)->where('articulo_id',$articulo_id)->where('combinacion_id',$combinacion_id);
+				});
 	}
 }
 

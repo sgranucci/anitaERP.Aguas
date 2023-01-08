@@ -47,3 +47,4 @@
     	<input type="number" name="precio" id="precio" class="form-control" value="{{old('precio', $precio->precio ?? '')}}" required/>
     </div>
 </div>
+

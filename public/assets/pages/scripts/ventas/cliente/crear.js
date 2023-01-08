@@ -26,11 +26,20 @@
 			{
 				estado = '1';
 				descripcion = 'Suspendido';
-			}
-			else
+
+                // Muestra modal si tiene orden de trabajo generada
+                $("#suspensionModal").modal('show');
+            }
+            else
 			{
 				estado = '0';
 				descripcion = 'Activo';
+                
+                // Pasa tipo de suspension al form
+                $('#tiposuspension_id').val('');
+
+                // Muestra tipo de suspension
+                muestraTipoSuspension();
 			}
 
             $("#estado").val(estado);
@@ -98,15 +107,73 @@
             $(".form4").hide();
             $(".form5").show();
         });
+	
+        // Controla apertura modal de anulacion
+        $('#suspensionModal').on('show.bs.modal', function (event) {
+            var modal = $(this);
+            var nombre = $("#nombre").val();
+            var tiposuspension_id = $('#modaltiposuspension_id').val();
+
+            var tituloModal = "Suspension del cliente "+nombre;
+            modal.find('.modal-title').text(tituloModal);
+            $('#modaltiposuspension_id').val(tiposuspension_id);
+        });
+
+        $('#cierrasuspensionModal').on('click', function () {
+            
+        });
+
+        // Acepta modal de suspension de cliente
+        $('#aceptasuspensionModal').on('click', function () {
+            var tiposuspension_id = $('#modaltiposuspension_id').val();
+
+            // Pasa tipo de suspension al form
+            $('#tiposuspension_id').val(tiposuspension_id);
+
+            $('#suspensionModal').modal('hide');
+ 
+            // Muestra tipo de suspension
+            muestraTipoSuspension();
+        });
+
+        $('#suspensionModal').on('hidden.bs.modal', function () {
+        
+        });
 
 		var condicioniva_id = $("#condicioniva_id").val();
         completarLetra(condicioniva_id);
 
+        // Muestra tipo de suspension
+        muestraTipoSuspension();
+        
         $('#agrega_renglon').on('click', agregaRenglon);
         $(document).on('click', '.eliminar', borraRenglon);
         $('#agrega_renglon_archivo').on('click', agregaRenglonArchivo);
         $(document).on('click', '.eliminararchivo', borraRenglonArchivo);
     });
+
+    function muestraTipoSuspension()
+    {
+        var tiposuspensioncliente_query = $("#tiposuspensioncliente_query").val();
+        var tiposuspension_id = $("#tiposuspension_id").val();
+
+        if (tiposuspension_id > 0)
+        {
+            var tbl_tiposuspension = JSON.parse(tiposuspensioncliente_query);
+
+            var nombre = "";
+            $.each(tbl_tiposuspension, function(index,value){
+                if (value.id == tiposuspension_id)
+                    nombre = value.nombre;
+            });
+
+            $('#nombretiposuspension').text("SUSPENDIDO: "+nombre);
+        }
+        else
+        {
+            $('#nombretiposuspension').text('');
+        }
+    }
 
     function agregaRenglon(){
     	event.preventDefault();

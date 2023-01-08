@@ -7,16 +7,30 @@ use App\Http\Requests\ValidacionPedido;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Repositories\Ventas\TransporteRepositoryInterface;
+use App\Repositories\Ventas\TiposuspensionclienteRepositoryInterface;
 use App\Queries\Ventas\ClienteQueryInterface;
+use App\Repositories\Ventas\MotivocierrepedidoRepositoryInterface;
+use App\Repositories\Stock\LoteRepositoryInterface;
+use App\Repositories\Ventas\PuntoventaRepositoryInterface;
+use App\Repositories\Ventas\TipotransaccionRepositoryInterface;
 use App\Services\Ventas\PedidoService;
 use App\Models\Configuracion\Moneda;
 use App\Models\Ventas\Cliente;
 use App\Models\Stock\Articulo;
 use App\Models\Stock\Mventa;
+use App\Models\Stock\Linea;
+use App\Models\Stock\Color;
+use App\Models\Stock\Fondo;
 use App\Models\Stock\Modulo;
+use App\Models\Stock\Materialcapellada;
+use App\Models\Stock\Materialavio;
 use App\Models\Stock\Listaprecio;
 use App\Models\Ventas\Vendedor;
 use App\Models\Ventas\Condicionventa;
+use App\Exports\Ventas\PedidoExport;
+use App\Exports\Ventas\TotalPedidoExport;
+use App\Exports\Ventas\GeneralPedidoExport;
+use App\Exports\Ventas\ConsumoMaterialExport;
 use DB;
 
 class PedidoController extends Controller
@@ -24,15 +38,30 @@ class PedidoController extends Controller
 	private $pedidoService;
 	private $clienteQuery;
 	private $transporteRepository;
+	private $tiposuspensionclienteRepository;
+	private $motivocierrepedidoRepository;
+	private $loteRepository;
+	private $puntoventaRepository;
+	private $tipotransaccionRepository;
 
     public function __construct(PedidoService $pedidoservice,
     							TransporteRepositoryInterface $transporterepository,
-								ClienteQueryInterface $clientequery
+								TiposuspensionclienteRepositoryInterface $tiposuspensionclienteRepository,
+								MotivocierrepedidoRepositoryInterface $motivocierrepedidoRepository,
+								ClienteQueryInterface $clientequery,
+								LoteRepositoryInterface $loterepository,
+								PuntoventaRepositoryInterface $puntoventarepository,
+								TipotransaccionRepositoryInterface $tipotransaccionrepository
 								)
     {
         $this->pedidoService = $pedidoservice;
         $this->transporteRepository = $transporterepository;
+		$this->tiposuspencionclienteRepository = $tiposuspensionclienteRepository;
+		$this->motivocierrepedidoRepository = $motivocierrepedidoRepository;
         $this->clienteQuery = $clientequery;
+		$this->loteRepository = $loterepository;
+		$this->puntoventaRepository = $puntoventarepository;
+		$this->tipotransaccionRepository = $tipotransaccionrepository;
     }
 
     /**
@@ -42,17 +71,272 @@ class PedidoController extends Controller
      */
     public function index($cliente_id = null)
     {
-        can('listar-pedidos');
+		can('listar-pedidos');
 
 		$datas = $this->pedidoService->leePedidosPendientes($cliente_id);
 
         return view('ventas.pedido.index', compact('datas'));
     }
 
+	// Reporte de pedidos por vendedor
+    public function indexReportePedido()
+    {
+		$vendedor_query = Vendedor::all();
+
+		$tipolistado_enum = [
+			'ABRE' => 'Abre items de pedidos',
+			'TOTAL' => 'Totales de pedidos'
+		];
+
+        return view('ventas.reppedido.crear', compact('vendedor_query', 'tipolistado_enum'));
+    }
+
+    public function crearReportePedido(Request $request)
+    {
+		switch($request->extension)
+		{
+		case "Genera Reporte en Excel":
+			$extension = "xlsx";
+			break;
+		case "Genera Reporte en PDF":
+			$extension = "pdf";
+			break;
+		case "Genera Reporte en CSV":
+			$extension = "csv";
+			break;
+		}
+		return (new PedidoExport)->rangoFecha($request->desdefecha, $request->hastafecha)->asignaVendedor($request->vendedor_id)->asignaTipoListado($request->tipolistado)->download('pedido.'.$extension);
+    }
+
+	// Reporte total de pedidos por vendedor
+    public function indexReporteTotalPedido()
+    {
+		$vendedor_query = Vendedor::all();
+		$vendedor_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
+		$vendedor_query->push((object) ['id'=>'999999','nombre'=>'Ultimo']);
+
+        return view('ventas.reptotalpedido.crear', compact('vendedor_query'));
+    }
+
+    public function crearReporteTotalPedido(Request $request)
+    {
+		switch($request->extension)
+		{
+		case "Genera Reporte en Excel":
+			$extension = "xlsx";
+			break;
+		case "Genera Reporte en PDF":
+			$extension = "pdf";
+			break;
+		case "Genera Reporte en CSV":
+			$extension = "csv";
+			break;
+		}
+		return (new TotalPedidoExport)
+				->rangoFecha($request->desdefecha, $request->hastafecha)
+				->asignaRangoVendedor($request->desdevendedor_id, $request->hastavendedor_id)
+				->download('pedido.'.$extension);
+    }
+
+	// Reporte general de pedidos
+	public function indexReporteGeneralPedido()
+    {
+		$tipolistado_enum = [
+			'CLIENTE' => 'Pedidos por cliente',
+			'ARTICULO' => 'Pedidos por artículo y combinación',
+			'LINEA' => 'Pedidos por línea',
+			'VENDEDOR' => 'Pedidos por vendedor',
+			'FONDO' => 'Pedidos por fondo',
+		];
+		$estado_enum = [
+			'TODOS' => 'Todos los pedidos',
+			'PENDIENTES' => 'Pedidos pendientes',
+			'EN PRODUCCION' => 'Pedidos en produccion',
+			'TERMINADOS' => 'Pedidos terminados',
+			'FACTURADOS' => 'Pedidos facturados'
+		];
+		$vendedor_query = Vendedor::all();
+		$vendedor_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
+		$vendedor_query->push((object) ['id'=>'99999999','nombre'=>'Ultimo']);
+		$cliente_query = $this->clienteQuery->allQueryCargaPedido(['id','nombre','codigo']);
+		$cliente_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
+		$cliente_query->push((object) ['id'=>'99999999','nombre'=>'Ultimo']);
+		$articulo_query = Articulo::select('id', 'sku', 'descripcion', 'mventa_id')
+								->orderBy('descripcion','ASC')
+								->whereExists(function($query) 
+								{
+									$query->select(DB::raw(1))
+										->from("combinacion")
+											->whereRaw("combinacion.articulo_id=articulo.id");
+								})
+								->get();
+		$articulo_query->prepend((object) ['id'=>'0','descripcion'=>'Primero']);
+		$articulo_query->push((object) ['id'=>'99999999','descripcion'=>'Ultimo']);
+		$linea_query = Linea::all();
+		$linea_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
+		$linea_query->push((object) ['id'=>'99999999','nombre'=>'Ultimo']);
+		$fondo_query = Fondo::select('id', 'nombre')->get();
+		$fondo_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
+		$fondo_query->push((object) ['id'=>'99999999','nombre'=>'Ultimo']);
+		$fondo_query = $fondo_query->filter(function ($item) {
+			if ($item->nombre != '' && $item->nombre != ' ') {
+				return $item;
+			}
+		});
+		$mventa_query = Mventa::all();
+		$mventa_query->prepend((object) ['id'=>'0','nombre'=>'Todas las marcas']);
+		
+        return view('ventas.repgeneralpedido.crear', compact('tipolistado_enum', 'estado_enum', 
+					'cliente_query', 'articulo_query', 'vendedor_query', 'linea_query', 'fondo_query',
+					'mventa_query'));
+    }
+
+    public function crearReporteGeneralPedido(Request $request)
+    {
+		switch($request->extension)
+		{
+		case "Genera Reporte en Excel":
+			$extension = "xlsx";
+			break;
+		case "Genera Reporte en PDF":
+			$extension = "pdf";
+			break;
+		case "Genera Reporte en CSV":
+			$extension = "csv";
+			break;
+		}
+
+		$nombreMventa = 'Todas las marcas';
+		if ($request->mventa_id > 0)
+		{
+			$mventa = Mventa::find($request->mventa_id);
+			if ($mventa)
+				$nombreMventa = $mventa->nombre;
+		}
+	
+		return (new GeneralPedidoExport($this->pedidoService))
+				->parametros($request->tipolistado, $request->estado, $request->mventa_id,
+							$nombreMventa,
+							$request->desdefecha, $request->hastafecha,
+							$request->desdevendedor_id, $request->hastavendedor_id,
+							$request->desdecliente_id, $request->hastacliente_id,
+							$request->desdearticulo_id, $request->hastaarticulo_id,
+							$request->desdelinea_id, $request->hastalinea_id,
+							$request->desdefondo_id, $request->hastafondo_id)
+				->download('pedido.'.$extension);
+    }
+
+	// Reporte de consumo de materiales
+	public function indexReporteConsumoMaterial()
+    {
+		$tipolistado_enum = [
+			'CAPELLADA' => 'Consumos por material de capellada',
+			'AVIO' => 'Consumos por material de avios',
+		];
+		$estado_enum = [
+			'TODOS' => 'Todos los pedidos',
+			'PENDIENTES' => 'Pedidos pendientes',
+			'EN PRODUCCION' => 'Pedidos en produccion',
+			'TERMINADOS' => 'Pedidos terminados',
+			'FACTURADOS' => 'Pedidos facturados'
+		];
+		$tipocapellada_enum = [
+			'TODOS' => 'Todos los tipos',
+			'CAPELLADA' => 'Capelladas',
+			'BASE' => 'Bases',
+			'FORRO' => 'Forros'
+		];
+		$tipoavio_enum = [
+			'TODOS' => 'Todos los tipos',
+			'APLIQUE' => 'Apliques',
+			'EMPAQUE' => 'Empaques',
+		];
+		$cliente_query = $this->clienteQuery->allQueryCargaPedido(['id','nombre','codigo']);
+		$cliente_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
+		$cliente_query->push((object) ['id'=>'99999999','nombre'=>'Ultimo']);
+		$articulo_query = Articulo::select('id', 'sku', 'descripcion', 'mventa_id')
+								->orderBy('descripcion','ASC')
+								->whereExists(function($query) 
+								{
+									$query->select(DB::raw(1))
+										->from("combinacion")
+											->whereRaw("combinacion.articulo_id=articulo.id");
+								})
+								->get();
+		$articulo_query->prepend((object) ['id'=>'0','descripcion'=>'Primero']);
+		$articulo_query->push((object) ['id'=>'99999999','descripcion'=>'Ultimo']);
+		$linea_query = Linea::all();
+		$linea_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
+		$linea_query->push((object) ['id'=>'99999999','nombre'=>'Ultimo']);
+		$materialcapellada_query = Materialcapellada::all();
+		$materialcapellada_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
+		$materialcapellada_query->push((object) ['id'=>'99999999','nombre'=>'Ultimo']);
+		$materialavio_query = Materialavio::all();
+		$materialavio_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
+		$materialavio_query->push((object) ['id'=>'99999999','nombre'=>'Ultimo']);
+		$color_query = Color::all();
+		$color_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
+		$color_query->push((object) ['id'=>'99999999','nombre'=>'Ultimo']);
+
+        return view('ventas.repconsumomaterial.crear', compact('tipolistado_enum', 'estado_enum', 
+					'tipocapellada_enum', 'tipoavio_enum',
+					'cliente_query', 'articulo_query', 'materialcapellada_query', 'linea_query', 
+					'materialavio_query', 'color_query'));
+    }
+
+	// Crea reporte de consumo de materiales
+    public function crearReporteConsumoMaterial(Request $request)
+    {
+		switch($request->extension)
+		{
+		case "Genera Reporte en Excel":
+			$extension = "xlsx";
+			break;
+		case "Genera Reporte en PDF":
+			$extension = "pdf";
+			break;
+		case "Genera Reporte en CSV":
+			$extension = "csv";
+			break;
+		}
+	
+		return (new ConsumoMaterialExport($this->pedidoService))
+				->parametros($request->tipolistado, $request->estado, 
+							$request->tipocapellada, $request->tipoavio,
+							$request->desdefecha, $request->hastafecha,
+							$request->desdematerialcapellada_id, $request->hastamaterialcapellada_id,
+							$request->desdematerialavio_id, $request->hastamaterialavio_id,
+							$request->desdecliente_id, $request->hastacliente_id,
+							$request->desdearticulo_id, $request->hastaarticulo_id,
+							$request->desdelinea_id, $request->hastalinea_id,
+							$request->desdecolor_id, $request->hastacolor_id)
+				->download('pedido.'.$extension);
+    }
+
+	/* Consulta pedidos pendientes de OT por articulo / combinacion */
+	public function consultarPendienteOT(Request $request)
+	{
+		$datas = $this->pedidoService->leePedidosPendientesOt($request);
+
+        return view('ventas.ordentrabajo.indexcrear', compact('datas'));
+	}
+
 	/* Lista el pedido */
 	public function listarPedido($id, $cliente_id = null)
 	{
-		return $this->pedidoService->listaPedido($id);
+		return $this->pedidoService->listarPedido($id);
+	}
+
+	/* Lista el prefactura */
+	public function listarPreFactura($id, $items_id)
+	{
+		return $this->pedidoService->listarPreFactura($id, $items_id);
+	}
+
+	/* Anula un item del pedido */
+	public function anularItemPedido($id, $codigoot, $motivocierrepedido_id, $cliente_id = null)
+	{
+		return $this->pedidoService->anularItemPedido($id, $codigoot, $motivocierrepedido_id, $cliente_id);
 	}
 
     /**
@@ -64,11 +348,22 @@ class PedidoController extends Controller
     {
         can('crear-pedidos');
 
-		$this->armaTablasVista($cliente_query, $condicionventa_query, $vendedor_query, $transporte_query,
-							$mventa_query, $articulo_query, $modulo_query, $listaprecio_query, $moneda_query);
-
+		$this->armarTablasVista($cliente_query, $condicionventa_query, $vendedor_query, 
+							$transporte_query, $mventa_query, $articulo_query, $modulo_query, 
+							$listaprecio_query, $moneda_query, $articuloall_query, $articuloxsku_query,
+							$tiposuspensioncliente_query, $motivocierrepedido_query, $lote_query,
+							$puntoventa_query, $tipotransaccion_query);
+		
+		$puntoventadefault_id = cache()->get(generaKey('puntoventa'));
+		$puntoventaremitodefault_id = cache()->get(generaKey('puntoventaremito'));
+		$tipotransacciondefault_id = cache()->get(generaKey('tipotransaccion'));
+			
         return view('ventas.pedido.crear', compact('cliente_query', 'condicionventa_query', 'vendedor_query',
-			'transporte_query', 'mventa_query', 'articulo_query', 'modulo_query', 'listaprecio_query', 'moneda_query'));
+			'transporte_query', 'mventa_query', 'articulo_query', 'modulo_query', 'listaprecio_query', 'moneda_query', 
+			'articuloall_query', 'articuloxsku_query', 'tiposuspensioncliente_query',
+			'motivocierrepedido_query', 'lote_query',
+			'puntoventa_query', 'puntoventadefault_id', 'tipotransaccion_query', 
+			'tipotransacciondefault_id', 'puntoventaremitodefault_id'));
     }
 
     /**
@@ -79,9 +374,13 @@ class PedidoController extends Controller
      */
     public function guardar(ValidacionPedido $request)
     {
-		$this->pedidoService->guardaPedido($request->all(), 'create');
+		$data = $this->pedidoService->guardaPedido($request->all(), 'create');
 
-    	return redirect('ventas/pedido')->with('mensaje', 'Pedido creado con exito');
+		$mensaje = '';
+		if (isset($data['id']))
+			$mensaje = 'Pedido '.$data['id'].' '.$data['codigo'].' creado con exito ';
+
+    	return redirect('ventas/pedido')->with('mensaje', $mensaje);
 	}
 
     /**
@@ -95,12 +394,23 @@ class PedidoController extends Controller
         can('editar-pedidos');
 
     	$pedido = $this->pedidoService->leePedido($id);
+		
+		$this->armarTablasVista($cliente_query, $condicionventa_query, $vendedor_query, $transporte_query,
+							$mventa_query, $articulo_query, $modulo_query, $listaprecio_query, 
+							$moneda_query, $articuloall_query, $articuloxsku_query, 
+							$tiposuspensioncliente_query, $motivocierrepedido_query, $lote_query, 
+							$puntoventa_query, $tipotransaccion_query, $pedido);
 
-		$this->armaTablasVista($cliente_query, $condicionventa_query, $vendedor_query, $transporte_query,
-							$mventa_query, $articulo_query, $modulo_query, $listaprecio_query, $moneda_query);
-
-        return view('ventas.pedido.editar', compact('pedido', 'cliente_query', 'condicionventa_query', 'vendedor_query',
-			'transporte_query', 'mventa_query', 'articulo_query', 'modulo_query', 'listaprecio_query', 'moneda_query'));
+		$puntoventadefault_id = cache()->get(generaKey('puntoventa'));
+		$puntoventaremitodefault_id = cache()->get(generaKey('puntoventaremito'));
+		$tipotransacciondefault_id = cache()->get(generaKey('tipotransaccion'));
+		
+        return view('ventas.pedido.editar', compact('pedido', 'cliente_query', 'condicionventa_query', 
+			'vendedor_query', 'transporte_query', 'mventa_query', 'articulo_query', 'modulo_query', 
+			'listaprecio_query', 'moneda_query', 'articuloall_query', 'articuloxsku_query', 
+			'tiposuspensioncliente_query', 'motivocierrepedido_query', 'lote_query',
+			'puntoventa_query', 'puntoventadefault_id', 'tipotransaccion_query', 
+			'tipotransacciondefault_id', 'puntoventaremitodefault_id'));
     }
 
     /**
@@ -114,9 +424,27 @@ class PedidoController extends Controller
     {
         can('actualizar-pedidos');
 
-		$this->pedidoService->guardaPedido($request->all(), 'update', $id);
+		$pedido = $this->pedidoService->guardaPedido($request->all(), 'update', $id);
 
-        return redirect('ventas/pedido')->with('mensaje', 'Pedido actualizado con exito');
+		$mensaje = "Pedido ".$request->codigo." actualizado con exito";
+
+        return redirect('ventas/pedido')->with('mensaje', $mensaje);
+    }
+
+    /**
+     * 
+	 * Actualiza item desde consulta de orden de trabajo
+	 * 
+     */
+    public function actualizaItemPedido(Request $request)
+	{
+        can('actualizar-pedidos');
+
+		$pedido = $this->pedidoService->guardaItemPedido($request->all(), 'update', $request->pedido_combinacion_id);
+
+		$mensaje = "Pedido actualizado con exito";
+
+        return $mensaje;
     }
 
     /**
@@ -144,26 +472,83 @@ class PedidoController extends Controller
         }
     }
 
+    /**
+     * Cerrar pedidos
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function cerrarPedido()
+    {
+        can('cierre-de-pedidos');
+		$motivocierrepedido_query = $this->motivocierrepedidoRepository->all();
+		
+		
+        return view('ventas.pedido.cerrar', compact('motivocierrepedido_query'));
+    }
+
+	/* Ejecuta el cierre de pedidos */
+
+    public function ejecutaCierre(Request $request)
+	{
+		$this->pedidoService->cierrePedido($request->all());
+
+        return redirect('ventas/pedido')->with('mensaje', 'Pedidos actualizados con exito');
+	}
+
 	/*
 	 * Arma tablas de select para enviar a vista
 	 */
-	private function armaTablasVista(&$cliente_query, &$condicionventa_query, &$vendedor_query, 
+	private function armarTablasVista(&$cliente_query, &$condicionventa_query, &$vendedor_query, 
 				&$transporte_query, &$mventa_query, &$articulo_query, &$modulo_query, &$listaprecio_query, 
-				&$moneda_query)
+				&$moneda_query, &$articuloall_query, &$articuloxsku_query, 
+				&$tiposuspensioncliente_query, &$motivocierrepedido_query, &$lote_query, 
+				&$puntoventa_query, &$tipotransaccion_query, $pedido = null)
 	{
-		$cliente_query = $this->clienteQuery->allQueryporEstado(['id','nombre','codigo'], '0');//Cliente::$enumEstado['activo']);
+		$cliente_query = $this->clienteQuery->allQueryCargaPedido(['id','nombre','codigo']);
+		$tiposuspensioncliente_query = $this->tiposuspencionclienteRepository->all();
+		$motivocierrepedido_query = $this->motivocierrepedidoRepository->all();
 		$condicionventa_query = Condicionventa::all();
-		$vendedor_query = Vendedor::all();
+		$vendedor_query = Vendedor::orderBy('nombre','ASC')->get();
 		$transporte_query = $this->transporteRepository->all();
 		$mventa_query = Mventa::all();
+		$lote_query = $this->loteRepository->all();
+		$puntoventa_query = $this->puntoventaRepository->all('A');
+		$tipotransaccion_query = $this->tipotransaccionRepository->all('A');
+		
+		$articulo_ids = Array();
+		if ($pedido != null)	
+		{
+			foreach ($pedido->pedido_combinaciones as $item)
+			{
+				$articulo_ids[] = $item->articulo_id;
+			};
+		}
+		else
+		  	$articulo_ids[] = 0;
 
         $articulo_query = Articulo::select('id', 'sku', 'descripcion', 'mventa_id')
+		  							->orderBy('descripcion','ASC')
 									->whereExists(function($query) 
 									{
     									$query->select(DB::raw(1))
 											->from("combinacion")
-          									->whereRaw("combinacion.articulo_id=articulo.id and combinacion.estado='A'");
-									})->get();
+          									->whereRaw("combinacion.articulo_id=articulo.id and combinacion.estado = 'A'");
+									})
+									->orWhereIn('id', $articulo_ids)
+									->get();
+
+        $articuloall_query = Articulo::select('id', 'sku', 'descripcion', 'mventa_id')
+		  							->orderBy('descripcion','ASC')
+									->whereExists(function($query) 
+									{
+    									$query->select(DB::raw(1))
+											->from("combinacion")
+          									->whereRaw("combinacion.articulo_id=articulo.id");
+									})
+									->get();
+
+		$articuloxsku_query = $articulo_query->sortBy('sku');
+
 		$modulo_query = Modulo::all();
 		$listaprecio_query = Listaprecio::all();
 		$moneda_query = Moneda::all();

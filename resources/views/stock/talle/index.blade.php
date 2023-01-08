@@ -44,7 +44,7 @@ Medidas / Talles
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-talles', false))
+                       			@if (can('borrar-talles', false))
                                 <form action="{{route('eliminar_talle', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

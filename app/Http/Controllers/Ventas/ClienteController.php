@@ -20,21 +20,27 @@ use App\Models\Configuracion\Provincia;
 use App\Models\Configuracion\Condicioniva;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ValidacionCliente;
+use App\Http\Requests\ValidacionClienteProvisorio;
 use App\Repositories\Ventas\ClienteRepositoryInterface;
 use App\Repositories\Ventas\Cliente_EntregaRepositoryInterface;
 use App\Repositories\Ventas\Cliente_ArchivoRepositoryInterface;
+use App\Repositories\Ventas\TiposuspensionclienteRepositoryInterface;
 use App\Queries\Ventas\ClienteQueryInterface;
 use App\Queries\Ventas\Cliente_EntregaQueryInterface;
 use App\Services\Configuracion\IIBBService;
+use App\Mail\Ventas\ClienteProvisorio;
+use App\Exports\Ventas\ClienteExport;
 use Carbon\Carbon;
+use Mail;
 
 class ClienteController extends Controller
 {
 	private $clienteRepository;
 	private $cliente_entregaRepository;
 	private $cliente_archivoRepository;
+    private $tiposuspensionclienteRepository;
 	private $iibbService;
-	private $query;
+	private $clienteQuery;
 	private $cliente_entregaQuery;
 
     public function __construct(
@@ -42,15 +48,17 @@ class ClienteController extends Controller
 		Cliente_EntregaRepositoryInterface $cliente_entregaRepository, 
 		Cliente_ArchivoRepositoryInterface $cliente_archivoRepository, 
 		IIBBService $iibbService,
-		ClienteQueryInterface $query,
-		Cliente_EntregaQueryInterface $cliente_entregaquery)
+		ClienteQueryInterface $clientequery,
+        TiposuspensionclienteRepositoryInterface $tiposuspensionclienterepository,
+        Cliente_EntregaQueryInterface $cliente_entregaquery)
     {
         $this->clienteRepository = $clienteRepository;
         $this->cliente_entregaRepository = $cliente_entregaRepository;
         $this->cliente_archivoRepository = $cliente_archivoRepository;
+        $this->tiposuspensionclienteRepository = $tiposuspensionclienterepository;
         $this->iibbService = $iibbService;
 
-        $this->query = $query;
+        $this->clienteQuery = $clientequery;
         $this->cliente_entregaQuery = $cliente_entregaquery;
     }
 
@@ -63,12 +71,17 @@ class ClienteController extends Controller
     {
         can('listar-clientes');
 
-        $hay_clientes = $this->query->first();
+
+        $hay_clientes = $this->clienteQuery->first();
 
 		if (!$hay_clientes)
+		{
 			$this->clienteRepository->sincronizarConAnita();
+			$this->cliente_entregaRepository->sincronizarConAnita();
+			$this->cliente_archivoRepository->sincronizarConAnita();
+		}
 
-		$datas = $this->query->all();
+		$datas = $this->clienteQuery->all();
 
         return view('ventas.cliente.index', compact('datas'));
     }
@@ -78,24 +91,34 @@ class ClienteController extends Controller
         return $this->cliente_entregaQuery->traeCliente_EntregaporCliente_Id($cliente_id);
     }
 
+	public function leerCliente($cliente_id)
+    {
+        return $this->clienteQuery->traeClienteporId($cliente_id, ['id','vendedor_id','transporte_id','condicionventa_id','descuento','tiposuspension_id'])->toArray();
+    }
+
     /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function crear()
+
+    public function crear($tipoalta = null)
     {
         can('crear-clientes');
 
 		$this->armaTablasVista($pais_query, $provincia_query, $condicioniva_query, $zonavta_query,
         	$subzonavta_query, $vendedor_query, $transporte_query, $condicionventa_query, $listaprecio_query,
         	$cuentacontable_query, $retieneiva_enum, $condicioniibb_enum, $vaweb_enum, $estado_enum, '', $tasaarba,
-			$tasacaba, 'crear'); 
+			$tasacaba, $modofacturacion_enum, 'crear'); 
+
+        if (!isset($tipoalta))
+            $tipoalta = config('cliente.tipoalta')['DEFINITIVO'][0];
 
         return view('ventas.cliente.crear', compact('pais_query', 'provincia_query',
 			'condicioniva_query', 'zonavta_query', 'subzonavta_query', 'vendedor_query', 'transporte_query',
 			'condicionventa_query', 'listaprecio_query', 'retieneiva_enum', 'condicioniibb_enum', 'cuentacontable_query',
-			'vaweb_enum', 'tasaarba', 'tasacaba', 'estado_enum'));
+			'vaweb_enum', 'tasaarba', 'tasacaba', 'estado_enum', 'tipoalta',
+            'modofacturacion_enum'));
     }
 
     /**
@@ -119,6 +142,25 @@ class ClienteController extends Controller
         return redirect('ventas/cliente')->with('mensaje', 'Cliente creado con exito');
     }
 
+    public function guardarClienteProvisorio(ValidacionClienteProvisorio $request)
+    {
+ 		$cliente = $this->clienteRepository->create($request->all());
+
+		// Guarda tablas asociadas
+		if ($cliente)
+		{
+			$cliente_entrega = $this->cliente_entregaRepository->create($request->all());
+
+        	$cliente_archivo = $this->cliente_archivoRepository->create($request);
+		}
+
+        // Procesa envio del correo para aprobacion del cliente provisorio
+        $receivers = "pedidos@ferli.com.ar";
+
+        Mail::to($receivers)->send(new ClienteProvisorio($request));
+
+        return redirect('ventas/pedido/crear')->with('mensaje', 'Cliente creado con exito');
+    }
 
     /**
      * Show the form for editing the specified resource.
@@ -134,12 +176,19 @@ class ClienteController extends Controller
 		$this->armaTablasVista($pais_query, $provincia_query, $condicioniva_query, $zonavta_query,
         	$subzonavta_query, $vendedor_query, $transporte_query, $condicionventa_query, $listaprecio_query,
         	$cuentacontable_query, $retieneiva_enum, $condicioniibb_enum, $vaweb_enum, $estado_enum, 
-			$data->nroinscripcion, $tasaarba, $tasacaba, 'editar'); 
+			$data->nroinscripcion, $tasaarba, $tasacaba, $modofacturacion_enum, 'editar'); 
+
+        $tiposuspensioncliente_query = $this->tiposuspensionclienteRepository->all();
+        
+		$tipoalta = $data->tipoalta;
+        if (!isset($tipoalta))
+            $tipoalta = config('cliente.tipoalta')['DEFINITIVO'][0];
 
         return view('ventas.cliente.editar', compact('data', 'pais_query', 'provincia_query',
 			'condicioniva_query', 'zonavta_query', 'subzonavta_query', 'vendedor_query', 'transporte_query',
 			'condicionventa_query', 'listaprecio_query', 'retieneiva_enum', 'condicioniibb_enum', 'cuentacontable_query',
-			'vaweb_enum', 'tasaarba', 'tasacaba', 'estado_enum'));
+			'vaweb_enum', 'tasaarba', 'tasacaba', 'estado_enum', 'tipoalta', 'modofacturacion_enum',
+            'tiposuspensioncliente_query'));
     }
 
     /**
@@ -201,7 +250,7 @@ class ClienteController extends Controller
 	private function armaTablasVista(&$pais_query, &$provincia_query, &$condicioniva_query, &$zonavta_query,
         	&$subzonavta_query, &$vendedor_query, &$transporte_query, &$condicionventa_query, &$listaprecio_query,
         	&$cuentacontable_query, &$retieneiva_enum, &$condicioniibb_enum, &$vaweb_enum, &$estado_enum, 
-			$nroinscripcion, &$tasaarba, &$tasacaba, $funcion)
+			$nroinscripcion, &$tasaarba, &$tasacaba, &$modofacturacion_enum, $funcion)
 	{
         $pais_query = Pais::orderBy('nombre')->get();
         $provincia_query = Provincia::orderBy('nombre')->get();
@@ -217,18 +266,60 @@ class ClienteController extends Controller
 		$condicioniibb_enum = Cliente::$enumCondicioniibb;
 		$vaweb_enum = Cliente::$enumVaweb;
 		$estado_enum = Cliente::$enumEstado;
+        $modofacturacion_enum = Cliente::$enumModoFacturacion;
 
 		if ($funcion == 'editar')
 		{
 			$tasaarba = $this->iibbService->leeTasaPercepcion($nroinscripcion, '902');
 			$tasacaba = $this->iibbService->leeTasaPercepcion($nroinscripcion, '901');
 
-			if ($tasaarba == '')
+			if ($tasaarba == '' || $tasaarba < 0.00001)
 				$tasaarba = 'No esta en padron';
-			if ($tasacaba == '')
+			if ($tasacaba == '' || $tasacaba < 0.00001)
 				$tasacaba = 'No esta en padron';
 		}
 		else
 			$tasaarba = $tasacaba = '';
 	}
+
+    // Reporte maestro de clientes
+    public function indexReporteCliente()
+    {
+        $cliente_query = $this->clienteQuery->all();
+        $cliente_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
+        $cliente_query->push((object) ['id'=>'99999999','nombre'=>'Ultimo']);
+        $estado_enum = [
+            'ACTIVOS' => 'Clientes activos',
+			'SUSPENDIDOS' => 'Clientes suspendidos',
+            'TODOS' => 'Todos los clientes',
+		];
+        $tiposuspensioncliente_query = $this->tiposuspensionclienteRepository->all();
+        $tiposuspensioncliente_query->prepend((object) ['id'=>'TODOS','nombre'=>'Todos los tipos de suspensión']);
+        
+        return view('ventas.repcliente.crear', compact('cliente_query', 'estado_enum', 'tiposuspensioncliente_query'));
+    }
+
+    public function crearReporteCliente(Request $request)
+    {
+        switch($request->extension)
+        {
+        case "Genera Reporte en Excel":
+            $extension = "xlsx";
+            break;
+        case "Genera Reporte en PDF":
+            $extension = "pdf";
+            break;
+        case "Genera Reporte en CSV":
+            $extension = "csv";
+            break;
+        }
+
+        return (new ClienteExport($this->clienteQuery, $this->tiposuspensionclienteRepository))
+                ->parametros($request->desdecliente_id, 
+                             $request->hastacliente_id, 
+                             $request->estado, 
+                             $request->tiposuspensioncliente_id)
+                ->download('cliente.'.$extension);
+    }
+    
 }

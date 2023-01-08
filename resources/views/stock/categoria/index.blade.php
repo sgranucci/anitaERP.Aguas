@@ -50,7 +50,7 @@ Categor&iacute;as
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-categorias', false))
+                       			@if (can('borrar-categorias', false))
                                 <form action="{{route('eliminar_categoria', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

@@ -56,7 +56,8 @@ class ImpuestoController extends Controller
         $impuesto = Impuesto::create([
        		"nombre" => $request->nombre,
         	"valor" => $request->valor,
-			"fechavigencia" => $fechavigencia
+			"fechavigencia" => $fechavigencia,
+            "codigo" => $request->codigo
         ]);
 
 		// Graba anita
@@ -95,7 +96,8 @@ class ImpuestoController extends Controller
         Impuesto::where('id', $id)->update([
        		"nombre" => $request->nombre,
         	"valor" => $request->valor,
-			"fechavigencia" => $fechavigencia
+			"fechavigencia" => $fechavigencia,
+            "codigo" => $request->codigo
         ]);
 
 		// Actualiza anita

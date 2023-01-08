@@ -32,6 +32,7 @@ Impuestos
                             <th>Nombre</th>
                             <th>Valor</th>
                             <th>Fecha vigencia</th>
+                            <th>C&oacute;digo</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>
                     </thead>
@@ -44,13 +45,14 @@ Impuestos
         					<td>
             					{{date("d/m/Y", strtotime($data->fechavigencia ?? ''))}} 
         					</td>
+                            <td>{{$data->codigo}}</td>
                             <td>
                        			@if (can('editar-impuestos', false))
                                 	<a href="{{route('editar_impuesto', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('eliminar-impuestos', false))
+                       			@if (can('borrar-impuestos', false))
                                 <form action="{{route('eliminar_impuesto', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

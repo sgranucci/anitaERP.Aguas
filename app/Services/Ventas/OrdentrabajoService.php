@@ -1930,6 +1930,7 @@ class OrdentrabajoService
 	public function otFacturada($codigoOt)
 	{
 		$ordentrabajo = $this->ordentrabajoQuery->leeOrdenTrabajoPorCodigo($codigoOt);
+		$secuenciaTareas = Config::get("consprod.SECUENCIA_TAREAS");
 
 		$numeroFactura = '-1';
 		if ($ordentrabajo)
@@ -1945,6 +1946,21 @@ class OrdentrabajoService
 						if ($venta)
 							$numeroFactura = $venta->codigo;
 					}
+				}
+				if ($numeroFactura == -1)
+				{
+					$flExiste = false;
+					foreach($secuenciaTareas[config("consprod.TAREA_FACTURADA")] as $secuencia)
+					{
+						if ($secuencia == $tareaOt->tarea_id)
+						{
+							// Si no termino la tarea es error igual
+							if ($tareaOt->hastafecha != null)
+								$flExiste = true;
+						}
+					}
+					if (!$flExiste)
+						$numeroFactura = -2;
 				}
 			}
 		}

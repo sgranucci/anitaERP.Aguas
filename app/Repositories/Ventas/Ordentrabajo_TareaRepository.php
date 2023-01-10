@@ -46,7 +46,7 @@ class Ordentrabajo_TareaRepository implements Ordentrabajo_TareaRepositoryInterf
 		return $ordentrabajo_tarea;
     }
 
-    public function delete($id, $nro_orden)
+    public function delete($id, $nro_orden = null)
     {
     	$ordentrabajo_tarea = $this->model->destroy($id);
 

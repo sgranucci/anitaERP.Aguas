@@ -1368,10 +1368,17 @@
             
 		$.get(listarUri, function(data){
 							
-			if (data.numerofactura != -1)
+			if (data.numerofactura != -1 && data.numerofactura != -2)
 				return true;
 			else 
+			{
+				if ($data.numerofactura == -2)
+				{
+					alert('OT no esta terminada');
+				}
 				return false;
+			}
+
 		});
 
 	}

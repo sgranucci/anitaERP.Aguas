@@ -22,6 +22,11 @@ return [
 	"HASTA_MEDIDA_CHICO" => "35",
 	"CLIENTE_STOCK" => "620",
 	"TIPOTRANSACCION_CONSUME_OT" => "4",
-	"TIPOTRANSACCION_ALTA_PRODUCCION" => "3"
-		];
+	"TIPOTRANSACCION_ALTA_PRODUCCION" => "3",
+	"SECUENCIA_TAREAS" => [
+							'30' => ['1'],
+							'34' => ['30'],
+							'33' => ['34', '32']
+						]
+	];
 

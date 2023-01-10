@@ -8,6 +8,7 @@
 <script>
     var tareaEmpaque = "{{ config('consprod.TAREA_EMPAQUE') }}";
     var tareaFacturada = "{{ config('consprod.TAREA_FACTURADA') }}";
+    var tareaTerminada = "{{ config('consprod.TAREA_TERMINADA') }}";
     var PROFORMA = "{{ config('cliente.PROFORMA') }}";
     var MOROSO = "{{ config('cliente.MOROSO') }}";
     var NO_FACTURAR = "{{ config('cliente.NO_FACTURAR') }}";

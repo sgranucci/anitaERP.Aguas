@@ -10,7 +10,7 @@
 
     $(function () {
   		$("#ordenestrabajo").focus();
-	});
+    });
 
 </script>
 @endsection

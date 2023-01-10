@@ -212,20 +212,33 @@ class MovimientoOrdentrabajoService
 	{
 		$fl_borro = false;
 
-		$data = $this->pedidoQuery->leePedidoporId($id);
-
-        if (($pedido = $this->pedidoRepository->delete($id)))
+		try
 		{
-			$tipo = substr($data[0]->codigo, 0, 3);
-			$letra = substr($data[0]->codigo, 4, 1);
-			$sucursal = substr($data[0]->codigo, 6, 5);
-			$nro = substr($data[0]->codigo, 12, 8);
+			// Agregar validaciones de anulacion
+			$movimientoordentrabajo = self::leeMovimientoOrdenTrabajo($id);
 
-        	$pedido_combinacion = $this->pedido_combinacionRepository->deleteporpedido($id, $tipo, $letra, $sucursal, $nro);
+			if ($movimientoordentrabajo)
+			{
+				// Lee la tarea
+				$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository->find($movimientoordentrabajo->ordentrabajo_tarea_id);
 
-			$fl_borro = true;
+				if ($ordentrabajo_tarea)
+				{
+					// Si el movimiento es de finalizacion borra la fecha en la tarea si no borra la tarea
+					if ($movimientoordentrabajo->operaciones->tipooperacion == 'F')
+						$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository->update(['hastafecha' => null]);
+					else
+						$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository->delete($ordentrabajo_tarea->id);
+				}
+
+				$this->movimientoordentrabajoRepository->delete($id);
+				$fl_borro = true;
+			}
+			DB::commit();
+		} catch (\Exception $e) {
+			DB::rollback();
+			return $e->getMessage();
 		}
-
 		return ($fl_borro);
 	}
 
@@ -281,6 +294,53 @@ class MovimientoOrdentrabajoService
 		system("lp -darmado ".$path);
 
 		Storage::disk('local')->delete($nombreReporte);
+	}
+
+	// Control de secuencia de fabricacion
+
+	public function controlSecuencia($ordenestrabajo, $operacion_id, $tarea_id)
+	{
+		$arrayOrdenesTrabajo = explode(',', $ordenestrabajo);
+		$secuenciaTareas = Config::get("consprod.SECUENCIA_TAREAS");
+		$otConProblema = [];
+		foreach($arrayOrdenesTrabajo as $ordentrabajo)
+		{
+			$ot = $this->ordentrabajoRepository->findPorCodigo($ordentrabajo);
+
+			$tareas = self::leeTareas($ot->id);
+			foreach($tareas as $tarea)
+			{
+				// Verifica si tiene validacion de secuencia cargada
+				if (array_key_exists($tarea_id, $secuenciaTareas))		
+				{
+					// Busca la tarea en la secuencia
+					$flExiste = false;
+					foreach($secuenciaTareas[$tarea_id] as $secuencia)
+					{
+					//	echo($secuencia.' '.$tarea->tarea_id.' '.$tarea_id.' ');
+						if ($secuencia == $tarea->tarea_id)
+						{
+							// Si no termino la tarea es error igual
+							if ($tarea->hastafecha != null)
+								$flExiste = true;
+						}
+						// Si la tarea ya esta cargada verifica si le falta el fin
+						if ($tarea_id == $tarea->tarea_id)
+						{
+							if ($tarea->hastafecha == null)
+								$flExiste = true;
+						}
+					}
+				}
+			}
+			// Si la tarea no fue cargada la toma con problemas
+			if (!$flExiste && !in_array($ordentrabajo, $otConProblema))
+				$otConProblema[] = $ordentrabajo;
+		}
+		
+		$resultado = count($otConProblema) > 0 ? 0 : 1;
+
+		return(['resultado' => $resultado, 'ordenestrabajo' => $otConProblema]);
 	}
 
 	// Lee tareas de una OT

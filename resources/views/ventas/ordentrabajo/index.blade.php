@@ -74,7 +74,14 @@
             					@endif
             					{{ $pares ?? '' }}
         					</td>
-                            <td>{{$data->estado}}</td>
+                            <td>
+                                @foreach ($data->ordentrabajo_tareas as $tarea)
+									@php
+										$ultimaTarea = $tarea->tareas->nombre;
+									@endphp
+            					@endforeach
+                                {{$ultimaTarea}}
+                            </td>
                             <td>
                        			@if (can('editar-ordenes-de-trabajo', false))
                                 	<a href="{{route('editar_ordentrabajo', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">

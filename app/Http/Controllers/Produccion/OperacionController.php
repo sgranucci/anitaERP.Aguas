@@ -70,8 +70,9 @@ class OperacionController extends Controller
     {
         can('editar-operaciones');
         $data = $this->repository->findOrFail($id);
+        $tipooperacion_enum = Operacion::$enumTipoOperacion;
 
-        return view('produccion.operacion.editar', compact('data'));
+        return view('produccion.operacion.editar', compact('data', 'tipooperacion_enum'));
     }
 
     /**

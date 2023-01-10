@@ -8,8 +8,8 @@
 	<label for="tipooperacion" class="col-lg-4 col-form-label requerido">Tipo de operaci&oacute;n</label>
 	<select name="tipooperacion" class="col-lg-3 form-control" required>
    		<option value="">-- Elija tipo de operacion --</option>
-   		@foreach($tipooperacion_enum as $value => $tipooperacion)
-   			@if( (int) $value == old('vaweb', $data->tipooperacion ?? ''))
+		@foreach($tipooperacion_enum as $value => $tipooperacion)
+   			@if($value == old('tipooperacion', $data->tipooperacion ?? ''))
    				<option value="{{ $value }}" selected="select">{{ $tipooperacion }}</option>    
    			@else
    				<option value="{{ $value }}">{{ $tipooperacion }}</option>    

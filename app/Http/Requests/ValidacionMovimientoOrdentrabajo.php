@@ -3,10 +3,18 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use App\Rules\Ventas\RuleEmpleado;
+use App\Rules\Produccion\RuleMovimientoOrdentrabajo;
+use App\Services\Produccion\MovimientoOrdentrabajoService;
 
 class ValidacionMovimientoOrdentrabajo extends FormRequest
 {
+    protected $movimientoOrdentrabajoService;
+    
+    public function __construct(MovimientoOrdentrabajoService $movimientoordentrabajoservice)
+    {
+        $this->movimientoOrdentrabajoService = $movimientoordentrabajoservice;
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -25,10 +33,12 @@ class ValidacionMovimientoOrdentrabajo extends FormRequest
     public function rules()
     {
         return [
-            'ordenestrabajo' => 'required',
             'tarea_id' => 'required',
             'operacion_id' => 'required',
             'fecha' => 'required',
+            'ordenestrabajo' => ['required', new RuleMovimientoOrdentrabajo('ordenestrabajo', request()->tarea_id, 
+                                    request()->operacion_id,
+                                    $this->movimientoOrdentrabajoService)],
         ];
     }
 }

@@ -128,15 +128,25 @@ function facturarPedido(item)
 
     // Debe chequear que no este facturada la orden de trabajo
     flFacturada = false;
+    flTerminada = false;
     $(".pedido_id").each(function(){
             if ($(this).val() == pedido_combinacion_id && $(this).parents("tr").find(".tarea_id").val() == 
                 tareaFacturada)
                 flFacturada = true;
+            if ($(this).val() == pedido_combinacion_id && 
+                ($(this).parents("tr").find(".tarea_id").val() == tareaEmpaque ||
+                $(this).parents("tr").find(".tarea_id").val() == tareaTerminada))
+                flTerminada = true;
+            
     });
-    
     if (flFacturada)
     {
         alert("Orden ya facturada");
+        return;
+    }
+    if (!flTerminada)
+    {
+        alert("Orden sin terminar")
         return;
     }
 

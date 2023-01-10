@@ -9,7 +9,7 @@ use App\Traits\ValidacionCuit;
 class RuleTransporte implements Rule
 {
   	private $campo;
-	use ValidacionCuit;
+	  use ValidacionCuit;
 
     /**
      * Create a new rule instance.

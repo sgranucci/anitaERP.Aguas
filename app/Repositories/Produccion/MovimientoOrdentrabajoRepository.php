@@ -54,7 +54,7 @@ class MovimientoOrdentrabajoRepository implements MovimientoOrdentrabajoReposito
 
     public function find($id)
     {
-        if (null == $movimientoordentrabajo = $this->model->with('ordenestrabajo')->find($id)) {
+        if (null == $movimientoordentrabajo = $this->model->with('ordenestrabajo')->with('tareas')->with('operaciones')->find($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
 

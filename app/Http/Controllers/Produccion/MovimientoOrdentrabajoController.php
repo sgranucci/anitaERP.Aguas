@@ -166,6 +166,12 @@ class MovimientoOrdentrabajoController extends Controller
         return $this->movimientoOrdentrabajoService->leeTareas($ot_id);
     }
 
+    // Control de secuencia de fabricacion 
+    public function controlSecuencia($ordenestrabajo, $operacion_id, $tarea_id)
+    {
+        return $this->movimientoOrdentrabajoService->controlSecuencia($ordenestrabajo, $operacion_id, $tarea_id);
+    }
+
 	/*
 	 * Arma tablas de select para enviar a vista
 	 */
@@ -175,5 +181,7 @@ class MovimientoOrdentrabajoController extends Controller
 		$operacion_query = $this->operacionRepository->all();
 		$empleado_query = $this->empleadoRepository->all();
 	}
+
+    
 }
 

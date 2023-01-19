@@ -28,6 +28,6 @@ trait ClienteTrait {
 
 	public static $enumModoFacturacion = [
 		'N' => 'Normal',
-		'C' => 'Factura de crédito',
+		'C' => 'Factura de crédito FCE',
 		];
 }

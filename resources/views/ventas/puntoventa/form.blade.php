@@ -116,4 +116,16 @@
         @endforeach
     </select>
 </div>
+<div class="form-group row">
+    <label for="webservice" class="col-lg-3 col-form-label requerido">Web Service</label>
+    <div class="col-lg-2">
+        <input type="text" name="webservice" id="webservice" class="form-control" value="{{old('webservice', $data->webservice ?? '')}}" required/>
+    </div>
+</div>
+<div class="form-group row">
+    <label for="pathafip" class="col-lg-3 col-form-label requerido">Path m&oacute;dulo AFIP</label>
+    <div class="col-lg-3">
+        <input type="text" name="pathafip" id="pathafip" class="form-control" value="{{old('pathafip', $data->pathafip ?? '')}}" required/>
+    </div>
+</div>
 <input type="hidden" id="estado" name="estado" value="{{$data->estado ?? 'A'}}" >

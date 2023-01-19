@@ -83,7 +83,7 @@ class ArticuloQuery implements ArticuloQueryInterface
 
     public function traeArticuloPorId($id)
     {
-		return $this->model->with('lineas')->where('id',$id)->first(); 
+		return $this->model->with('lineas')->with('unidadesdemedidas')->where('id',$id)->first(); 
 	}
 
     public function generaDatosRepCombinacion($estado, $mventa_id,

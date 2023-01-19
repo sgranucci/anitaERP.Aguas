@@ -19,22 +19,31 @@ class FacturaElectronicaService
 
 	public function traeUltimoNumeroComprobante($nroinscripcion, $tipotransaccion, $puntoventa)
 	{
-		$req['solicitud']['servicio'] = 'wsfe_v1';
+		$req['solicitud']['servicio'] = $puntoventa->webservice;
 		$req['solicitud']['funcion'] = 'SolicitarUltimoCompEnviado';
 		$req['datos']['cuit']   = (double) str_replace("-","",$nroinscripcion);
-        $req['datos']['pventa'] = (int) $puntoventa;
-        $req['datos']['tipo']   = (int) $tipotransaccion;
+
+		if ($puntoventa->webservice == 'wsfex_v1')
+		{
+			$req['datos']['pvta'] = (int) $puntoventa->codigo;
+			$req['datos']['tipo_cbt']   = (int) $tipotransaccion;	
+		}
+		else
+		{
+			$req['datos']['pventa'] = (int) $puntoventa->codigo;
+			$req['datos']['tipo']   = (int) $tipotransaccion;
+		}
 
 		$base = "ultnrocomp-". Str::random(20);
 		$nombreXml = $base.'.xml';
 		$nombreXmlRespuesta = $base.'_RESP.xml';
-		Storage::disk('public')->put("afip/ent/$nombreXml", $this->GenerarXML ($req, null));
+		Storage::disk('public')->put($puntoventa->pathafip."/ent/$nombreXml", $this->GenerarXML ($req, null));
 
 		$ret = $this->ejecutaAfip($nombreXml);
 
-		Storage::disk('public')->delete("afip/ent/$nombreXml");
+		Storage::disk('public')->delete($puntoventa->pathafip."/ent/$nombreXml");
 
-		$resp = new \SimpleXMLElement("storage/afip/ent/$nombreXmlRespuesta", null, true);
+		$resp = new \SimpleXMLElement("storage/".$puntoventa->pathafip."/ent/$nombreXmlRespuesta", null, true);
 
 		$mensaje = $resp->mensaje;
 		$tipo = $resp->detalle->tipo;
@@ -44,128 +53,246 @@ class FacturaElectronicaService
 		if ($tipo == $tipotransaccion && $pventa == $puntoventa)
 			$ultimoNumero = strval($resp->detalle->numero);
 		
-		Storage::disk('public')->delete("afip/ent/$nombreXmlRespuesta");
+		Storage::disk('public')->delete($puntoventa->pathafip."/ent/$nombreXmlRespuesta");
 
 		return $ultimoNumero;
 	}
 
 	public function solicitaCAE($nroinscripcion, $tipotransaccion, $puntoventa, $datos)
 	{
-		$req['solicitud']['servicio'] = 'wsfe_v1';
+		// Si es exportacion tiene que pedir request
+		if ($puntoventa->webservice == 'wsfex_v1')
+		{
+			$req['solicitud']['servicio'] = $puntoventa->webservice;
+			$req['solicitud']['funcion'] = 'SolicitarUltNroRequest';
+			$req['datos']['cuit']   = (double) str_replace("-","",$nroinscripcion);
+
+			$base = "solicitaID-". Str::random(20);
+			$nombreXml = $base.'.xml';
+			$nombreXmlRespuesta = $base.'_RESP.xml';
+			Storage::disk('public')->put($puntoventa->pathafip."/ent/$nombreXml", $this->GenerarXML ($req, null));
+	
+			$ret = $this->ejecutaAfip($nombreXml);
+	
+			//Storage::disk('public')->delete($puntoventa->pathafip."/ent/$nombreXml");
+			
+			$resp = new \SimpleXMLElement("storage/".$puntoventa->pathafip."/ent/$nombreXmlRespuesta", null, true);
+			$mensaje = $resp->mensaje;
+			$tipo = $resp->detalle->tipo;
+			$pventa = $resp->detalle->pventa;
+			$nroId = -1;
+
+			if ($tipo == $tipotransaccion && $pventa == $puntoventa)
+				$nroId = strval($resp->detalle->numero);
+			
+			Storage::disk('public')->delete($puntoventa->pathafip."/ent/$nombreXmlRespuesta");
+		}
+
+		$req['solicitud']['servicio'] = $puntoventa->webservice;
 		$req['solicitud']['funcion'] = 'SolicitarCAE';
-		$req['cabecera']['cuit']   = (double) str_replace("-","",$nroinscripcion);
-        $req['cabecera']['pto_venta'] = (int) $puntoventa;
-        $req['cabecera']['tipo_cbt']   = (int) $tipotransaccion;
-
-		$req['detalle']['concepto'] = 1;
-
-		$req['detalle']['doc_tipo'] = $datos['tipodoc'];
-		$req['detalle']['doc_nro'] = str_replace("-","",$datos['nroinscripcion']);
-		$req['detalle']['cbt_desde'] = $datos['numerocomprobante'];
-		$req['detalle']['cbt_hasta'] = $datos['numerocomprobante'];
-		$req['detalle']['fecha_cbt'] = $datos['fechacomprobante'];
-		$req['detalle']['importe_total'] = Round($datos['total'],2);
-		$req['detalle']['importe_total_conc'] = Round($datos['nogravado'],2);
-		$req['detalle']['importe_neto'] = Round($datos['gravado'],2);
-		$req['detalle']['importe_op_ex'] = Round($datos['exento'],2);
-		$req['detalle']['importe_iva'] = Round($datos['iva'],2);
-		$req['detalle']['importe_trib'] = Round($datos['tributo'],2);
-		$req['detalle']['fecha_serv_desde'] = '';
-		$req['detalle']['fecha_serv_hasta'] = '';
-		$req['detalle']['fecha_vto_pago'] = '';
-		$req['detalle']['moneda_id'] = $datos['moneda'];
-		$req['detalle']['moneda_cotizac'] = $datos['cotizacion'];
-
-		if ($datos['fechaasignaciondesde'] > 0 && count($datos['comprobantesasociados']) == 0 &&
-			($tipotransaccion == 3 || $tipotransaccion == 8 || $tipotransaccion == 203))
+		
+		if ($puntoventa->webservice == 'wsfex_v1')
 		{
-			$req['detalle']['fchdesde'] = $datos['fechaasignaciondesde'];
-			$req['detalle']['fchhasta'] = $datos['fechaasignacionhasta'];
-		}
+			$req['encabezado']['cuit']   = (double) str_replace("-","",$nroinscripcion);
+			$req['encabezado']['punto_venta'] = (int) $puntoventa->codigo;
+	        $req['encabezado']['tipo_cbte']   = (int) $tipotransaccion;
+			$req['encabezado']['id']   = (int) $nroId;
+			$req['encabezado']['cbte_nro'] = $datos['numerocomprobante'];
+			$req['encabezado']['tipo_expo']   = (int) 1; // Bienes
 
-		// Comprobantes asociados
-		foreach($datos['comprobantesasociados'] as $asociado)
-		{
-			$req['detalle']['cbteasoc']['tipo'] = $asociado['tipo'];
-			$req['detalle']['cbteasoc']['ptovta'] = $asociado['ptovta'];
-			$req['detalle']['cbteasoc']['nro'] = $asociado['nro'];
-		}
+			if ($tipotransaccion == 19)
+				$req['encabezado']['permiso_existente']   = 'N';
+			else
+				$req['encabezado']['permiso_existente']   = '';
 
-		// Tributos
-		if (count($datos['tributos']) > 1)
-		{
+			$req['encabezado']['dst_cmp'] = $datos['pais'];
+			$req['encabezado']['cliente'] = str_replace("&"," ",$datos['nombrecliente']);
+			$req['encabezado']['cuit_pais_cliente'] = str_replace("-","",$datos['nroinscripcion']);
+			$req['encabezado']['domicilio_cliente'] = str_replace("&"," ",$datos['domicilio']);
+			$req['encabezado']['id_impositivo'] = ' ';
+
+			$req['encabezado']['moneda_id'] = $datos['moneda'];
+			$req['encabezado']['moneda_ctz'] = $datos['cotizacion'];
+
+			$req['encabezado']['obs_comerciales'] = ' ';
+			$req['encabezado']['imp_total'] = Round($datos['total'],2);
+			$req['encabezado']['obs'] = ' ';
+			$req['encabezado']['forma_pago'] = $datos['formapago'];
+			$req['encabezado']['incoterms'] = $datos['incoterms'];
+			if ($incoterms == '')
+				$req['encabezado']['incoterms_ds'] = '';
+			else
+				$req['encabezado']['incoterms_ds'] = ' ';
+			$req['encabezado']['idioma_cbte'] = '2';
+			$req['encabezado']['permisos'] = ' ';
+			$req['encabezado']['cmp_asoc'] = ' ';
+
+			// Arma items
+			for ($i = 0; $i < count($datos['items']); $i++)
+			{
+				$req['detalle']['item']['pro_codigo'] = $datos['items'][$i]['sku'];
+				$req['detalle']['item']['pro_ds'] = $datos['items'][$i]['descripcion'];
+				$req['detalle']['item']['pro_qty'] = $datos['items'][$i]['cantidad'];
+				$req['detalle']['item']['pro_umed'] = $datos['items'][$i]['codigounidadmedida'];
+				$req['detalle']['item']['pro_precio_uni'] = $datos['items'][$i]['precio'];
+				$req['detalle']['item']['pro_total_item'] = $datos['items'][$i]['precio'] * datos['items'][$i]['cantidad'];
+			}
+
+			// Agrega impuestos como items
+			$totalIngresosBrutos = 0;
 			for ($j = 0; $j < count($datos['tributos']); $j++)
 			{
 				if ($datos['tributos'][$j]['importe'] != 0)
-				{
-					$req['detalle']['tributos']['tributo'][$j]['id'] = $datos['tributos'][$j]['id'];
-					$req['detalle']['tributos']['tributo'][$j]['base_imp'] = Round($datos['tributos'][$j]['base_imp'],2);
-					$req['detalle']['tributos']['tributo'][$j]['importe'] = Round($datos['tributos'][$j]['importe'],2);
-					$req['detalle']['tributos']['tributo'][$j]['alicuota'] = $datos['tributos'][$j]['alicuota'];
-					$req['detalle']['tributos']['tributo'][$j]['desc'] = $datos['tributos'][$j]['desc'];
-				}
+					$totalIngresosBrutos += $datos['tributos'][$j]['importe'];
 			}
-		}
-		else 
-		{
-			if (count($datos['tributos']) > 0)
+
+			if ($totalIngresosBrutos != 0)
 			{
-				$req['detalle']['tributos']['tributo']['id'] = $datos['tributos'][0]['id'];
-				$req['detalle']['tributos']['tributo']['base_imp'] = Round($datos['tributos'][0]['base_imp'],2);
-				$req['detalle']['tributos']['tributo']['importe'] = Round($datos['tributos'][0]['importe'],2);
-				$req['detalle']['tributos']['tributo']['alicuota'] = $datos['tributos'][0]['alicuota'];
-				$req['detalle']['tributos']['tributo']['desc'] = $datos['tributos'][0]['desc'];
-			}
-		}
-	
-		// Impuestos nacionales
-		if (count($datos['impuestos']) > 1)
-		{
-			for ($j = 0; $j < count($datos['impuestos']); $j++)
-			{
-				if ($datos['impuestos'][$j]['importe'] != 0)
-				{
-					$req['detalle']['iva']['aliciva'][$j]['id'] = $datos['impuestos'][$j]['id'];
-					$req['detalle']['iva']['aliciva'][$j]['base_imp'] = Round($datos['impuestos'][$j]['base_imp'],2);
-					$req['detalle']['iva']['aliciva'][$j]['importe'] = Round($datos['impuestos'][$j]['importe'],2);
-				}
+				$req['detalle']['item']['pro_codigo'] = ' ';
+				$req['detalle']['item']['pro_ds'] = 'Ingresos Brutos';
+				$req['detalle']['item']['pro_qty'] = 1;
+				$req['detalle']['item']['pro_umed'] = 7;
+				$req['detalle']['item']['pro_precio_uni'] = $totalIngresosBrutos;
+				$req['detalle']['item']['pro_total_item'] = $totalIngresosBrutos;
 			}
 		}
 		else
 		{
-			if ($datos['impuestos'][0]['importe'] != 0)
+			$req['cabecera']['cuit']   = (double) str_replace("-","",$nroinscripcion);
+			$req['cabecera']['pto_venta'] = (int) $puntoventa->codigo;
+			$req['cabecera']['tipo_cbt']   = (int) $tipotransaccion;
+		
+			$req['detalle']['concepto'] = 1;
+
+			$req['detalle']['doc_tipo'] = $datos['tipodoc'];
+			$req['detalle']['doc_nro'] = str_replace("-","",$datos['nroinscripcion']);
+			$req['detalle']['cbt_desde'] = $datos['numerocomprobante'];
+			$req['detalle']['cbt_hasta'] = $datos['numerocomprobante'];
+			$req['detalle']['fecha_cbt'] = $datos['fechacomprobante'];
+			$req['detalle']['importe_total'] = Round($datos['total'],2);
+			$req['detalle']['importe_total_conc'] = Round($datos['nogravado'],2);
+			$req['detalle']['importe_neto'] = Round($datos['gravado'],2);
+			$req['detalle']['importe_op_ex'] = Round($datos['exento'],2);
+			$req['detalle']['importe_iva'] = Round($datos['iva'],2);
+			$req['detalle']['importe_trib'] = Round($datos['tributo'],2);
+			$req['detalle']['fecha_serv_desde'] = '';
+			$req['detalle']['fecha_serv_hasta'] = '';
+			$req['detalle']['fecha_vto_pago'] = '';
+			$req['detalle']['moneda_id'] = $datos['moneda'];
+			$req['detalle']['moneda_cotizac'] = $datos['cotizacion'];
+
+			if ($datos['fechaasignaciondesde'] > 0 && count($datos['comprobantesasociados']) == 0 &&
+				($tipotransaccion == 3 || $tipotransaccion == 8 || $tipotransaccion == 203 || $tipotransaccion == 53))
 			{
-				$req['detalle']['iva']['aliciva']['id'] = $datos['impuestos'][0]['id'];
-				$req['detalle']['iva']['aliciva']['base_imp'] = Round($datos['impuestos'][0]['base_imp'],2);
-				$req['detalle']['iva']['aliciva']['importe'] = Round($datos['impuestos'][0]['importe'],2);
+				$req['detalle']['fchdesde'] = $datos['fechaasignaciondesde'];
+				$req['detalle']['fchhasta'] = $datos['fechaasignacionhasta'];
+			}
+
+			// Comprobantes asociados
+			foreach($datos['comprobantesasociados'] as $asociado)
+			{
+				$req['detalle']['cbteasoc']['tipo'] = $asociado['tipo'];
+				$req['detalle']['cbteasoc']['ptovta'] = $asociado['ptovta'];
+				$req['detalle']['cbteasoc']['nro'] = $asociado['nro'];
+			}
+
+			// Tributos provinciales
+			if (count($datos['tributos']) > 1)
+			{
+				for ($j = 0; $j < count($datos['tributos']); $j++)
+				{
+					if ($datos['tributos'][$j]['importe'] != 0)
+					{
+						$req['detalle']['tributos']['tributo'][$j]['id'] = $datos['tributos'][$j]['id'];
+						$req['detalle']['tributos']['tributo'][$j]['base_imp'] = Round($datos['tributos'][$j]['base_imp'],2);
+						$req['detalle']['tributos']['tributo'][$j]['importe'] = Round($datos['tributos'][$j]['importe'],2);
+						$req['detalle']['tributos']['tributo'][$j]['alicuota'] = $datos['tributos'][$j]['alicuota'];
+						$req['detalle']['tributos']['tributo'][$j]['desc'] = $datos['tributos'][$j]['desc'];
+					}
+				}
+			}
+			else 
+			{
+				if (count($datos['tributos']) > 0)
+				{
+					$req['detalle']['tributos']['tributo']['id'] = $datos['tributos'][0]['id'];
+					$req['detalle']['tributos']['tributo']['base_imp'] = Round($datos['tributos'][0]['base_imp'],2);
+					$req['detalle']['tributos']['tributo']['importe'] = Round($datos['tributos'][0]['importe'],2);
+					$req['detalle']['tributos']['tributo']['alicuota'] = $datos['tributos'][0]['alicuota'];
+					$req['detalle']['tributos']['tributo']['desc'] = $datos['tributos'][0]['desc'];
+				}
+			}
+		
+			// Impuestos nacionales
+			if (count($datos['impuestos']) > 1)
+			{
+				for ($j = 0; $j < count($datos['impuestos']); $j++)
+				{
+					if ($datos['impuestos'][$j]['importe'] != 0)
+					{
+						$req['detalle']['iva']['aliciva'][$j]['id'] = $datos['impuestos'][$j]['id'];
+						$req['detalle']['iva']['aliciva'][$j]['base_imp'] = Round($datos['impuestos'][$j]['base_imp'],2);
+						$req['detalle']['iva']['aliciva'][$j]['importe'] = Round($datos['impuestos'][$j]['importe'],2);
+					}
+				}
+			}
+			else
+			{
+				if ($datos['impuestos'][0]['importe'] != 0)
+				{
+					$req['detalle']['iva']['aliciva']['id'] = $datos['impuestos'][0]['id'];
+					$req['detalle']['iva']['aliciva']['base_imp'] = Round($datos['impuestos'][0]['base_imp'],2);
+					$req['detalle']['iva']['aliciva']['importe'] = Round($datos['impuestos'][0]['importe'],2);
+				}
 			}
 		}
 
 		$base = "solicitaCAE-". Str::random(20);
 		$nombreXml = $base.'.xml';
 		$nombreXmlRespuesta = $base.'_RESP.xml';
-		Storage::disk('public')->put("afip/ent/$nombreXml", $this->GenerarXML ($req, null));
+		Storage::disk('public')->put($puntoventa->pathafip."/ent/$nombreXml", $this->GenerarXML ($req, null));
 
 		$ret = $this->ejecutaAfip($nombreXml);
 
-		//Storage::disk('public')->delete("afip/ent/$nombreXml");
+		//Storage::disk('public')->delete($puntoventa->pathafip."/ent/$nombreXml");
 		
-		$resp = new \SimpleXMLElement("storage/afip/ent/$nombreXmlRespuesta", null, true);
+		$resp = new \SimpleXMLElement("storage/".$puntoventa->pathafip."/ent/$nombreXmlRespuesta", null, true);
 
 		$fechaVto = 0;
-		if ($resp->cabecera->resultado == 'A')
+		if ($puntoventa->webservice == 'wsfex_v1' ? $resp->estado == '0' || $resp->estado == '' : 
+			$resp->cabecera->resultado == 'A')
 		{
 			$mensaje = $resp->mensaje;
-			$tipo = $resp->cabecera->cbte_tipo;
-			$resultado = $resp->cabecera->resultado;
-			$pventa = $resp->cabecera->pto_venta;
-			$numero = $resp->detalle->cbt_desde;
-			
-			$cae = ''; $fechaVto = '';
-			if ($tipo == $tipotransaccion && $pventa == $puntoventa && $numero == $datos['numerocomprobante'])
+
+			if ($puntoventa->webservice == 'wsfex_v1')
 			{
-				$cae = $resp->detalle->cae;
-				$fechaVto = $resp->detalle->cae_fch_vto;
+				$cae = $resp->cae;
+				$fechaVto = $resp->fvto;
+				$tipo = $resp->tipo_cbte;
+				$pventa = $resp->punto_vta;
+				$numero = $resp->cbte_nro;
+			}
+			else
+			{
+				$tipo = $resp->cabecera->cbte_tipo;
+				$resultado = $resp->cabecera->resultado;
+				$pventa = $resp->cabecera->pto_venta;
+				$numero = $resp->detalle->cbt_desde;
+			}
+					
+			$cae = ''; $fechaVto = '';
+			if ($tipo == $tipotransaccion && $pventa == $puntoventa->codigo && $numero == $datos['numerocomprobante'])
+			{
+				if ($puntoventa->webservice == 'wsfex_v1')
+				{
+					$cae = $resp->cae;
+					$fechaVto = $resp->fvto;
+				}
+				else
+				{
+					$cae = $resp->detalle->cae;
+					$fechaVto = $resp->detalle->cae_fch_vto;
+				}
 			}
 		}
 		else // Verifica si el comprobante entro en AFIP
@@ -185,7 +312,7 @@ class FacturaElectronicaService
 			}
 		}
 
-		//Storage::disk('public')->delete("afip/ent/$nombreXmlRespuesta");
+		//Storage::disk('public')->delete($puntoventa->pathafip."/ent/$nombreXmlRespuesta");
 
 		if ($resultado == 'A')
 			return ['cae' => $cae, 'fechavencimientocae' => $fechaVto];
@@ -195,23 +322,23 @@ class FacturaElectronicaService
 
 	public function consultaCompEnviado($nroinscripcion, $tipotransaccion, $puntoventa, $numero)
 	{
-		$req['solicitud']['servicio'] = 'wsfe_v1';
-		$req['solicitud']['funcion'] = 'SolicitarUltimoCompEnviado';
+		$req['solicitud']['servicio'] = $puntoventa->webservice;
+		$req['solicitud']['funcion'] = 'ConsultaCompEnviado';
 		$req['datos']['cuit']   = (double) str_replace("-","",$nroinscripcion);
-        $req['datos']['pventa'] = (int) $puntoventa;
+        $req['datos']['pventa'] = (int) $puntoventa->codigo;
         $req['datos']['tipo']   = (int) $tipotransaccion;
 		$req['datos']['nro']   = (int) $numero;
 
 		$base = "ultnrocomp-". Str::random(20);
 		$nombreXml = $base.'.xml';
 		$nombreXmlRespuesta = $base.'_RESP.xml';
-		Storage::disk('public')->put("afip/ent/$nombreXml", $this->GenerarXML ($req, null));
+		Storage::disk('public')->put($puntoventa->pathafip."/ent/$nombreXml", $this->GenerarXML ($req, null));
 
 		$ret = $this->ejecutaAfip($nombreXml);
 
-		Storage::disk('public')->delete("afip/ent/$nombreXml");
+		Storage::disk('public')->delete($puntoventa->pathafip."/ent/$nombreXml");
 
-		$resp = new \SimpleXMLElement("storage/afip/ent/$nombreXmlRespuesta", null, true);
+		$resp = new \SimpleXMLElement("storage/".$puntoventa->pathafip."/ent/$nombreXmlRespuesta", null, true);
 
 		$mensaje = $resp->mensaje;
 		$tipo = $resp->detalle->tipo;
@@ -221,12 +348,27 @@ class FacturaElectronicaService
 		$fechavto = $resp->detalle->fevto;
 		$resultado = $resp->detalle->resultado;
 
-		Storage::disk('public')->delete("afip/ent/$nombreXmlRespuesta");
+		Storage::disk('public')->delete($puntoventa->pathafip."/ent/$nombreXmlRespuesta");
 
 		if ($resultado == 'A')
 			return ['cae' => $cae, 'fechavencimientocae' => $fechaVto];
 		else
 			return -1;
+	}
+
+	public function armaTipoTransaccion($letra, $modofacturacion, &$tipotransaccion)
+	{
+		// Arma el tipo de transaccion
+		if ($letra == 'B')
+			$tipotransaccion += 5;
+		elseif ($letra == 'E')
+			$tipotransaccion += 18;
+		elseif ($letra == 'M')
+			$tipotransaccion += 50;
+
+		// Si es FCE
+		if ($modofacturacion == 'C')
+			$tipotransaccion += 200;
 	}
 
 	private function ejecutaAfip($nombrexml)
@@ -316,4 +458,3 @@ class FacturaElectronicaService
 		}
 	}
 }
-

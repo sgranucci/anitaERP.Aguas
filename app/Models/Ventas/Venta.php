@@ -15,8 +15,7 @@ class Venta extends Model
             'cliente_entrega_id', 'codigo', 'nombre', 'domicilio', 'localidad_id', 'provincia_id',
             'pais_id', 'codigopostal', 'email', 'telefono', 'nroinscripcion', 
             'condicioniva_id', 'cae', 'fechavencimientocae', 'puntoventaremito_id',
-            'numeroremito', 'cantidadbulto', 'condicionventaexportacion', 'formapagoexportacion',
-            'mercaderiaexportacion', 'monedaexportacion'
+            'numeroremito', 'cantidadbulto'
     ];
 
     protected $table = 'venta';

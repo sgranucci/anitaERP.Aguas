@@ -274,7 +274,7 @@ class MovimientoOrdentrabajoService
 		$nombreReporte = "tmp/empaqueOT-" . $data['ordentrabajo_id'] . '.txt';
 
 		$reporte = "";
-		$reporte .= "Empaque de ORDEN DE TRABAJO NRO. ".$data['ordentrabajo_id']."\n\n";
+		$reporte .= "Empaque de ORDEN DE TRABAJO NRO. ".$request['codigoordentrabajo']."\n\n";
 		$reporte .= "Cliente: ".$request['cliente']."\n\n";
 		$reporte .= "Articulo: ".$request['articulo']."\n\n";
 		$reporte .= "Combinacion: ".$request['combinacion']."\n\n";
@@ -287,7 +287,7 @@ class MovimientoOrdentrabajoService
 			$reporte .= "Talle: ".$medida->talle." Cantidad: ".$medida->cantidad."\n";
 		}
 		
-		$reporte .= "\nTotal pares: ".$request['pares']."\n";
+		$reporte .= "\nTotal pares: ".$request['pares']."\n\n\n\n\n\n\n\n\n\n\n\n\n";
 
 		Storage::disk('local')->put($nombreReporte, $reporte);
 		$path = Storage::path($nombreReporte);
@@ -303,6 +303,7 @@ class MovimientoOrdentrabajoService
 		$arrayOrdenesTrabajo = explode(',', $ordenestrabajo);
 		$secuenciaTareas = Config::get("consprod.SECUENCIA_TAREAS");
 		$otConProblema = [];
+		$flExiste = false;
 		foreach($arrayOrdenesTrabajo as $ordentrabajo)
 		{
 			$ot = $this->ordentrabajoRepository->findPorCodigo($ordentrabajo);
@@ -333,8 +334,8 @@ class MovimientoOrdentrabajoService
 					}
 				}
 			}
-			// Si la tarea no fue cargada la toma con problemas
-			if (!$flExiste && !in_array($ordentrabajo, $otConProblema))
+			// Si la tarea ya fue cargada la toma con problemas
+			if ($flExiste && !in_array($ordentrabajo, $otConProblema))
 				$otConProblema[] = $ordentrabajo;
 		}
 		

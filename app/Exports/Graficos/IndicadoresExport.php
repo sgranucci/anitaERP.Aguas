@@ -792,8 +792,9 @@ class IndicadoresExport implements FromView, WithColumnFormatting, WithMapping, 
                 $flBuscaEntrada = false;
             }
 
-            // Si ya paso 1oA va chequeando cada vela para ver si cumple gatillo
-            if ($iniciaSwing && $off1oA != -1 && !$flBuscaEntrada && !$flAbrePosicion)
+            // Si ya paso 1oA va chequeando cada vela para ver si cumple gatillo pero solo de los puntos candidatos
+            if ($iniciaSwing && $off1oA != -1 && !$flBuscaEntrada && !$flAbrePosicion &&
+                $this->datas[$i]['provRet'] >= 0.5 && $this->datas[$i]['provRet'] <= 1)
             {
                 $minimoActual = $this->datas[$i]['low'];
                 
@@ -834,7 +835,7 @@ class IndicadoresExport implements FromView, WithColumnFormatting, WithMapping, 
                     if ($iniciaSwing && $off1oA != -1 && !$flBuscaEntrada && !$flAbrePosicion)
                         $iniciaSwing = false;
 
-                    if (!$iniciaSwing)
+                    if (!$iniciaSwing && !$flAbrePosicion)
                     {
                         $iniciaSwing = true;
                         $off0 = $i;
@@ -848,7 +849,7 @@ class IndicadoresExport implements FromView, WithColumnFormatting, WithMapping, 
                 case 'DT':
                     $columna = 'low';
 
-                    if ($iniciaSwing)
+                    if ($iniciaSwing && !$flAbrePosicion)
                     {
                         $off1oA = $i;
                         $barrasAlcistas = $i - $off0;

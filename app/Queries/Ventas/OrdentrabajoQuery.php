@@ -151,17 +151,19 @@ class OrdentrabajoQuery implements OrdentrabajoQueryInterface
 			->join('talle', 'talle.id', '=', 'pedido_combinacion_talle.talle_id')
 			->join('articulo_caja', 'articulo_caja.articulo_id', 'pedido_combinacion.articulo_id')
 			->join('caja', 'caja.id', 'articulo_caja.caja_id')
-			->join('articulo', 'articulo.id', 'caja.articulo_id')
-			->whereBetween('ordentrabajo.fecha', [$desdefecha, $hastafecha])
-			->orderBy('caja.nombre');
-				
+			->join('articulo', 'articulo.id', 'caja.articulo_id');
+
 		if ($ordenestrabajo != '')
 		{
 			$ot = explode(',', $ordenestrabajo);
 			$data = $data->whereIn('ordentrabajo.codigo', $ot);
 		}
-					
-		$data = $data->get();
+		else
+		{
+			$data = $data->whereBetween('ordentrabajo.fecha', [$desdefecha, $hastafecha]);
+		}
+
+		$data = $data->orderBy('caja.nombre')->get();
 
 		return $data;
 	}

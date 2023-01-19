@@ -31,6 +31,7 @@ Unidades de medida
                             <th class="width20">ID</th>
                             <th>Nombre</th>
                             <th>Abreviatura</th>
+                            <th>C&oacute;digo Externo</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>
                     </thead>
@@ -40,6 +41,7 @@ Unidades de medida
                             <td>{{$data->id}}</td>
                             <td>{{$data->nombre}}</td>
                             <td>{{$data->abreviatura}}</td>
+                            <td>{{$data->codigo}}</td>
                             <td>
                        			@if (can('editar-unidades-de-medida', false))
                                 	<a href="{{route('editar_unidadmedida', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">

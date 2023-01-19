@@ -1,6 +1,6 @@
 @extends("theme.$theme.layout")
 @section('titulo')
-    Tipos de Puntos de Venta
+    Puntos de Venta
 @endsection
 
 @section("scripts")
@@ -15,7 +15,7 @@
         @include('includes.mensaje')
         <div class="card card-info">
             <div class="card-header">
-                <h3 class="card-title">Tipos de Puntos de Venta</h3>
+                <h3 class="card-title">Puntos de Venta</h3>
                 <div class="card-tools">
                     <a href="{{route('crear_puntoventa')}}" class="btn btn-outline-secondary btn-sm">
                        	@if (can('crear-puntos-de-venta', false))

@@ -60,7 +60,7 @@ class ClienteQuery implements ClienteQueryInterface
 	  	if ($campos)
         	return $this->model->with('condicionivas')->select($campos)->where('id',$id)->first();
 		else
-        	return $this->model->with('condicionivas')->where('id',$id)->first();
+        	return $this->model->with('condicionivas')->where('id',$id)->with('paises')->with('condicionventas')->first();
     }
 
     // Datos para informe maestro de clientes

@@ -663,6 +663,17 @@ Route::put('ventas/tiposuspensioncliente/{id}', 'Ventas\TiposuspensionclienteCon
 Route::delete('ventas/tiposuspensioncliente/{id}', 'Ventas\TiposuspensionclienteController@eliminar')->name('eliminar_tiposuspensioncliente');
 
 /* 
+ * Incoterms
+ */
+
+ Route::get('ventas/incoterm', 'Ventas\IncotermController@index')->name('incoterm');
+ Route::get('ventas/incoterm/crear', 'Ventas\IncotermController@crear')->name('crear_incoterm');
+ Route::post('ventas/incoterm', 'Ventas\IncotermController@guardar')->name('guardar_incoterm');
+ Route::get('ventas/incoterm/{id}/editar', 'Ventas\IncotermController@editar')->name('editar_incoterm');
+ Route::put('ventas/incoterm/{id}', 'Ventas\IncotermController@actualizar')->name('actualizar_incoterm');
+ Route::delete('ventas/incoterm/{id}', 'Ventas\IncotermController@eliminar')->name('eliminar_incoterm');
+ 
+/* 
  * Tipos de transacciones de ventas
  */
 

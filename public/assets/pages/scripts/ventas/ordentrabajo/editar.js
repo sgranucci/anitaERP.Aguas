@@ -133,7 +133,7 @@ function facturarPedido(item)
             if ($(this).val() == pedido_combinacion_id && $(this).parents("tr").find(".tarea_id").val() == 
                 tareaFacturada)
                 flFacturada = true;
-            if ($(this).val() == pedido_combinacion_id && 
+            if (($(this).val() == pedido_combinacion_id || $(this).val() == '' || $(this).val() == null) && 
                 ($(this).parents("tr").find(".tarea_id").val() == tareaEmpaque ||
                 $(this).parents("tr").find(".tarea_id").val() == tareaTerminada))
                 flTerminada = true;
@@ -297,6 +297,7 @@ function empacarPedido(item)
 {
     var pedido_combinacion_id = $(item).parents("tr").find(".id").val();
     var ordentrabajo_id = $('#ordentrabajo_id').val();
+    var codigoordentrabajo = $('#codigoordentrabajo').val();
     var cliente = $(item).parents("tr").find(".cliente").val();
     var pedido = $(item).parents("tr").find(".pedido").val();
     var articulo = $(item).parents("tr").find(".articulo").val();
@@ -304,13 +305,14 @@ function empacarPedido(item)
     var medidas = $(item).parents("tr").find(".medidas").val();
     var pares = $(item).parents("tr").find(".pares").val();
 
-    // Graba la tarea de armado
+	// Graba la tarea de armado
     var token = $('#csrf_token').val();
 
     $.post("/anitaERP/public/produccion/empacarTarea",
             {
                 pedido_combinacion_id: pedido_combinacion_id,
                 ordentrabajo_id: ordentrabajo_id,
+                codigoordentrabajo: codigoordentrabajo,
                 cliente: cliente,
                 pedido: pedido,
                 articulo: articulo,

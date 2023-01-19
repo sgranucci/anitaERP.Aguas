@@ -32,6 +32,8 @@ class CrearTablaPuntoventa extends Migration
             $table->string('leyenda',255)->nullable();
             $table->string('modofacturacion',1);
             $table->string('estado',1);
+            $table->string('webservice',50)->nullable();
+            $table->string('pathafip',255)->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->charset = 'utf8mb4';

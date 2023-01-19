@@ -1707,7 +1707,6 @@ class OrdentrabajoService
 																	$desdecliente_id, $hastacliente_id,
 																	$desdearticulo, $hastaarticulo,
 																	$desdeempleado_id, $hastaempleado_id);
-
 		return ($data);
 	}		
 
@@ -1845,7 +1844,7 @@ class OrdentrabajoService
 			}
 		}
 		return $retorno;
-	}	
+	}
 
 	// Lista cajas
 
@@ -1856,7 +1855,7 @@ class OrdentrabajoService
 		$nombreReporte = "tmp/cajaOT-" . $codigoOt . '.txt';
 
 		$reporte = "";
-		$reporte .= "Cajas de ORDEN DE TRABAJO NRO. ".$codigoOt."\n\n";
+		$reporte .= "\n\n\n\n\n\nCajas de ORDEN DE TRABAJO NRO. ".$codigoOt."\n\n";
 		$reporte .= "Cliente: ".implode(",", $nombrecliente)."\n\n";
 		$reporte .= "Articulo: ".$nombrearticulo."\n\n";
 		$reporte .= "Combinacion: ".$nombrecombinacion."\n\n";
@@ -1878,12 +1877,12 @@ class OrdentrabajoService
 		foreach($dataCajas as $caja)
 		{
 			$reporte .= "Caja: ". $caja['nombrecaja']." ".$caja['nombrearticulocaja']."\n";
-			$reporte .= "Consumo: ".$caja['consumo']." Medidas: ".$caja['desdenumero']." ".$caja['hastanumero']."\n";
+			$reporte .= "Consumo: ".$caja['consumo']." Medidas: ".$caja['desdenumero']." ".$caja['hastanumero']."\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 		}
 
 		Storage::disk('local')->put($nombreReporte, $reporte);
 		$path = Storage::path($nombreReporte);
-		system("lp -darmado ".$path);
+		system("lp -darmado ".$path." 1>&2 2>/dev/null");
 
 		Storage::disk('local')->delete($nombreReporte);
 	}

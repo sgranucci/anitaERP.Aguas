@@ -56,7 +56,9 @@
 					<th>Foto</th>
 					<th>C&oacute;digo</th>
 					<th colspan="0">Descripci&oacute;n</th>
-					<th>Precios</th>
+					@if ($flPrecio ?? '' == 'S')
+						<th>Precios</th>
+					@endif
 				</tr>
 			</thead>
     		<tbody>
@@ -77,22 +79,24 @@
 			<small>
 			{{$data['nombre'] ?? ''}}</td>
 			</small>
-			<td>
-			<small>
-			@if ($data['precio1'] != 0)
-				{{ $data['nombrelista1'] }} {{ number_format($data['precio1'],2) }}<br> 
+			@if ($flPrecio ?? '' == 'S')
+				<td>
+				<small>
+				@if ($data['precio1'] != 0)
+					{{ $data['nombrelista1'] }} {{ number_format($data['precio1'],2) }}<br> 
+				@endif
+				@if ($data['precio2'] != 0)
+					{{ $data['nombrelista2'] }} {{ number_format($data['precio2'], 2)}}<br> 
+				@endif
+				@if ($data['precio3'] != 0)
+					{{ $data['nombrelista3'] }} {{ number_format($data['precio3'], 2)}}<br> 
+				@endif
+				@if ($data['precio4'] != 0)
+					{{ $data['nombrelista4'] }} {{ number_format($data['precio4'], 2)}}
+				@endif
+				</small>
+				</td>
 			@endif
-			@if ($data['precio2'] != 0)
-				{{ $data['nombrelista2'] }} {{ number_format($data['precio2'], 2)}}<br> 
-			@endif
-			@if ($data['precio3'] != 0)
-				{{ $data['nombrelista3'] }} {{ number_format($data['precio3'], 2)}}<br> 
-			@endif
-			@if ($data['precio4'] != 0)
-				{{ $data['nombrelista4'] }} {{ number_format($data['precio4'], 2)}}
-			@endif
-			</small>
-			</td>
         </tr>
 	@endforeach
     </tbody>

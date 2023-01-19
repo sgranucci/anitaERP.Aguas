@@ -62,7 +62,7 @@ class Cliente extends Model
 
     public function paises()
     {
-        return $this->belongsTo(Pais::class, 'paises_id');
+        return $this->belongsTo(Pais::class, 'pais_id');
     }
 
     public function zonavtas()
@@ -135,8 +135,7 @@ class Cliente extends Model
 		return ($desc);
 	}
 
-
-	public function setCodigoTransporteAttribute($value)
+    public function setCodigoTransporteAttribute($value)
 	{
 		$data = Transporte::find($this->transporte_id);
 		if ($data)

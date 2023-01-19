@@ -15,11 +15,11 @@ class TablaPermisoSeeder extends Seeder
     {
         $now = Carbon::now()->toDateTimeString();
         $permisos = [
-            array('id' => '296', 'nombre' => 'Crear lotes', 'slug' => 'crear-lotes', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '297', 'nombre' => 'Listar lotes', 'slug' => 'listar-lotes', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '298', 'nombre' => 'Editar lotes', 'slug' => 'editar-lotes', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '299', 'nombre' => 'Actualizar lotes', 'slug' => 'editar-lotes', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '300', 'nombre' => 'Borrar lotes', 'slug' => 'borrar-lotes', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '301', 'nombre' => 'Crear incoterms', 'slug' => 'crear-incoterms', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '302', 'nombre' => 'Listar incoterms', 'slug' => 'listar-incoterms', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '303', 'nombre' => 'Editar incoterms', 'slug' => 'editar-incoterms', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '304', 'nombre' => 'Actualizar incoterms', 'slug' => 'editar-incoterms', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '305', 'nombre' => 'Borrar incoterms', 'slug' => 'borrar-incoterms', 'created_at' => $now, 'updated_at' => $now),
 
         ];
         DB::table('permiso')->insert($permisos);

@@ -472,9 +472,13 @@ class CombinacionController extends Controller
         $mventa_query = Mventa::orderBy('id','asc')->get();
         $categoria_query = Categoria::orderBy('nombre','asc')->get();
 		$subcategoria_query = Subcategoria::orderBy('nombre','asc')->get();
+		$precios_enum = [
+			'S' => 'Con Precios',
+			'N' => 'Sin Precios',
+		];
 
         return view('stock.combinacion.catalogo.create', compact('linea_query', 'mventa_query', 'categoria_query',
-			'subcategoria_query'));
+			'subcategoria_query', 'precios_enum'));
     }
 
 	public function crearCatalogo(ValidacionCatalogo $request)
@@ -482,6 +486,7 @@ class CombinacionController extends Controller
 	  	ini_set('memory_limit', '512M');
 	  	ini_set('max_execution_time', '2400');
 
+		$flPrecio = $request->precio;
 		$subcategorias = $request->input('subcategoria_id', []);
 
         $_fecha = Carbon::now();
@@ -564,10 +569,13 @@ class CombinacionController extends Controller
 					$tiponumeracion = Linea::select('tiponumeracion_id')->where('id',$linea_id)->first();
 					
 					// Asigna precio por vigencia
-					$precios = $this->precioService->
-						asignaPrecioPorTipoNumeracion($item->articulo_id, 
-													$tiponumeracion->tiponumeracion_id, 
-													$_fecha);
+					if ($flPrecio != 'N')
+						$precios = $this->precioService->
+							asignaPrecioPorTipoNumeracion($item->articulo_id, 
+														$tiponumeracion->tiponumeracion_id, 
+														$_fecha);
+					else
+						$precios[] = ['listaprecio_id' => 1, 'precio' => 0];
  					
 					// Asigna precio por vigencia
 					$item->precio4 = 0;
@@ -604,7 +612,7 @@ class CombinacionController extends Controller
 		  					return $modulo->modulo_nombre;
 						})->all();
 
-				$view =  \View::make('exports.stock.catalogo', compact('items', 'modulos'))
+				$view =  \View::make('exports.stock.catalogo', compact('items', 'modulos', 'flPrecio'))
 				    ->render();
 				$path = storage_path('pdf/catalogo');
 
@@ -626,9 +634,13 @@ class CombinacionController extends Controller
 		$mventa_query = Mventa::orderBy('nombre','asc')->get();
         $categoria_query = Categoria::orderBy('nombre','asc')->get();
 		$subcategoria_query = Subcategoria::orderBy('nombre','asc')->get();
+		$precios_enum = [
+			'S' => 'Con Precios',
+			'N' => 'Sin Precios',
+		];
 
         return view('stock.combinacion.catalogo.create', compact('linea_query', 'mventa_query', 'categoria_query',
-								'subcategoria_query'));
+								'subcategoria_query', 'precios_enum'));
     }
 
 }

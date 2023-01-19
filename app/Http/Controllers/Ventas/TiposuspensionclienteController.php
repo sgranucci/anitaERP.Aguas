@@ -25,7 +25,7 @@ class TiposuspensionclienteController extends Controller
      */
     public function index()
     {
-        can('listar-tipos-suspension-clientes');
+        can('listar-tipo-suspension-clientes');
 		$datas = $this->repository->all();
 
         return view('ventas.tiposuspensioncliente.index', compact('datas'));
@@ -38,7 +38,7 @@ class TiposuspensionclienteController extends Controller
      */
     public function crear()
     {
-        can('crear-tipos-suspension-clientes');
+        can('crear-tipo-suspension-clientes');
 
         return view('ventas.tiposuspensioncliente.crear');
     }
@@ -49,11 +49,11 @@ class TiposuspensionclienteController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function guardar(ValidacionTiposuspensioncliente $request)
+    public function guardar(Validaciontiposuspensioncliente $request)
     {
 		$this->repository->create($request->all());
 
-        return redirect('ventas/tiposuspensioncliente')->with('mensaje', 'Tipo de suspensión creada con exito');
+        return redirect('ventas/tiposuspensioncliente')->with('mensaje', 'Tipo de suspensión de cliente creado con éxito');
     }
 
 
@@ -65,7 +65,7 @@ class TiposuspensionclienteController extends Controller
      */
     public function editar($id)
     {
-        can('editar-tipos-suspension-clientes');
+        can('editar-tipo-suspension-clientes');
         $data = $this->repository->findOrFail($id);
 
         return view('ventas.tiposuspensioncliente.editar', compact('data'));
@@ -78,12 +78,12 @@ class TiposuspensionclienteController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function actualizar(ValidacionTiposuspensioncliente $request, $id)
+    public function actualizar(Validaciontiposuspensioncliente $request, $id)
     {
         can('actualizar-tipo-suspension-clientes');
         $this->repository->update($request->all(), $id);
 
-        return redirect('ventas/tiposuspensioncliente')->with('mensaje', 'Tipo de suspensión actualizada con exito');
+        return redirect('ventas/tiposuspensioncliente')->with('mensaje', 'Tipo de suspensión de cliente actualizado con éxito');
     }
 
     /**
@@ -94,7 +94,7 @@ class TiposuspensionclienteController extends Controller
      */
     public function eliminar(Request $request, $id)
     {
-        can('borrar-tipos-suspension-clientes');
+        can('borrar-tipo-suspension-clientes');
 
         if ($request->ajax()) {
         	if ($this->repository->delete($id)) {

@@ -44,7 +44,6 @@ class ConsumoCajaExport implements FromView, WithColumnFormatting, WithMapping, 
                                                     $this->hastaFecha, 
                                                     $this->ordenesTrabajo
                                                     );
-        
 
         return view('exports.produccion.reporteconsumocaja.reporteconsumocaja', [
                         'data' => $data,

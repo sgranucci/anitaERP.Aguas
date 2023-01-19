@@ -141,6 +141,11 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 		$this->app->bind(
+        	'App\Repositories\Ventas\IncotermRepositoryInterface',
+        	'App\Repositories\Ventas\IncotermRepository',
+    	);
+
+		$this->app->bind(
         	'App\Repositories\Ventas\TipotransaccionRepositoryInterface',
         	'App\Repositories\Ventas\TipotransaccionRepository',
     	);

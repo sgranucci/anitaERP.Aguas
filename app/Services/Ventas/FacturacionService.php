@@ -282,6 +282,8 @@ class FacturacionService
 								"impuesto_id" => $articulo->impuesto_id,
 								"articulo_id" => $articulo->id,
 								"sku" => $articulo->sku,
+								"descripcion" => $articulo->descripcion,
+								"codigounidadmedida" => $articulo->unidadesdemedidas->codigo,
 								'categoria' => $codigoCategoria,
 								"descripcion" => $articulo->descripcion,
 								"combinacion_id" => $combinacion_id,
@@ -367,25 +369,21 @@ class FacturacionService
 			// Pide numero de factura
 			$codigoTipoTransaccion = $tipotransaccion->codigo;
 			$this->nombreTipoTransaccion = $tipotransaccion->nombre;
-			if ($letra == 'B')
-				$codigoTipoTransaccion += 5;
-			elseif ($letra == 'E')
-				$codigoTipoTransaccion += 18;
-			
-			if ($cliente->modoFacturacion == 'C')
-				$codigoTipoTransaccion += 200;
-
 			$signo = $tipotransaccion->signo == 'S' ? 1. : -1.;
 			
-			// Numera factura
-			switch($puntoventa->modofacturacion)
+			// Numera factura con web service si es factura electronica
+			if ($puntoventa->modofacturacion != 'M')
 			{
-			case 'C': // Factura electronica CAE
+				$this->armaTipoTransaccion($letra, $cliente->modoFacturacion, $codigoTipoTransaccion);
+
 				$numero = $this->facturaelectronicaService
 							->traeUltimoNumeroComprobante($empresa->nroinscripcion,
 															$codigoTipoTransaccion,
-															$puntoventa->codigo);
-				break;
+															$puntoventa);
+			}
+			else // Numera manualmente
+			{
+
 			}
 
 			if ($numero != -1)
@@ -439,7 +437,13 @@ class FacturacionService
 							'impuestos' => $impuestos,
 							'comprobantesasociados' => $comprobantesAsociados,
 							'fechaasignaciondesde' => date('Ymd', strtotime($fechaAsignacion)),
-							'fechaasignacionhasta' => date('Ymd', strtotime($fechaFactura))
+							'fechaasignacionhasta' => date('Ymd', strtotime($fechaFactura)),
+							'pais' => $cliente->paises->codigo,
+							'nombrecliente' => $cliente->nombre,
+							'domicilio' => $cliente->domicilio,
+							'formapago' => $cliente->condicionventas->nombre,
+							'incoterms' => '',
+							'items' => $dataFactura
 					];
 				}
 
@@ -448,12 +452,12 @@ class FacturacionService
 				try 
 				{
 					// Solicita CAE
-					if ($puntoventa->modofacturacion == 'C')
+					if ($puntoventa->modofacturacion != 'M')
 					{
 						$cae = $this->facturaelectronicaService->solicitaCAE(
 							$empresa->nroinscripcion,
 							$codigoTipoTransaccion,
-							$puntoventa->codigo,
+							$puntoventa,
 							$dataCAE);
 						//$cae = ['cae' => '73010591902976', 'fechavencimientocae' => '20230113'];
 						

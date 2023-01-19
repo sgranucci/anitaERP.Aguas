@@ -31,6 +31,18 @@
     	@endforeach
    	</select>
 </div>
-
+<div class="form-group row">
+	<label for="precio" class="col-lg-4 col-form-label requerido">Incluye precios</label>
+   	<select name="precio" id="precio" data-placeholder="Incluye Precios" class="col-lg-2 form-control required" data-fouc required>
+   		<option value="">-- Seleccionar inclusión de precios --</option>
+       	@foreach($precios_enum as $key => $value)
+       		@if( $key == 'S')
+       			<option value="{{ $key }}" selected="select">{{ $value }}</option>    
+       		@else
+       			<option value="{{ $key }}">{{ $value }}</option>    
+       		@endif
+       	@endforeach
+    </select>
+</div>
 @include('includes.stock.rangolinea')
 

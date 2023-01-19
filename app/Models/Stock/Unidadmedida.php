@@ -9,7 +9,7 @@ use App\ApiAnita;
 
 class Unidadmedida extends Model
 {
-    protected $fillable = ['nombre', 'abreviatura'];
+    protected $fillable = ['nombre', 'abreviatura', 'codigo'];
     protected $table = 'unidadmedida';
     protected $tableAnita = 'stkumd';
     protected $keyField = 'stkum_umd';

@@ -63,10 +63,6 @@ class CrearTablaVenta extends Migration
             $table->foreign('puntoventaremito_id', 'fk_venta_puntoventaremito')->references('id')->on('puntoventa')->onDelete('restrict')->onUpdate('restrict');
             $table->unsignedBigInteger('numeroremito');
             $table->integer('cantidadbulto');
-            $table->string('condicionventaexportacion',255)->nullable();
-            $table->string('formapagoexportacion',255)->nullable();
-            $table->string('mercaderiaexportacion',255)->nullable();
-            $table->string('monedaexportacion',10)->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->charset = 'utf8mb4';

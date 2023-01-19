@@ -192,7 +192,7 @@ class Ordentrabajo_TareaRepository implements Ordentrabajo_TareaRepositoryInterf
 						'ordentrabajo_tarea.desdefecha as desdefecha',
 						'ordentrabajo_tarea.hastafecha as hastafecha',
 						'ordentrabajo_tarea.costo as costoporpar',
-						DB::raw('sum(pedido_combinacion.cantidad) as cantidad'))
+						'pedido_combinacion.cantidad as cantidad')
 						->join('tarea', 'tarea.id', 'ordentrabajo_tarea.tarea_id')
 						->join('empleado', 'empleado.id', 'ordentrabajo_tarea.empleado_id')
 						->join('ordentrabajo', 'ordentrabajo.id', 'ordentrabajo_tarea.ordentrabajo_id')
@@ -209,9 +209,10 @@ class Ordentrabajo_TareaRepository implements Ordentrabajo_TareaRepositoryInterf
 						
 		if ($desdearticulo != '' && $hastaarticulo != '')
 			$data = $data->whereBetween('articulo.descripcion', [$desdearticulo, $hastaarticulo]);
-			
+
 		return $data->get();
     }
+
     public function sincronizarConAnita()
 	{
 		ini_set('max_execution_time', '300');

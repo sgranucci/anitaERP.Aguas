@@ -377,11 +377,13 @@ class PedidoService
 			}
 			$consumo = 0;
 			// Calcula el consumo
-			calculaConsumo($consumo, $pedido['nombretalle'], $pedido['cantidad'], 
+			calculaConsumo($consumo, $pedido['nombretalle'], $pedido['cantidadportalle'], 
 							$pedido['consumo1'], $pedido['consumo2'], 
 							$pedido['consumo3'], $pedido['consumo4']);
+
 			
-			$medidas[] = ['medida' => $pedido['nombretalle'], 'cantidad' => $pedido['cantidad'], 'consumo' => $consumo];
+			$medidas[] = ['medida' => $pedido['nombretalle'], 'cantidad' => $pedido['cantidadportalle'], 
+							'consumo' => $consumo];
 		}
 		if ($anterId != 0)
 		{

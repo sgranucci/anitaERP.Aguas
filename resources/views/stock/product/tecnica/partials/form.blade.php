@@ -158,6 +158,8 @@
     			<tr>
     				<th>Caja</th>
     				<th>Nombre</th>
+                    <th>Desde N&uacute;mero</th>
+                    <th>Hasta N&uacute;mero</th>
     			</tr>
     		</thead>
     		<tbody id="tbody-tabla">
@@ -175,6 +177,12 @@
 					</td>
 					<td>{{ $articulocaja->cajas->articulos->descripcion??'' }}
 					</td>
+                    <td>
+                	    <input type="text" id="desdenro" name="desdenros[]" class="form-control desdenro" value="{{number_format(old('desdenros.'.$loop->index, optional($articulocaja)->desdenro),0)}}" />
+                	</td>
+                    <td>
+                	    <input type="text" id="hastanro" name="hastanros[]" class="form-control hastanro" value="{{number_format(old('hastanros.'.$loop->index, optional($articulocaja)->hastanro),0)}}" />
+                	</td>
 					<td>
 						<button type="button" title="Elimina esta linea" style="padding:0;" class="btn-accion-tabla eliminarCaja tooltipsC">
               				<i class="fa fa-trash text-danger"></i>

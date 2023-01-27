@@ -674,6 +674,17 @@ Route::delete('ventas/tiposuspensioncliente/{id}', 'Ventas\Tiposuspensioncliente
  Route::delete('ventas/incoterm/{id}', 'Ventas\IncotermController@eliminar')->name('eliminar_incoterm');
  
 /* 
+ * Forma de pago
+ */
+
+ Route::get('ventas/formapago', 'Ventas\FormapagoController@index')->name('formapago');
+ Route::get('ventas/formapago/crear', 'Ventas\FormapagoController@crear')->name('crear_formapago');
+ Route::post('ventas/formapago', 'Ventas\FormapagoController@guardar')->name('guardar_formapago');
+ Route::get('ventas/formapago/{id}/editar', 'Ventas\FormapagoController@editar')->name('editar_formapago');
+ Route::put('ventas/formapago/{id}', 'Ventas\FormapagoController@actualizar')->name('actualizar_formapago');
+ Route::delete('ventas/formapago/{id}', 'Ventas\FormapagoController@eliminar')->name('eliminar_formapago');
+ 
+/* 
  * Tipos de transacciones de ventas
  */
 
@@ -694,6 +705,9 @@ Route::post('ventas/puntoventa', 'Ventas\PuntoventaController@guardar')->name('g
 Route::get('ventas/puntoventa/{id}/editar', 'Ventas\PuntoventaController@editar')->name('editar_puntoventa');
 Route::put('ventas/puntoventa/{id}', 'Ventas\PuntoventaController@actualizar')->name('actualizar_puntoventa');
 Route::delete('ventas/puntoventa/{id}', 'Ventas\PuntoventaController@eliminar')->name('eliminar_puntoventa');
+
+// Llamada desde jquery
+Route::get('ventas/chequeapuntoventa/{id}', 'Ventas\PuntoventaController@chequeapuntoventa')->name('chequea_puntoventa');
 
 /* 
  * Clientes

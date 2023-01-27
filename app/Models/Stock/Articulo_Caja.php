@@ -9,7 +9,7 @@ use App\ApiAnita;
 
 class Articulo_Caja extends Model
 {
-    protected $fillable = ['articulo_id', 'caja_id'];
+    protected $fillable = ['articulo_id', 'caja_id', 'desdenro', 'hastanro'];
     protected $table = 'articulo_caja';
 	public $timestamps = false;
 

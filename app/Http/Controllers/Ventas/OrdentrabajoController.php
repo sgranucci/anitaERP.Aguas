@@ -12,6 +12,8 @@ use App\Services\Ventas\OrdentrabajoService;
 use App\Queries\Stock\ArticuloQueryInterface;
 use App\Repositories\Ventas\PuntoventaRepositoryInterface;
 use App\Repositories\Ventas\TipotransaccionRepositoryInterface;
+use App\Repositories\Ventas\IncotermRepositoryInterface;
+use App\Repositories\Ventas\FormapagoRepositoryInterface;
 use App\Models\Stock\Mventa;
 use App\Models\Stock\Talle;
 use App\Models\Stock\Combinacion;
@@ -25,6 +27,8 @@ class OrdentrabajoController extends Controller
 	private $articuloService;
 	private $puntoventaRepository;
 	private $tipotransaccionRepository;
+	private $incotermRepository;
+	private $formpagoRepository;
 
     public function __construct(
     	OrdentrabajoService $ordentrabajoservice,
@@ -32,7 +36,9 @@ class OrdentrabajoController extends Controller
 		ClienteQueryInterface $clientequery,
 		ArticuloQueryInterface $articuloquery,
 		PuntoventaRepositoryInterface $puntoventarepository,
-		TipotransaccionRepositoryInterface $tipotransaccionrepository)
+		TipotransaccionRepositoryInterface $tipotransaccionrepository,
+		IncotermRepositoryInterface $incotermrepository,
+		FormapagoRepositoryInterface $formpagorepository)
 	{
         $this->middleware('auth');
 
@@ -42,6 +48,8 @@ class OrdentrabajoController extends Controller
         $this->articuloQuery = $articuloquery;
 		$this->puntoventaRepository = $puntoventarepository;
 		$this->tipotransaccionRepository = $tipotransaccionrepository;
+		$this->incotermRepository = $incotermrepository;
+		$this->formapagoRepository = $formpagorepository;
 	}
 
     public function index()
@@ -153,7 +161,8 @@ class OrdentrabajoController extends Controller
 		$mventa_id = $articulo_id = $combinacion_id = '';
 		$this->armarTablasVista($cliente_query, $mventa_query, $articulo_query, $combinacion_query, $talle_query, $tarea_query, $ordentrabajo, 
 								$mventa_id, $articulo_id, $combinacion_id, $puntoventa_query,
-								$tipotransaccion_query);
+								$tipotransaccion_query, $formapago_query,
+								$incoterm_query);
 
 		$data = [];
 		foreach ($ordentrabajo->ordentrabajo_combinacion_talles as $ot)
@@ -163,6 +172,7 @@ class OrdentrabajoController extends Controller
 			// Arma medidas
 			$medidas = [
 				'talle'=>$ot->pedido_combinacion_talles->talle_id,
+				'nombretalle'=>$ot->pedido_combinacion_talles->talles->nombre,
 				'cantidad'=>$ot->pedido_combinacion_talles->cantidad,
 				'precio'=>$ot->pedido_combinacion_talles->precio,
 			];
@@ -193,6 +203,7 @@ class OrdentrabajoController extends Controller
 						'tiposuspensioncliente_id'=>$ot->clientes->tiposupension_id,
 						'nombretiposuspensioncliente'=>$ot->clientes->tipossuspensioncliente->nombre??'',
 						'articulo'=>$item->articulos->descripcion,
+						'sku'=>$item->articulos->sku,
 						'articulo_id'=>$item->articulos->id,
 						'modulo_id'=>$item->modulo_id,
 						'pares'=>$item->cantidad, 
@@ -216,7 +227,8 @@ class OrdentrabajoController extends Controller
 														'tarea_query', 'mventa_id', 'articulo_id', 'combinacion_id', 
 														'puntoventa_query', 'puntoventadefault_id', 
 														'tipotransaccion_query', 'tipotransacciondefault_id',
-														'data', 'puntoventaremitodefault_id'));
+														'data', 'puntoventaremitodefault_id',
+														'formapago_query', 'incoterm_query'));
     }
 
     /**
@@ -285,7 +297,8 @@ class OrdentrabajoController extends Controller
 	 */
 	private function armarTablasVista(&$cliente_query, &$mventa_query, &$articulo_query, &$combinacion_query, &$talle_query, &$tarea_query,
 										$ordentrabajo, &$mventa_id, &$articulo_id, &$combinacion_id,
-										&$puntoventa_query, &$tipotransaccion_query)
+										&$puntoventa_query, &$tipotransaccion_query,
+										&$formapago_query, &$incoterm_query)
 	{
 		$cliente_query = $this->clienteQuery->allQueryporEstado(['id','nombre','codigo'], '0');//Cliente::$enumEstado['activo']);
 		$mventa_query = Mventa::all();
@@ -295,6 +308,8 @@ class OrdentrabajoController extends Controller
 		$tarea_query = Tarea::all();
 		$puntoventa_query = $this->puntoventaRepository->all('A');
 		$tipotransaccion_query = $this->tipotransaccionRepository->all('A');
+		$formapago_query = $this->formapagoRepository->all();
+		$incoterm_query = $this->incotermRepository->all();
 			
 		if ($ordentrabajo->ordentrabajo_combinacion_talles[0]->pedido_combinacion_talles)
 		{

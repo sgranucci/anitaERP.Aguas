@@ -188,6 +188,19 @@ $(document).on('shown.bs.modal', '#facturarOrdenTrabajoModal', function() {
     let sel_tipotransaccion = JSON.parse(document.querySelector('#datosfactura').dataset.tipotransaccion);
     let selectTipoTransaccion = $('#tipotransaccion_id');
     let tipoTransaccionDefault = $('#tipotransacciondefault_id').val();
+    
+    if (document.querySelector('#datosfactura').dataset.incoterm !== '')
+    {
+        var sel_incoterm = JSON.parse(document.querySelector('#datosfactura').dataset.incoterm);
+        var selectIncoterm = $('#incoterm_id');
+    }
+        
+    if (document.querySelector('#datosfactura').dataset.formapago !== '')
+    {
+        var sel_formapago = JSON.parse(document.querySelector('#datosfactura').dataset.formapago);
+        var selectFormapago = $('#formapago_id');
+    }
+
     const tiempoTranscurrido = Date.now();
     const hoy = new Date(tiempoTranscurrido);
 
@@ -197,6 +210,9 @@ $(document).on('shown.bs.modal', '#facturarOrdenTrabajoModal', function() {
     modal.find('#facturarMedidasModal').empty();
     modal.find('#facturarMedidasModal').append(talles_txt+medidas_txt+precios_txt+tallesid_txt);
 
+    // Lee punto de venta si es de exportacion
+    leePuntoVenta(puntoVentaDefault);
+    
     // Arma select de tipos de transacciones
     selectTipoTransaccion.empty();
     selectTipoTransaccion.append('<option value="">-- Seleccionar tipo de transacción --</option>');
@@ -230,6 +246,26 @@ $(document).on('shown.bs.modal', '#facturarOrdenTrabajoModal', function() {
         selectPuntoVentaRemito.append('<option value="' + item.id + '"'+op+'>' + item.codigo + '-' + item.nombre + '</option>');
     });
 
+    // Arma select de incoterms
+    if (document.querySelector('#datosfactura').dataset.incoterm !== '')
+    {
+        selectIncoterm.empty();
+        selectIncoterm.append('<option value="">-- Seleccionar incoterm --</option>');
+        $.each(sel_incoterm, function(obj, item) {
+            selectIncoterm.append('<option value="' + item.id + '">' + item.nombre + '</option>');
+        });
+    }
+
+    // Arma select de formas de pago
+    if (document.querySelector('#datosfactura').dataset.formapago !== '')
+    {
+        selectFormapago.empty();
+        selectFormapago.append('<option value="">-- Seleccionar forma de pago --</option>');
+        $.each(sel_formapago, function(obj, item) {
+            selectFormapago.append('<option value="' + item.id + '">' + item.nombre + '</option>');
+        });
+    }
+
     let _cant = 1;
 
     if (modulo_actual != 1)
@@ -250,6 +286,38 @@ $(document).on('shown.bs.modal', '#facturarOrdenTrabajoModal', function() {
 });
 
 // Cierra modal medidas
+$('#puntoventa_id').on('change', function () {
+    let puntoventa_id = $('#puntoventa_id').val();
+
+    // Lee punto de venta si es de exportacion
+    leePuntoVenta(puntoventa_id);
+});
+
+function leePuntoVenta(puntoventa_id)
+{
+    var listarUri = "/anitaERP/public/ventas/chequeapuntoventa/"+puntoventa_id;
+
+    $.get(listarUri, function(data){
+        
+        if (data.modofacturacion == 'E')
+        {
+            $('#div_formapago').show();
+            $('#div_mercaderia').show();
+            $('#div_incoterm').show();
+            $('#div_leyendaexportacion').show();
+        }
+        else
+        {
+            $('#div_formapago').hide();
+            $('#div_mercaderia').hide();
+            $('#div_incoterm').hide();
+            $('#div_leyendaexportacion').hide();
+        }
+    });
+}
+
+
+// Cierra modal medidas
 $('#cierraFacturarOrdenTrabajoModal').on('click', function () {
 });
 
@@ -265,6 +333,10 @@ $('#aceptaFacturarOrdenTrabajoModal').on('click', function () {
     var leyendafactura = $('#leyendafactura').val();
     var cantidadbulto = $('#cantidadbulto').val();
     var puntoventaremito_id = $('#puntoventaremito_id').val();
+    var formapago_id = $('#formapago_id').val();
+    var incoterm_id = $('#incoterm_id').val();
+    var mercaderia = $('#mercaderia').val();
+    var leyendaexportacion = $('#leyendaexportacion').val();
     let pedido_combinacion_ids = [];
     let ordentrabajo_ids = [];
 
@@ -283,6 +355,10 @@ $('#aceptaFacturarOrdenTrabajoModal').on('click', function () {
                 leyendafactura: leyendafactura,
                 cantidadbulto: cantidadbulto,
                 puntoventaremito_id: puntoventaremito_id,
+                formapago_id: formapago_id,
+                incoterm_id: incoterm_id,
+                mercaderia: mercaderia,
+                leyendaexportacion: leyendaexportacion,
                 _token: token
             },
             function(data, status){
@@ -301,6 +377,7 @@ function empacarPedido(item)
     var cliente = $(item).parents("tr").find(".cliente").val();
     var pedido = $(item).parents("tr").find(".pedido").val();
     var articulo = $(item).parents("tr").find(".articulo").val();
+    var sku = $(item).parents("tr").find(".sku").val();
     var combinacion = $(item).parents("tr").find(".nombre_combinacion").val();
     var medidas = $(item).parents("tr").find(".medidas").val();
     var pares = $(item).parents("tr").find(".pares").val();
@@ -316,6 +393,7 @@ function empacarPedido(item)
                 cliente: cliente,
                 pedido: pedido,
                 articulo: articulo,
+                sku: sku,
                 combinacion: combinacion,
                 medidas: medidas,
                 pares: pares,

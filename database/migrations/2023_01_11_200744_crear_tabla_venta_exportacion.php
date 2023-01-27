@@ -19,11 +19,10 @@ class CrearTablaVentaExportacion extends Migration
             $table->foreign('venta_id', 'fk_venta_exportacion_venta')->references('id')->on('venta')->onDelete('cascade')->onUpdate('cascade');
             $table->unsignedBigInteger('incoterm_id');
             $table->foreign('incoterm_id', 'fk_venta_exportacion_incoterm')->references('id')->on('incoterm')->onDelete('restrict')->onUpdate('restrict');
-            $table->string('leyenda',255)->nullable();
-            $table->string('condicionventaexportacion',255)->nullable();
-            $table->string('formapagoexportacion',255)->nullable();
-            $table->string('mercaderiaexportacion',255)->nullable();
-            $table->string('monedaexportacion',10)->nullable();
+            $table->unsignedBigInteger('formapago_id');
+            $table->foreign('formapago_id', 'fk_venta_exportacion_formapago')->references('id')->on('formapago')->onDelete('restrict')->onUpdate('restrict');
+            $table->string('mercaderia',255)->nullable();
+            $table->string('leyendaexportacion',2000)->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->charset = 'utf8mb4';

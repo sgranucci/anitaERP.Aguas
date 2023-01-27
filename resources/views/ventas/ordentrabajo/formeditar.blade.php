@@ -1,5 +1,5 @@
 <div class="row">
-	<div class="col-sm-6" id="datosfactura" data-puntoventa="{{$puntoventa_query}}" data-tipotransaccion="{{$tipotransaccion_query}}">
+	<div class="col-sm-6" id="datosfactura" data-puntoventa="{{$puntoventa_query}}" data-tipotransaccion="{{$tipotransaccion_query}}" data-incoterm="{{$incoterm_query}}" data-formapago="{{$formapago_query}}">
         <input type="hidden" id="codigoordentrabajo" class="form-control" value="{{old('codigoordentrabajo', $ordentrabajo->codigo ?? '')}}" />
         <input type="hidden" id="ordentrabajo_id" class="form-control" value="{{old('ordentrabajo_id', $ordentrabajo->id ?? '')}}" />
 		<input type="hidden" id="puntoventadefault_id" class="form-control" value="{{$puntoventadefault_id}}" />
@@ -99,6 +99,7 @@
 							<td>
 								<input type="hidden" name="articulo_ids[]" class="form-control articulo_id" value="{{ $ordentrabajoitem['articulo_id'] }}">
 								<input type="text" name="articulos[]" class="form-control articulo" value="{{ $ordentrabajoitem['articulo'] }}" readonly>
+								<input type="hidden" name="skus[]" class="form-control sku" value="{{ $ordentrabajoitem['sku'] }}">
 							</td>
 							<td>
 								<input type="hidden" name="combinacion_ids[]" class="form-control combinacion_id" value="{{ $ordentrabajoitem['combinacion_id'] }}">

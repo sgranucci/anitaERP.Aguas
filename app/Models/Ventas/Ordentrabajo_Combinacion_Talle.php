@@ -18,7 +18,7 @@ class Ordentrabajo_Combinacion_Talle extends Model
 
 	public function pedido_combinacion_talles()
 	{
-    	return $this->belongsTo(Pedido_Combinacion_Talle::class, 'pedido_combinacion_talle_id', 'id')->with("pedidos_combinacion");
+    	return $this->belongsTo(Pedido_Combinacion_Talle::class, 'pedido_combinacion_talle_id', 'id')->with("pedidos_combinacion")->with("talles");
 	}
 }
 

@@ -2,10 +2,10 @@
 
 namespace App\Repositories\Ventas;
 
-use App\Models\Ventas\Incoterm;
+use App\Models\Ventas\Formapago;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class IncotermRepository implements IncotermRepositoryInterface
+class FormapagoRepository implements FormapagoRepositoryInterface
 {
     protected $model;
 
@@ -14,9 +14,9 @@ class IncotermRepository implements IncotermRepositoryInterface
      *
      * @param Post $post
      */
-    public function __construct(Incoterm $incoterm)
+    public function __construct(Formapago $formapago)
     {
-        $this->model = $incoterm;
+        $this->model = $formapago;
     }
 
     public function all()
@@ -26,40 +26,40 @@ class IncotermRepository implements IncotermRepositoryInterface
 
     public function create(array $data)
     {
-        $incoterm = $this->model->create($data);
+        $formapago = $this->model->create($data);
     }
 
     public function update(array $data, $id)
     {
-        $incoterm = $this->model->findOrFail($id)->update($data);
+        $formapago = $this->model->findOrFail($id)->update($data);
 
-		return $incoterm;
+		return $formapago;
     }
 
     public function delete($id)
     {
-    	$incoterm = $this->model->find($id);
+    	$formapago = $this->model->find($id);
 
-        $incoterm = $this->model->destroy($id);
+        $formapago = $this->model->destroy($id);
 
-		return $incoterm;
+		return $formapago;
     }
 
     public function find($id)
     {
-        if (null == $incoterm = $this->model->find($id)) {
+        if (null == $formapago = $this->model->find($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
 
-        return $incoterm;
+        return $formapago;
     }
 
     public function findOrFail($id)
     {
-        if (null == $incoterm = $this->model->findOrFail($id)) {
+        if (null == $formapago = $this->model->findOrFail($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
 
-        return $incoterm;
+        return $formapago;
     }
 }

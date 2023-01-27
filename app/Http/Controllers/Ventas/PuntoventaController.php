@@ -120,6 +120,18 @@ class PuntoventaController extends Controller
         }
     }
 
+    // Chequea datos del punto de venta
+    public function chequeapuntoventa($id)
+    {
+        $data = $this->repository->findOrFail($id);
+
+        if ($data)
+        {
+            return ['modofacturacion' => $data->modofacturacion];
+        }
+        return -1;
+    }
+
     private function armaTablasVista(&$pais_query, &$provincia_query, &$modofacturacion_enum, 
                                     &$estado_enum, &$empresa_query)
     {

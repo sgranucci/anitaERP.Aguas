@@ -4,9 +4,13 @@ namespace App\Models\Ventas;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Venta extends Model
 {
+    use SoftDeletes;
+    
+    protected $dates = ['deleted_at'];
     protected $fillable = [
             'fecha', 'fechajornada', 'tipotransaccion_id',
             'puntoventa_id', 'numerocomprobante', 'cliente_id', 'condicionventa_id',

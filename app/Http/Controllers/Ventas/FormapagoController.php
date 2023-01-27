@@ -4,16 +4,16 @@ namespace App\Http\Controllers\Ventas;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Ventas\Incoterm;
+use App\Models\Ventas\Formapago;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Requests\ValidacionIncoterm;
-use App\Repositories\Ventas\IncotermRepositoryInterface;
+use App\Http\Requests\ValidacionFormapago;
+use App\Repositories\Ventas\FormapagoRepositoryInterface;
 
-class IncotermController extends Controller
+class FormapagoController extends Controller
 {
 	private $repository;
 
-    public function __construct(IncotermRepositoryInterface $repository)
+    public function __construct(FormapagoRepositoryInterface $repository)
     {
         $this->repository = $repository;
     }
@@ -25,10 +25,10 @@ class IncotermController extends Controller
      */
     public function index()
     {
-        can('listar-incoterms');
+        can('listar-formas-de-pago');
 		$datas = $this->repository->all();
 
-        return view('ventas.incoterm.index', compact('datas'));
+        return view('ventas.formapago.index', compact('datas'));
     }
 
     /**
@@ -38,9 +38,9 @@ class IncotermController extends Controller
      */
     public function crear()
     {
-        can('crear-incoterms');
+        can('crear-formas-de-pago');
 
-        return view('ventas.incoterm.crear');
+        return view('ventas.formapago.crear');
     }
 
     /**
@@ -49,11 +49,11 @@ class IncotermController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function guardar(ValidacionIncoterm $request)
+    public function guardar(ValidacionFormapago $request)
     {
 		$this->repository->create($request->all());
 
-        return redirect('ventas/incoterm')->with('mensaje', 'Incoterm creado con éxito');
+        return redirect('ventas/formapago')->with('mensaje', 'Forma de pago creada con éxito');
     }
 
 
@@ -65,10 +65,10 @@ class IncotermController extends Controller
      */
     public function editar($id)
     {
-        can('editar-incoterms');
+        can('editar-formas-de-pago');
         $data = $this->repository->findOrFail($id);
 
-        return view('ventas.incoterm.editar', compact('data'));
+        return view('ventas.formapago.editar', compact('data'));
     }
 
     /**
@@ -78,12 +78,12 @@ class IncotermController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function actualizar(ValidacionIncoterm $request, $id)
+    public function actualizar(ValidacionFormapago $request, $id)
     {
-        can('actualizar-incoterms');
+        can('actualizar-formas-de-pago');
         $this->repository->update($request->all(), $id);
 
-        return redirect('ventas/incoterm')->with('mensaje', 'Incoterm actualizado con éxito');
+        return redirect('ventas/formapago')->with('mensaje', 'Forma de pago actualizada con éxito');
     }
 
     /**
@@ -94,7 +94,7 @@ class IncotermController extends Controller
      */
     public function eliminar(Request $request, $id)
     {
-        can('borrar-incoterms');
+        can('borrar-formas-de-pago');
 
         if ($request->ajax()) {
         	if ($this->repository->delete($id)) {

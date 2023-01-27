@@ -15,11 +15,11 @@ class TablaPermisoSeeder extends Seeder
     {
         $now = Carbon::now()->toDateTimeString();
         $permisos = [
-            array('id' => '301', 'nombre' => 'Crear incoterms', 'slug' => 'crear-incoterms', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '302', 'nombre' => 'Listar incoterms', 'slug' => 'listar-incoterms', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '303', 'nombre' => 'Editar incoterms', 'slug' => 'editar-incoterms', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '304', 'nombre' => 'Actualizar incoterms', 'slug' => 'editar-incoterms', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '305', 'nombre' => 'Borrar incoterms', 'slug' => 'borrar-incoterms', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '306', 'nombre' => 'Crear formas de pago', 'slug' => 'crear-formas-de-pago', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '307', 'nombre' => 'Listar formas de pago', 'slug' => 'listar-formas-de-pago', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '308', 'nombre' => 'Editar formas de pago', 'slug' => 'editar-formas-de-pago', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '309', 'nombre' => 'Actualizar formas de pago', 'slug' => 'editar-formas-de-pago', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '310', 'nombre' => 'Borrar formas de pago', 'slug' => 'borrar-formas-de-pago', 'created_at' => $now, 'updated_at' => $now),
 
         ];
         DB::table('permiso')->insert($permisos);

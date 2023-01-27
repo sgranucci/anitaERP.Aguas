@@ -535,6 +535,8 @@ class ArticuloController extends Controller
 
 			// Actualiza articulos caja
 			$cajas_id = $request->input('cajas_id', []);
+			$desdenros = $request->input('desdenros', []);
+			$hastanros = $request->input('hastanros', []);
 
 			$this->articulo_cajaRepository->deletePorArticulo($request->id, $request->sku);
 			for ($i = 0; $i < count($cajas_id); $i++)
@@ -542,6 +544,8 @@ class ArticuloController extends Controller
 				if ($cajas_id[$i])
 					$articulo_caja = $this->articulo_cajaRepository->create(['articulo_id' => $id,
 																			'caja_id' => $cajas_id[$i],
+																			'desdenro' => $desdenros[$i],
+																			'hastanro' => $hastanros[$i],
 																			'sku' => $request->sku
 																			]);
 			}

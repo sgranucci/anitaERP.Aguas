@@ -2,10 +2,11 @@
 
 namespace App\Repositories\Ventas;
 
-use App\Models\Ventas\Incoterm;
+use App\Models\Ventas\Venta_Exportacion;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Auth;
 
-class IncotermRepository implements IncotermRepositoryInterface
+class Venta_ExportacionRepository implements Venta_ExportacionRepositoryInterface
 {
     protected $model;
 
@@ -14,9 +15,9 @@ class IncotermRepository implements IncotermRepositoryInterface
      *
      * @param Post $post
      */
-    public function __construct(Incoterm $incoterm)
+    public function __construct(Venta_Exportacion $venta)
     {
-        $this->model = $incoterm;
+        $this->model = $venta;
     }
 
     public function all()
@@ -26,40 +27,34 @@ class IncotermRepository implements IncotermRepositoryInterface
 
     public function create(array $data)
     {
-        $incoterm = $this->model->create($data);
+        return $this->model->create($data);
     }
 
     public function update(array $data, $id)
     {
-        $incoterm = $this->model->findOrFail($id)->update($data);
-
-		return $incoterm;
+        return $this->model->findOrFail($id)->update($data);
     }
 
     public function delete($id)
     {
-    	$incoterm = $this->model->find($id);
-
-        $incoterm = $this->model->destroy($id);
-
-		return $incoterm;
+    	return $this->model->destroy($id);
     }
 
     public function find($id)
     {
-        if (null == $incoterm = $this->model->find($id)) {
+        if (null == $venta_exportacion = $this->model->find($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
 
-        return $incoterm;
+        return $venta;
     }
 
     public function findOrFail($id)
     {
-        if (null == $incoterm = $this->model->findOrFail($id)) {
+        if (null == $venta_exportacion = $this->model->findOrFail($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
 
-        return $incoterm;
+        return $venta_exportacion;
     }
 }

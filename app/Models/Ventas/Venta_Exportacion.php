@@ -6,12 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Venta_Impuesto extends Model
+class Venta_Exportacion extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['concepto', 'baseimponible', 'tasa', 'importe', 'provincia_id', 'impuesto_id'];
-    protected $table = 'venta_impuesto';
     protected $dates = ['deleted_at'];
+    protected $fillable = ['venta_id', 'incoterm_id', 'formapago_id', 'mercaderia', 'leyendaexportacion'];
+    protected $table = 'venta_exportacion';
+
 }
 

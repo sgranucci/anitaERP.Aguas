@@ -11,6 +11,12 @@
 		<td>
 		</td>
 		<td>
+			<input type="text" id="desdenro" name="desdenros[]" class="form-control desdenro" value="" />
+		</td>
+		<td>
+			<input type="text" id="hastanro" name="hastanros[]" class="form-control hastanro" value="" />
+		</td>
+		<td>
 			<button type="button" title="Elimina esta linea" style="padding:0;" class="btn-accion-tabla eliminarCaja tooltipsC">
               	<i class="fa fa-trash text-danger"></i>
 			</button>

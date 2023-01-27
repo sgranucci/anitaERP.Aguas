@@ -91,6 +91,11 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 		$this->app->bind(
+        	'App\Repositories\Ventas\Venta_ExportacionRepositoryInterface',
+        	'App\Repositories\Ventas\Venta_ExportacionRepository',
+    	);
+
+		$this->app->bind(
         	'App\Repositories\Ventas\Cliente_CuentacorrienteRepositoryInterface',
         	'App\Repositories\Ventas\Cliente_CuentacorrienteRepository',
     	);
@@ -143,6 +148,11 @@ class AppServiceProvider extends ServiceProvider
 		$this->app->bind(
         	'App\Repositories\Ventas\IncotermRepositoryInterface',
         	'App\Repositories\Ventas\IncotermRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Ventas\FormapagoRepositoryInterface',
+        	'App\Repositories\Ventas\FormapagoRepository',
     	);
 
 		$this->app->bind(

@@ -18,6 +18,8 @@ class CrearTablaArticuloCaja extends Migration
 			$table->foreign('articulo_id', 'fk_articulo_caja_articulo')->references('id')->on('articulo')->onDelete('cascade');
 			$table->unsignedBigInteger('caja_id');
 			$table->foreign('caja_id', 'fk_articulo_caja_caja')->references('id')->on('caja')->onDelete('cascade');
+            $table->unsignedTinyInteger('desdenro');
+            $table->unsignedTinyInteger('hastanro');
 		});
     }
 

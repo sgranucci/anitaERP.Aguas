@@ -766,12 +766,11 @@ class IndicadoresExport implements FromView, WithColumnFormatting, WithMapping, 
                 $riesgo = $this->datas[$i]['open'] - $stopLoss;
                 $rrr = $retorno / $riesgo;
 
+                $this->datas[$i]['entrada'] = 'RRR '.$rrr;
                 if ($rrr >= 1.5)
                 {
-                    $this->datas[$i]['entrada'] = 'RRR '.$rrr;
-                    
                     // Redondea T1
-                    $t1 = redondear($t1, 2, $ticker*100);
+                    //$t1 = redondear($t1, 2, $ticker*100);
 
                     $open = $this->datas[$i]['open'];
 
@@ -784,9 +783,33 @@ class IndicadoresExport implements FromView, WithColumnFormatting, WithMapping, 
                 }
                 else
                 {
-                    $iniciaSwing = false;
-                    $off1oA = -1;
-                    $flAbrePosicion = false;
+                    // Si es un pivot analiza nuevamente
+                    if ($this->datas[$i]['provRet'] >= 0.5 && $this->datas[$i]['provRet'] <= 1)
+                    {
+                        $flAbrePosicion = false;
+                        $this->datas[$i]['entrada'] .= ' Encuentra un nuevo pivot';
+                    }
+                    else
+                    {
+                        $iniciaSwing = false;
+                        $off1oA = -1;
+                        $flAbrePosicion = false;
+
+                        // Si el ultimo pivot es un minimo inicia nuevo swing
+                        if ($this->datas[$i-1]['setup'] == 'HL' ||
+                            $this->datas[$i-1]['setup'] == 'LL' ||
+                            $this->datas[$i-1]['setup'] == 'DB')
+                        {
+                            if (!$iniciaSwing && !$flAbrePosicion)
+                            {
+                                $iniciaSwing = true;
+                                $off0 = $i - 1;
+                                $off1oA = -1;
+                                $stopLoss = $this->datas[$i - 1]['low'];
+                                $this->datas[$i]['entrada'] .= ' Inicia swing SL '.$stopLoss;
+                            }
+                        }
+                    }
                 }
 
                 $flBuscaEntrada = false;
@@ -811,7 +834,7 @@ class IndicadoresExport implements FromView, WithColumnFormatting, WithMapping, 
                     $t1 = ($recorrido1oA * 0.618) + $minimoActual;
                     $flBuscaEntrada = true;
 
-                    $this->datas[$i]['entrada'] = 'Ret '.$retroceso.' RV '.$relacionVelas.' T1 '.$t1;
+                    $this->datas[$i]['entrada'] .= ' Ret '.$retroceso.' RV '.$relacionVelas.' T1 '.$t1;
                 }
             }
 
@@ -841,7 +864,7 @@ class IndicadoresExport implements FromView, WithColumnFormatting, WithMapping, 
                         $off0 = $i;
                         $off1oA = -1;
                         $stopLoss = $this->datas[$i]['low'];
-                        $this->datas[$i]['entrada'] = 'Inicia swing SL '.$stopLoss;
+                        $this->datas[$i]['entrada'] .= ' Inicia swing SL '.$stopLoss;
                     }
                     break;
                 case 'LH':

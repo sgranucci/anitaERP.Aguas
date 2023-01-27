@@ -276,7 +276,8 @@ class MovimientoOrdentrabajoService
 		$reporte = "";
 		$reporte .= "Empaque de ORDEN DE TRABAJO NRO. ".$request['codigoordentrabajo']."\n\n";
 		$reporte .= "Cliente: ".$request['cliente']."\n\n";
-		$reporte .= "Articulo: ".$request['articulo']."\n\n";
+		$reporte .= "Articulo: ".$request['articulo']."\n";
+		$reporte .= "SKU: ".$request['sku']."\n\n";
 		$reporte .= "Combinacion: ".$request['combinacion']."\n\n";
 
 		$reporte .= "MEDIDAS\n";
@@ -284,7 +285,7 @@ class MovimientoOrdentrabajoService
 		
 		foreach($medidas as $medida)
 		{
-			$reporte .= "Talle: ".$medida->talle." Cantidad: ".$medida->cantidad."\n";
+			$reporte .= "Talle: ".$medida->nombretalle." Cantidad: ".$medida->cantidad."\n";
 		}
 		
 		$reporte .= "\nTotal pares: ".$request['pares']."\n\n\n\n\n\n\n\n\n\n\n\n\n";

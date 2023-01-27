@@ -17,6 +17,7 @@ use App\Repositories\Ventas\PuntoventaRepositoryInterface;
 use App\Repositories\Ventas\TipotransaccionRepositoryInterface;
 use App\Repositories\Ventas\VentaRepositoryInterface;
 use App\Repositories\Ventas\Venta_ImpuestoRepositoryInterface;
+use App\Repositories\Ventas\Venta_ExportacionRepositoryInterface;
 use App\Repositories\Ventas\Cliente_CuentacorrienteRepositoryInterface;
 use App\Repositories\Ventas\TransporteRepositoryInterface;
 use App\Repositories\Produccion\TareaRepositoryInterface;
@@ -87,10 +88,11 @@ class FacturacionService
 	protected $articulo_movimientoService;
 	protected $ventaRepository;
 	protected $venta_impuestoRepository;
+	protected $venta_exportacionRepository;
 	protected $tot_pares1, $tot_pares2, $tot_pares3, $tot_pares4;
 	protected $mventa_id;
 	protected $cantidadBulto, $puntoventaremito_id;
-	protected $condicionVentaExportacion, $formaPagoExportacion, $mercaderiaExportacion, $monedaExportacion;
+	protected $formapago_id, $mercaderiaExportacion, $leyendaExportacion, $incoterm_id;
 	protected $descuentoPie, $descuentoLinea;
 	protected $numeroDespacho;
 	protected $cuentacontable_id, $codigoCuentaContable, $nombreTipoTransaccion;
@@ -116,6 +118,7 @@ class FacturacionService
 								Articulo_MovimientoService $articulo_movimientoservice,
 								VentaRepositoryInterface $ventarepository,
 								Venta_ImpuestoRepositoryInterface $venta_impuestorepository,
+								Venta_ExportacionRepositoryInterface $venta_exportacionrepository,
 								TransporteRepositoryInterface $transporterepository,
 								Cliente_CuentacorrienteRepositoryInterface $cliente_cuentacorrienterepository,
 								LoteRepositoryInterface $loterepository
@@ -141,6 +144,7 @@ class FacturacionService
         $this->pedido_combinacion_talleRepository = $pedidocombinaciontallerepository;
 		$this->ventaRepository = $ventarepository;
 		$this->venta_impuestoRepository = $venta_impuestorepository;
+		$this->venta_exportacionRepository = $venta_exportacionrepository;
 		$this->cliente_cuentacorrienteRepository = $cliente_cuentacorrienterepository;
 		$this->transporteRepository = $transporterepository;
 		$this->loteRepository = $loterepository;
@@ -167,10 +171,10 @@ class FacturacionService
 		$this->descuentoLinea = $data['descuentolinea'];
 		$this->cantidadBulto = $data['cantidadbulto'];
 		$this->puntoventaremito_id = $data['puntoventaremito_id'];
-		$this->condicionVentaExportacion = '';
-		$this->formaPagoExportacion = '';
-		$this->mercaderiaExportacion = '';
-		$this->monedaExportacion = '';
+		$this->formapago_id = $data['formapago_id'];
+		$this->incoterm_id = $data['incoterm_id'];
+		$this->mercaderiaExportacion = $data['mercaderia'];
+		$this->leyendaExportacion = $data['leyendaexportacion'];
 		$this->numeroDespacho = '';
 
 		// Lee los items a facturar
@@ -468,7 +472,7 @@ class FacturacionService
 							throw new Exception('No pudo asignar CAE');
 					}
 					
-					$venta = array('fecha' => $fechaFactura,
+					$venta = ['fecha' => $fechaFactura,
 						'fechajornada' => $fechaFactura,
 						'empresa_id' => $puntoventa->empresa_id,
 						'tipotransaccion_id' => $tipotransaccion_id,
@@ -504,15 +508,25 @@ class FacturacionService
 						'fechavencimientocae' => $cae['fechavencimientocae'],
 						'puntoventaremito_id' => $this->puntoventaremito_id,
             			'numeroremito' => $numeroremito,
-						'cantidadbulto' => $this->cantidadBulto,	
-						'condicionventaexportacion' => $this->condicionVentaExportacion,
-						'formapagoexportacion' => $this->formaPagoExportacion,
-            			'mercaderiaexportacion' => $this->mercaderiaExportacion,  
-						'monedaexportacion' => $this->monedaExportacion
-					);
+						'cantidadbulto' => $this->cantidadBulto
+					];	
 
 					// Graba venta
 					$vta = $this->ventaRepository->create($venta);
+
+					// Graba venta de exportacion si existen parametros
+					if ($this->formpago_id >= 1)
+					{
+						$ventaExportacion = [
+							'venta_id' => $vta->id,
+							'incoterm_id' => $this->incoterm_id,
+							'formapago_id' => $this->formapago_id,
+							'mercaderia' => $this->mercaderiaExportacion,  
+							'leyendaexportacion' => $this->leyendaExportacion
+						];
+
+						$vtaExportacion = $this->venta_exportacionRepository->create($ventaExportacion);
+					}
 
 					// Graba impuestos
 					foreach($conceptosTotales as $conc)

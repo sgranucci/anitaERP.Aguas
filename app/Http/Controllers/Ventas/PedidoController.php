@@ -13,6 +13,8 @@ use App\Repositories\Ventas\MotivocierrepedidoRepositoryInterface;
 use App\Repositories\Stock\LoteRepositoryInterface;
 use App\Repositories\Ventas\PuntoventaRepositoryInterface;
 use App\Repositories\Ventas\TipotransaccionRepositoryInterface;
+use App\Repositories\Ventas\IncotermRepositoryInterface;
+use App\Repositories\Ventas\FormapagoRepositoryInterface;
 use App\Services\Ventas\PedidoService;
 use App\Models\Configuracion\Moneda;
 use App\Models\Ventas\Cliente;
@@ -43,6 +45,8 @@ class PedidoController extends Controller
 	private $loteRepository;
 	private $puntoventaRepository;
 	private $tipotransaccionRepository;
+	private $incotermRepository;
+	private $formpagoRepository;
 
     public function __construct(PedidoService $pedidoservice,
     							TransporteRepositoryInterface $transporterepository,
@@ -51,8 +55,9 @@ class PedidoController extends Controller
 								ClienteQueryInterface $clientequery,
 								LoteRepositoryInterface $loterepository,
 								PuntoventaRepositoryInterface $puntoventarepository,
-								TipotransaccionRepositoryInterface $tipotransaccionrepository
-								)
+								TipotransaccionRepositoryInterface $tipotransaccionrepository,
+								IncotermRepositoryInterface $incotermrepository,
+								FormapagoRepositoryInterface $formpagorepository)
     {
         $this->pedidoService = $pedidoservice;
         $this->transporteRepository = $transporterepository;
@@ -62,6 +67,8 @@ class PedidoController extends Controller
 		$this->loteRepository = $loterepository;
 		$this->puntoventaRepository = $puntoventarepository;
 		$this->tipotransaccionRepository = $tipotransaccionrepository;
+		$this->incotermRepository = $incotermrepository;
+		$this->formapagoRepository = $formpagorepository;
     }
 
     /**
@@ -317,8 +324,10 @@ class PedidoController extends Controller
 	public function consultarPendienteOT(Request $request)
 	{
 		$datas = $this->pedidoService->leePedidosPendientesOt($request);
+		$articulo_id = $request->articulo_id;
+		$combinacion_id = $request->combinacion_id;
 
-        return view('ventas.ordentrabajo.indexcrear', compact('datas'));
+        return view('ventas.ordentrabajo.indexcrear', compact('datas', 'articulo_id', 'combinacion_id'));
 	}
 
 	/* Lista el pedido */
@@ -352,18 +361,20 @@ class PedidoController extends Controller
 							$transporte_query, $mventa_query, $articulo_query, $modulo_query, 
 							$listaprecio_query, $moneda_query, $articuloall_query, $articuloxsku_query,
 							$tiposuspensioncliente_query, $motivocierrepedido_query, $lote_query,
-							$puntoventa_query, $tipotransaccion_query);
+							$puntoventa_query, $tipotransaccion_query, $formapago_query, $incoterm_query);
 		
 		$puntoventadefault_id = cache()->get(generaKey('puntoventa'));
 		$puntoventaremitodefault_id = cache()->get(generaKey('puntoventaremito'));
 		$tipotransacciondefault_id = cache()->get(generaKey('tipotransaccion'));
+		$formapago_query = $this->formapagoRepository->all();
+		$incoterm_query = $this->incotermRepository->all();
 			
         return view('ventas.pedido.crear', compact('cliente_query', 'condicionventa_query', 'vendedor_query',
 			'transporte_query', 'mventa_query', 'articulo_query', 'modulo_query', 'listaprecio_query', 'moneda_query', 
 			'articuloall_query', 'articuloxsku_query', 'tiposuspensioncliente_query',
 			'motivocierrepedido_query', 'lote_query',
 			'puntoventa_query', 'puntoventadefault_id', 'tipotransaccion_query', 
-			'tipotransacciondefault_id', 'puntoventaremitodefault_id'));
+			'tipotransacciondefault_id', 'puntoventaremitodefault_id', 'formapago_query', 'incoterm_query'));
     }
 
     /**
@@ -399,7 +410,7 @@ class PedidoController extends Controller
 							$mventa_query, $articulo_query, $modulo_query, $listaprecio_query, 
 							$moneda_query, $articuloall_query, $articuloxsku_query, 
 							$tiposuspensioncliente_query, $motivocierrepedido_query, $lote_query, 
-							$puntoventa_query, $tipotransaccion_query, $pedido);
+							$puntoventa_query, $tipotransaccion_query, $formapago_query, $incoterm_query, $pedido);
 
 		$puntoventadefault_id = cache()->get(generaKey('puntoventa'));
 		$puntoventaremitodefault_id = cache()->get(generaKey('puntoventaremito'));
@@ -410,7 +421,7 @@ class PedidoController extends Controller
 			'listaprecio_query', 'moneda_query', 'articuloall_query', 'articuloxsku_query', 
 			'tiposuspensioncliente_query', 'motivocierrepedido_query', 'lote_query',
 			'puntoventa_query', 'puntoventadefault_id', 'tipotransaccion_query', 
-			'tipotransacciondefault_id', 'puntoventaremitodefault_id'));
+			'tipotransacciondefault_id', 'puntoventaremitodefault_id', 'formapago_query', 'incoterm_query'));
     }
 
     /**
@@ -421,7 +432,7 @@ class PedidoController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function actualizar(ValidacionPedido $request, $id)
-    {
+	{
         can('actualizar-pedidos');
 
 		$pedido = $this->pedidoService->guardaPedido($request->all(), 'update', $id);
@@ -502,7 +513,7 @@ class PedidoController extends Controller
 				&$transporte_query, &$mventa_query, &$articulo_query, &$modulo_query, &$listaprecio_query, 
 				&$moneda_query, &$articuloall_query, &$articuloxsku_query, 
 				&$tiposuspensioncliente_query, &$motivocierrepedido_query, &$lote_query, 
-				&$puntoventa_query, &$tipotransaccion_query, $pedido = null)
+				&$puntoventa_query, &$tipotransaccion_query, &$formapago_query, &$incoterm_query, $pedido = null)
 	{
 		$cliente_query = $this->clienteQuery->allQueryCargaPedido(['id','nombre','codigo']);
 		$tiposuspensioncliente_query = $this->tiposuspencionclienteRepository->all();
@@ -513,7 +524,9 @@ class PedidoController extends Controller
 		$mventa_query = Mventa::all();
 		$lote_query = $this->loteRepository->all();
 		$puntoventa_query = $this->puntoventaRepository->all('A');
-		$tipotransaccion_query = $this->tipotransaccionRepository->all('A');
+		$tipotransaccion_query = $this->tipotransaccionRepository->all(['V','C'], ['A']);
+		$formapago_query = $this->formapagoRepository->all();
+		$incoterm_query = $this->incotermRepository->all();
 		
 		$articulo_ids = Array();
 		if ($pedido != null)	

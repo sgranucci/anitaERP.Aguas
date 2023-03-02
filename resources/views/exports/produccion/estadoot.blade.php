@@ -41,7 +41,8 @@
 				@foreach ($data['tareas'] as $tar)
 					@if ($columna == $tar['columna'])
 						<td>{{date("d-m-Y", strtotime($tar['fechainicio']))}}</td>
-						@if ($tar['fechafin'] != '0000-00-00')
+						@if ($tar['fechafin'] != '0000-00-00' && $tar['fechafin'] != '1969-12-31' && 
+							$tar['fechafin'] != null)
 							<td>{{date("d-m-Y", strtotime($tar['fechafin']))}}</td>
 						@else
 							<td></td>

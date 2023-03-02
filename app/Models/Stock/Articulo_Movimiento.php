@@ -10,15 +10,20 @@ use Illuminate\Support\Str;
 class Articulo_Movimiento extends Model
 {
     use SoftDeletes;
-    protected $fillable = ['fecha','fechajornada', 'tipotransaccion_id', 'venta_id', 'pedido_combinacion_id',
-                        'ordentrabajo_id', 'lote', 'articulo_id', 'combinacion_id', 'concepto', 'modulo_id',
-                        'cantidad', 'costo', 'listaprecio_id', 'incluyeimpuesto', 'moneda_id', 'descuento', 
-                        'descuentointegrado'];
+    protected $fillable = ['fecha','fechajornada', 'tipotransaccion_id', 'venta_id', 'movimientostock_id',
+                        'pedido_combinacion_id', 'ordentrabajo_id', 'lote', 'articulo_id', 'combinacion_id', 
+                        'concepto', 'modulo_id', 'cantidad', 'costo', 'listaprecio_id', 'incluyeimpuesto', 
+                        'moneda_id', 'descuento', 'descuentointegrado', 'deposito_id'];
     protected $table = 'articulo_movimiento';
 
     public function ordenestrabajo()
 	{
     	return $this->belongsTo(Ordentrabajo::class, 'ordentrabajo_id', 'id');
+	}
+
+    public function movimientosstock()
+	{
+    	return $this->belongsTo(MovimientoStock::class, 'movimientostock_id', 'id');
 	}
 
     public function pedidos_combinacion()

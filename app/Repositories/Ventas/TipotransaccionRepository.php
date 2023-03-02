@@ -21,9 +21,17 @@ class TipotransaccionRepository implements TipotransaccionRepositoryInterface
         $this->model = $tipotransaccion;
     }
 
-    public function all()
+    public function all($operacion, $estado = null)
     {
-        return $this->model->get();
+        $tipotransaccion = $this->model;
+
+        if ($operacion && $operacion != '*')
+            $tipotransaccion = $tipotransaccion->wherein('operacion', $operacion);
+
+        if ($estado)
+            $tipotransaccion = $tipotransaccion->wherein('estado', $estado);
+        
+        return $tipotransaccion->get();
     }
 
     public function create(array $data)

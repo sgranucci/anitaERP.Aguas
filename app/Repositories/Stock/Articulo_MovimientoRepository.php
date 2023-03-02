@@ -71,4 +71,9 @@ class Articulo_MovimientoRepository implements Articulo_MovimientoRepositoryInte
 		return $articulo_movimiento;
     }
 
+    public function deletePorMovimientoStockId($movimientostock_id)
+    {
+        return $this->model->where('movimientostock_id', $movimientostock_id)->delete();
+    }
+
 }

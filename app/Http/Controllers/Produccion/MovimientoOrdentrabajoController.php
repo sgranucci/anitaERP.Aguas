@@ -134,7 +134,7 @@ class MovimientoOrdentrabajoController extends Controller
      */
     public function eliminar(Request $request, $id)
     {
-        can('borrar-movimientos-orden-trabajos');
+        can('borrar-movimientos-orden-trabajo');
 
         if ($request->ajax()) {
 			if ($this->movimientoOrdentrabajoService->borraMovimientoOrdenTrabajo($id))

@@ -166,7 +166,7 @@ $(document).ready(function () {
                         titleAttr: 'Excel',
                         className: 'btn btn-app export excel',
                         exportOptions: {
-                            columns: [ 0, 1 ]
+                            columns: ':visible'
                         },
                     },
                     {
@@ -176,7 +176,7 @@ $(document).ready(function () {
                         titleAttr: 'CSV',
                         className: 'btn btn-app export csv',
                         exportOptions: {
-                            columns: [ 0, 1 ]
+                            columns: ':visible'
                         }
                     },
                     {

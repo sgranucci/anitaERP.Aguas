@@ -112,6 +112,7 @@ class EstadoOtExport implements FromView, WithColumnFormatting, WithMapping, Sho
                 }
             }
         }
+        
         // Cierra ultimo ciclo
         if ($currOrdenTrabajo_id != 0)
         {

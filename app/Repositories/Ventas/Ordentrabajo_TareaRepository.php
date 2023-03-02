@@ -191,7 +191,7 @@ class Ordentrabajo_TareaRepository implements Ordentrabajo_TareaRepositoryInterf
 						'pedido.codigo as numeropedido',
 						'ordentrabajo_tarea.desdefecha as desdefecha',
 						'ordentrabajo_tarea.hastafecha as hastafecha',
-						'ordentrabajo_tarea.costo as costoporpar',
+						'articulo_costo.costo as costoporpar',
 						'pedido_combinacion.cantidad as cantidad')
 						->join('tarea', 'tarea.id', 'ordentrabajo_tarea.tarea_id')
 						->join('empleado', 'empleado.id', 'ordentrabajo_tarea.empleado_id')
@@ -199,6 +199,11 @@ class Ordentrabajo_TareaRepository implements Ordentrabajo_TareaRepositoryInterf
 						->join('pedido_combinacion', 'pedido_combinacion.id', 'ordentrabajo_tarea.pedido_combinacion_id')
 						->join('pedido', 'pedido.id', 'pedido_combinacion.pedido_id')
 						->join('articulo', 'articulo.id', 'pedido_combinacion.articulo_id')
+						->leftJoin('articulo_costo', function($join)
+						{
+							$join->on('articulo_costo.articulo_id', 'pedido_combinacion.articulo_id');
+							$join->on('articulo_costo.tarea_id', 'ordentrabajo_tarea.tarea_id');
+						})
 						->join('combinacion', 'combinacion.id', 'pedido_combinacion.combinacion_id')
 						->whereBetween('ordentrabajo_tarea.hastafecha', [$desdefecha, $hastafecha])
 						->whereBetween('pedido.cliente_id', [$desdecliente_id, $hastacliente_id])

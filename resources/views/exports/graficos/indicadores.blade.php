@@ -71,6 +71,7 @@
 		<th>T1</th>
 		<th>P</th>
 		<th>EVENTO</th>
+		<th>ZONA</th>
 	</tr>
   	</thead>
     <tbody>
@@ -143,6 +144,7 @@
 			<td align="right">{{$data['t1']}}</td>
 			<td align="right">{{$data['p']}}</td>
 			<td align="left">{{$data['evento']}}</td>
+			<td align="left">{{$data['zona']}}</td>
         </tr>
     @endforeach
 	</tbody>

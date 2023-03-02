@@ -46,7 +46,8 @@ class ConsumoCajaExport implements FromView, WithColumnFormatting, WithMapping, 
                                                     );
 
         return view('exports.produccion.reporteconsumocaja.reporteconsumocaja', [
-                        'data' => $data,
+                        'cajas' => $data['cajas'],
+                        'cajasespeciales' => $data['cajasespeciales'],
                         'desdefecha' => $this->desdeFecha, 
                         'hastafecha' => $this->hastaFecha,
                         'ordenestrabajo' => $this->ordenesTrabajo,
@@ -89,8 +90,12 @@ class ConsumoCajaExport implements FromView, WithColumnFormatting, WithMapping, 
 	public function columnWidths(): array
     {
         return [
-                'A' => 50,
-                'C' => 50
+                'A' => 20,
+                'B' => 10,
+                'C' => 30,
+                'E' => 20,
+                'F' => 10,
+                'G' => 30,
         ];
     }
 

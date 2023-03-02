@@ -13,6 +13,7 @@ interface Articulo_MovimientoRepositoryInterface
     public function findPorArticuloCombinacion($articulo_id, $combinacion_id);
     public function findPorPedidoCombinacionId($pedido_combinacion_id);
     public function updatePorPedidoCombinacionId($pedido_combinacion_id, $data);
+    public function deletePorMovimientoStockId($movimientostock_id);
 
 }
 

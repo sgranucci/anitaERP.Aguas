@@ -8,6 +8,15 @@
     $(function () {
         $("#ordenestrabajo").focus();
     });
+
+    // Previene que se presione enter y envie el formulario por lector QR
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('input[type=text]').forEach( node => node.addEventListener('keypress', e => {
+        if(e.keyCode == 13) {
+          e.preventDefault();
+        }
+      }))
+    });
 </script>
 @endsection
 

@@ -10,7 +10,7 @@
     var CLIENTE_STOCK_ID = "{{ config('cliente.CLIENTE_STOCK_ID') }}";
 	function sub()
 	{
-		$('#form-general').submit();
+		$('#formgeneral').submit();
 	}
 
     $(function () {
@@ -49,7 +49,7 @@
                     </a>
                 </div>
             </div>
-            <form action="{{route('guardar_pedido')}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
+            <form action="{{route('guardar_pedido')}}" id="formgeneral" class="form-horizontal form--label-right" method="POST" autocomplete="off">
                 @csrf
                 <div class="card-body">
                     @php $datos = ["funcion" => "crear"]; @endphp

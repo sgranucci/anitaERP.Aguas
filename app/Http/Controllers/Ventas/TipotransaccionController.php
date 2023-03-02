@@ -26,7 +26,7 @@ class TipotransaccionController extends Controller
     public function index()
     {
         can('listar-tipos-transacciones');
-		$datas = $this->repository->all();
+		$datas = $this->repository->all('*');
         $operacionEnum = Tipotransaccion::$enumOperacion;
         $signoEnum = Tipotransaccion::$enumSigno;
         $estadoEnum = Tipotransaccion::$enumEstado;

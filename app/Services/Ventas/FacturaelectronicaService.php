@@ -25,6 +25,7 @@ class FacturaElectronicaService
 
 		if ($puntoventa->webservice == 'wsfex_v1')
 		{
+			$req['solicitud']['funcion'] = 'SolicitarUltimoNroComp';
 			$req['datos']['pvta'] = (int) $puntoventa->codigo;
 			$req['datos']['tipo_cbt']   = (int) $tipotransaccion;	
 		}
@@ -39,19 +40,26 @@ class FacturaElectronicaService
 		$nombreXmlRespuesta = $base.'_RESP.xml';
 		Storage::disk('public')->put($puntoventa->pathafip."/ent/$nombreXml", $this->GenerarXML ($req, null));
 
-		$ret = $this->ejecutaAfip($nombreXml);
+		$ret = $this->ejecutaAfip($puntoventa->pathafip, $nombreXml);
 
 		Storage::disk('public')->delete($puntoventa->pathafip."/ent/$nombreXml");
 
 		$resp = new \SimpleXMLElement("storage/".$puntoventa->pathafip."/ent/$nombreXmlRespuesta", null, true);
 
 		$mensaje = $resp->mensaje;
-		$tipo = $resp->detalle->tipo;
-		$pventa = $resp->detalle->pventa;
 		$ultimoNumero = -1;
-
-		if ($tipo == $tipotransaccion && $pventa == $puntoventa)
-			$ultimoNumero = strval($resp->detalle->numero);
+		if ($puntoventa->webservice == 'wsfex_v1')
+		{
+			$ultimoNumero = strval($resp->numero);
+		}
+		else
+		{
+			$tipo = $resp->detalle->tipo;
+			$pventa = $resp->detalle->pventa;
+		
+			if ($tipo == $tipotransaccion && $pventa == $puntoventa)
+				$ultimoNumero = strval($resp->detalle->numero);
+		}
 		
 		Storage::disk('public')->delete($puntoventa->pathafip."/ent/$nombreXmlRespuesta");
 
@@ -63,6 +71,8 @@ class FacturaElectronicaService
 		// Si es exportacion tiene que pedir request
 		if ($puntoventa->webservice == 'wsfex_v1')
 		{
+			$nroId = -1;
+			
 			$req['solicitud']['servicio'] = $puntoventa->webservice;
 			$req['solicitud']['funcion'] = 'SolicitarUltNroRequest';
 			$req['datos']['cuit']   = (double) str_replace("-","",$nroinscripcion);
@@ -72,20 +82,20 @@ class FacturaElectronicaService
 			$nombreXmlRespuesta = $base.'_RESP.xml';
 			Storage::disk('public')->put($puntoventa->pathafip."/ent/$nombreXml", $this->GenerarXML ($req, null));
 	
-			$ret = $this->ejecutaAfip($nombreXml);
+			$ret = $this->ejecutaAfip($puntoventa->pathafip, $nombreXml);
 	
 			//Storage::disk('public')->delete($puntoventa->pathafip."/ent/$nombreXml");
 			
 			$resp = new \SimpleXMLElement("storage/".$puntoventa->pathafip."/ent/$nombreXmlRespuesta", null, true);
-			$mensaje = $resp->mensaje;
-			$tipo = $resp->detalle->tipo;
-			$pventa = $resp->detalle->pventa;
-			$nroId = -1;
-
-			if ($tipo == $tipotransaccion && $pventa == $puntoventa)
-				$nroId = strval($resp->detalle->numero);
+			
+			if ($resp->estado == '0' && $resp->mensaje == 'OK')
+			{
+				$mensaje = $resp->mensaje;
+				$nroId = strval($resp->numero)+1;
+			}
 			
 			Storage::disk('public')->delete($puntoventa->pathafip."/ent/$nombreXmlRespuesta");
+			$req = [];
 		}
 
 		$req['solicitud']['servicio'] = $puntoventa->webservice;
@@ -94,9 +104,10 @@ class FacturaElectronicaService
 		if ($puntoventa->webservice == 'wsfex_v1')
 		{
 			$req['encabezado']['cuit']   = (double) str_replace("-","",$nroinscripcion);
-			$req['encabezado']['punto_venta'] = (int) $puntoventa->codigo;
-	        $req['encabezado']['tipo_cbte']   = (int) $tipotransaccion;
 			$req['encabezado']['id']   = (int) $nroId;
+			$req['encabezado']['fecha_cbt'] = $datos['fechacomprobante'];
+			$req['encabezado']['tipo_cbte']   = (int) $tipotransaccion;
+			$req['encabezado']['punto_vta'] = (int) $puntoventa->codigo;
 			$req['encabezado']['cbte_nro'] = $datos['numerocomprobante'];
 			$req['encabezado']['tipo_expo']   = (int) 1; // Bienes
 
@@ -117,25 +128,28 @@ class FacturaElectronicaService
 			$req['encabezado']['obs_comerciales'] = ' ';
 			$req['encabezado']['imp_total'] = Round($datos['total'],2);
 			$req['encabezado']['obs'] = ' ';
-			$req['encabezado']['forma_pago'] = $datos['formapago'];
+			$req['encabezado']['forma_pago'] = $datos['formapagoexportacion'];
 			$req['encabezado']['incoterms'] = $datos['incoterms'];
-			if ($incoterms == '')
+			if ($datos['incoterms'] == '')
 				$req['encabezado']['incoterms_ds'] = '';
 			else
 				$req['encabezado']['incoterms_ds'] = ' ';
+				
 			$req['encabezado']['idioma_cbte'] = '2';
 			$req['encabezado']['permisos'] = ' ';
 			$req['encabezado']['cmp_asoc'] = ' ';
-
+ 
 			// Arma items
+			$qItem = 0;
 			for ($i = 0; $i < count($datos['items']); $i++)
 			{
-				$req['detalle']['item']['pro_codigo'] = $datos['items'][$i]['sku'];
-				$req['detalle']['item']['pro_ds'] = $datos['items'][$i]['descripcion'];
-				$req['detalle']['item']['pro_qty'] = $datos['items'][$i]['cantidad'];
-				$req['detalle']['item']['pro_umed'] = $datos['items'][$i]['codigounidadmedida'];
-				$req['detalle']['item']['pro_precio_uni'] = $datos['items'][$i]['precio'];
-				$req['detalle']['item']['pro_total_item'] = $datos['items'][$i]['precio'] * datos['items'][$i]['cantidad'];
+				$it = 'item_'.$qItem++;
+				$req['detalle'][$it]['pro_codigo'] = $datos['items'][$i]['sku'];
+				$req['detalle'][$it]['pro_ds'] = $datos['items'][$i]['descripcion'];
+				$req['detalle'][$it]['pro_qty'] = $datos['items'][$i]['cantidad'];
+				$req['detalle'][$it]['pro_umed'] = $datos['items'][$i]['codigounidadmedida'];
+				$req['detalle'][$it]['pro_precio_uni'] = $datos['items'][$i]['precio'];
+				$req['detalle'][$it]['pro_total_item'] = $datos['items'][$i]['precio'] * $datos['items'][$i]['cantidad'];
 			}
 
 			// Agrega impuestos como items
@@ -148,12 +162,13 @@ class FacturaElectronicaService
 
 			if ($totalIngresosBrutos != 0)
 			{
-				$req['detalle']['item']['pro_codigo'] = ' ';
-				$req['detalle']['item']['pro_ds'] = 'Ingresos Brutos';
-				$req['detalle']['item']['pro_qty'] = 1;
-				$req['detalle']['item']['pro_umed'] = 7;
-				$req['detalle']['item']['pro_precio_uni'] = $totalIngresosBrutos;
-				$req['detalle']['item']['pro_total_item'] = $totalIngresosBrutos;
+				$it = 'item_'.$qItem++;
+				$req['detalle'][$it]['pro_codigo'] = ' ';
+				$req['detalle'][$it]['pro_ds'] = 'Ingresos Brutos';
+				$req['detalle'][$it]['pro_qty'] = 1;
+				$req['detalle'][$it]['pro_umed'] = 7;
+				$req['detalle'][$it]['pro_precio_uni'] = $totalIngresosBrutos;
+				$req['detalle'][$it]['pro_total_item'] = $totalIngresosBrutos;
 			}
 		}
 		else
@@ -203,11 +218,12 @@ class FacturaElectronicaService
 				{
 					if ($datos['tributos'][$j]['importe'] != 0)
 					{
-						$req['detalle']['tributos']['tributo'][$j]['id'] = $datos['tributos'][$j]['id'];
-						$req['detalle']['tributos']['tributo'][$j]['base_imp'] = Round($datos['tributos'][$j]['base_imp'],2);
-						$req['detalle']['tributos']['tributo'][$j]['importe'] = Round($datos['tributos'][$j]['importe'],2);
-						$req['detalle']['tributos']['tributo'][$j]['alicuota'] = $datos['tributos'][$j]['alicuota'];
-						$req['detalle']['tributos']['tributo'][$j]['desc'] = $datos['tributos'][$j]['desc'];
+						$it = 'tributo_'.$j;
+						$req['detalle']['tributos'][$it]['id'] = $datos['tributos'][$j]['id'];
+						$req['detalle']['tributos'][$it]['base_imp'] = Round($datos['tributos'][$j]['base_imp'],2);
+						$req['detalle']['tributos'][$it]['importe'] = Round($datos['tributos'][$j]['importe'],2);
+						$req['detalle']['tributos'][$it]['alicuota'] = $datos['tributos'][$j]['alicuota'];
+						$req['detalle']['tributos'][$it]['desc'] = $datos['tributos'][$j]['desc'];
 					}
 				}
 			}
@@ -230,9 +246,10 @@ class FacturaElectronicaService
 				{
 					if ($datos['impuestos'][$j]['importe'] != 0)
 					{
-						$req['detalle']['iva']['aliciva'][$j]['id'] = $datos['impuestos'][$j]['id'];
-						$req['detalle']['iva']['aliciva'][$j]['base_imp'] = Round($datos['impuestos'][$j]['base_imp'],2);
-						$req['detalle']['iva']['aliciva'][$j]['importe'] = Round($datos['impuestos'][$j]['importe'],2);
+						$it = 'aliciva'.$j;
+						$req['detalle']['iva'][$it]['id'] = $datos['impuestos'][$j]['id'];
+						$req['detalle']['iva'][$it]['base_imp'] = Round($datos['impuestos'][$j]['base_imp'],2);
+						$req['detalle']['iva'][$it]['importe'] = Round($datos['impuestos'][$j]['importe'],2);
 					}
 				}
 			}
@@ -250,9 +267,12 @@ class FacturaElectronicaService
 		$base = "solicitaCAE-". Str::random(20);
 		$nombreXml = $base.'.xml';
 		$nombreXmlRespuesta = $base.'_RESP.xml';
-		Storage::disk('public')->put($puntoventa->pathafip."/ent/$nombreXml", $this->GenerarXML ($req, null));
 
-		$ret = $this->ejecutaAfip($nombreXml);
+		// Reemplaza etiquetas numeros de id de repetidas
+		$xml = preg_replace('/_(\d+)>/i', '>', $this->GenerarXML($req,null));
+		Storage::disk('public')->put($puntoventa->pathafip."/ent/$nombreXml", $xml);
+
+		$ret = $this->ejecutaAfip($puntoventa->pathafip, $nombreXml);
 
 		//Storage::disk('public')->delete($puntoventa->pathafip."/ent/$nombreXml");
 		
@@ -334,7 +354,7 @@ class FacturaElectronicaService
 		$nombreXmlRespuesta = $base.'_RESP.xml';
 		Storage::disk('public')->put($puntoventa->pathafip."/ent/$nombreXml", $this->GenerarXML ($req, null));
 
-		$ret = $this->ejecutaAfip($nombreXml);
+		$ret = $this->ejecutaAfip($puntoventa->pathafip, $nombreXml);
 
 		Storage::disk('public')->delete($puntoventa->pathafip."/ent/$nombreXml");
 
@@ -356,12 +376,12 @@ class FacturaElectronicaService
 			return -1;
 	}
 
-	public function armaTipoTransaccion($letra, $modofacturacion, &$tipotransaccion)
+	public function armaTipoTransaccion($letra, $modofacturacion, &$tipotransaccion, $puntoventa)
 	{
 		// Arma el tipo de transaccion
 		if ($letra == 'B')
 			$tipotransaccion += 5;
-		elseif ($letra == 'E')
+		elseif ($letra == 'E' || ($puntoventa->webservice == 'wsfex_v1'))
 			$tipotransaccion += 18;
 		elseif ($letra == 'M')
 			$tipotransaccion += 50;
@@ -371,11 +391,11 @@ class FacturaElectronicaService
 			$tipotransaccion += 200;
 	}
 
-	private function ejecutaAfip($nombrexml)
+	private function ejecutaAfip($pathafip, $nombrexml)
 	{
 		$path = Storage::path($nombrexml);
 
-		$cmd = "cd storage/afip; ./afip.php ".str_replace(".xml", "", $nombrexml)." 1>&2 2>err";
+		$cmd = "cd storage/$pathafip; ./afip.php ".str_replace(".xml", "", $nombrexml)." 1>&2 2>err";
 		$process = new Process($cmd);
 		$process->run();
 		if (!$process->isSuccessful()) {
@@ -392,9 +412,9 @@ class FacturaElectronicaService
         foreach($data as $key => $value) {
             if (is_numeric($key)) {
                 $key = "unknownNode_". (string) $key;
-            }
-
-            if (is_array($value)) {
+			}
+			
+			if (is_array($value)) {
                 $node = $xml->addChild($key);
 
                 $this->GenerarXML ($value, $node);
@@ -403,7 +423,8 @@ class FacturaElectronicaService
                 $value = htmlentities($value);
                 $xml->addChild($key,$value);
             }
-        }
+		}
+		
 		return $xml->asXML();
     }
 

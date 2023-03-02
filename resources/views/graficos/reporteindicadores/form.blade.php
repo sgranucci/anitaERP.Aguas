@@ -57,6 +57,21 @@
     	@endforeach
 	</select>
 </div>
+<div class="form-group row">
+	<label for="filtroSetup" class="col-lg-3 col-form-label requerido">Filtro Setup:</label>
+	
+	<select name="filtroSetup" class="col-lg-3 form-control" required>
+    	<option value="">-- Elija la filtro de setup --</option>
+       	@foreach($filtroSetup_enum as $value => $filtroSetup)
+			@if ($value == 'A')
+       			<option value="{{ $value }}" selected>{{ $filtroSetup }}</option>    
+			@else
+			    <option value="{{ $value }}">{{ $filtroSetup }}</option>
+			@endif
+    	@endforeach
+	</select>
+	
+</div>
 <div class="row">
 	<div class="col-sm-6">
 		<div class="form-group row">
@@ -101,8 +116,9 @@
 		<div class="form-group row">
 			<label for="swingsize" class="col-lg-3 col-form-label requerido">Swing Size:</label>
 			<div class="col-lg-4">
-				<input type="number" id="swingsize" name="swingsize" class="form-control" value="{{7}}">
+				<input type="number" id="swingsize" name="swingsize" class="form-control" value="{{21}}">
 			</div>
 		</div>
+		
 	</div>
 </div>

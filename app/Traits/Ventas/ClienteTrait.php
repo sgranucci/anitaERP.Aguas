@@ -30,4 +30,9 @@ trait ClienteTrait {
 		'N' => 'Normal',
 		'C' => 'Factura de crédito FCE',
 		];
+
+	public static $enumCajaEspecial = [
+		'N' => 'No lleva caja especial',
+		'S' => 'Lleva caja especial',
+		];
 }

@@ -6,7 +6,7 @@ trait TipotransaccionTrait {
 
 	public static $enumOperacion = [
 		'V' => 'Venta',
-		'C' => 'Devolución',
+		'C' => 'Devolución de venta',
 		'E' => 'Entradas de stock',
 		'S' => 'Salidas de stock'
 		];

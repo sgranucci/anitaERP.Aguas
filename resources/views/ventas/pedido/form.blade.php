@@ -1,5 +1,5 @@
 <div class="row">
-	<div class="col-sm-6" id="datosfactura" data-puntoventa="{{$puntoventa_query}}" data-tipotransaccion="{{$tipotransaccion_query}}">
+	<div class="col-sm-6" id="datosfactura" data-puntoventa="{{$puntoventa_query}}" data-tipotransaccion="{{$tipotransaccion_query}}" data-incoterm="{{$incoterm_query}}" data-formapago="{{$formapago_query}}">
         <input type="hidden" id="codigopedido" class="form-control" value="{{old('codigopedido', $pedido->codigo ?? '')}}" />
 		<div class="form-group row">
    			<label for="cliente" class="col-lg-3 col-form-label requerido">Cliente</label>
@@ -146,17 +146,17 @@
 					@foreach (old('items', $pedido->pedido_combinaciones->count() ? $pedido->pedido_combinaciones : ['']) as $pedidoitem)
             			<tr class="item-pedido">
                 			<td>
-								@if ($pedidoitem->estado == 'A')
+								@if ($pedidoitem->estado ?? '' == 'A')
                 					<input type="text" style="background-color:red;font-weight:900;" name="items[]" class="form-control item" value="{{ $loop->index+1 }}" readonly>
 								@else
                 					<input type="text" name="items[]" class="form-control item" value="{{ $loop->index+1 }}" readonly>
 								@endif
-                				<input type="hidden" name="medidas[]" class="form-control medidas" readonly value="{{old('medidas', $pedidoitem->pedido_combinacion_talles)}}" />
-                				<input type="hidden" name="listasprecios_id[]" class="form-control listaprecio_id" readonly value="{{old('listaprecios_id', $pedidoitem->listaprecio_id)}}" />
-                				<input type="hidden" name="monedas_id[]" class="form-control moneda_id" readonly value="{{old('monedas_id', $pedidoitem->moneda_id)}}" />
-                				<input type="hidden" name="incluyeimpuestos[]" class="form-control incluyeimpuesto" readonly value="{{old('incluyeimpuestos', $pedidoitem->incluyeimpuesto)}}" />
-                				<input type="hidden" name="descuentos[]" class="form-control descuento" readonly value="{{old('descuentos', $pedidoitem->descuento)}}" />
-                				<input type="hidden" name="ids[]" class="form-control ids" value="{{$pedidoitem->id}}" />
+                				<input type="hidden" name="medidas[]" class="form-control medidas" readonly value="{{old('medidas', $pedidoitem->pedido_combinacion_talles??'')}}" />
+                				<input type="hidden" name="listasprecios_id[]" class="form-control listaprecio_id" readonly value="{{old('listaprecios_id', $pedidoitem->listaprecio_id??'')}}" />
+                				<input type="hidden" name="monedas_id[]" class="form-control moneda_id" readonly value="{{old('monedas_id', $pedidoitem->moneda_id??'')}}" />
+                				<input type="hidden" name="incluyeimpuestos[]" class="form-control incluyeimpuesto" readonly value="{{old('incluyeimpuestos', $pedidoitem->incluyeimpuesto??'')}}" />
+                				<input type="hidden" name="descuentos[]" class="form-control descuento" readonly value="{{old('descuentos', $pedidoitem->descuento??'')}}" />
+                				<input type="hidden" name="ids[]" class="form-control ids" value="{{$pedidoitem->id??''}}" />
 								<input type="hidden" name="loteids[]" class="form-control loteids" value="{{$pedidoitem->lotes->id ?? 0}}" />
 								@foreach ($pedidoitem->pedido_combinacion_estados as $estado)
 									@php 
@@ -273,6 +273,7 @@
 <input type="hidden" id="estadocliente" value="{{ $pedido->clientes->estado ?? '' }}">
 <input type="hidden" id="nombretiposuspensioncliente" value="{{ $pedido->clientes->tipossuspensioncliente->nombre ?? ''}}">
 <input type="hidden" id="tiposuspensioncliente_id" value="{{ $pedido->clientes->tiposupension_id ?? ''}}">
+<input type="hidden" id="tipoalta" value="{{ $pedido->clientes->tipoalta ?? ''}}">
 <input type="hidden" id="csrf_token" class="form-control" value="{{csrf_token()}}" />
 <input type="hidden" id="puntoventadefault_id" class="form-control" value="{{$puntoventadefault_id}}" />
 <input type="hidden" id="puntoventaremitodefault_id" class="form-control" value="{{$puntoventaremitodefault_id}}" />

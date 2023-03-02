@@ -33,9 +33,9 @@ class Cliente_EntregaRepository implements Cliente_EntregaRepositoryInterface
         $this->modelCliente = $cliente;
     }
 
-    public function create(array $data)
+    public function create(array $data, $id)
     {
-		return self::guardarCliente_Entrega($data, 'create');
+		return self::guardarCliente_Entrega($data, 'create', $id);
     }
 
     public function update(array $data, $id)
@@ -83,6 +83,9 @@ class Cliente_EntregaRepository implements Cliente_EntregaRepositoryInterface
 			$q_cliente_entrega = count($cliente_entrega);
 		}
 
+		if (!array_key_exists('nombre', $data))
+			return 'No hay lugares de entrega';
+			
 		$nombres = $data['nombres'];
 		$domicilios = $data['domicilios'];
 

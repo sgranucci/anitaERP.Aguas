@@ -71,7 +71,8 @@ class OrdentrabajoQuery implements OrdentrabajoQueryInterface
                 'capeart.consumo1 as consumocapellada1',
 				'capeart.consumo2 as consumocapellada2',
 				'capeart.consumo3 as consumocapellada3',
-				'capeart.consumo4 as consumocapellada4')
+				'capeart.consumo4 as consumocapellada4',
+				'capeart.tipo as tipomaterial')
 			->join('ordentrabajo_combinacion_talle', 'ordentrabajo_combinacion_talle.ordentrabajo_id', 'ordentrabajo.id')
 			->join('pedido_combinacion_talle', 'pedido_combinacion_talle.id', 'ordentrabajo_combinacion_talle.pedido_combinacion_talle_id')
 			->join('pedido_combinacion', 'pedido_combinacion.id', 'pedido_combinacion_talle.pedido_combinacion_id')
@@ -84,6 +85,7 @@ class OrdentrabajoQuery implements OrdentrabajoQueryInterface
             ->leftjoin('color as colorcapellada', 'colorcapellada.id', 'capeart.color_id')
 			->join('talle', 'talle.id', '=', 'pedido_combinacion_talle.talle_id')
 			->whereBetween('ordentrabajo.fecha', [$desdefecha, $hastafecha])
+			->orderBy('tipomaterial')
 			->orderBy('materialcapellada.nombre');
 		
 		if ($ordenestrabajo != '')
@@ -138,16 +140,19 @@ class OrdentrabajoQuery implements OrdentrabajoQueryInterface
 				'ordentrabajo.fecha as fecha',
 				'pedido_combinacion.id as pedido_combinacion_id',
 				'pedido_combinacion_talle.talle_id as talle_id',
+				'cliente.cajaespecial as cajaespecial',
 				'talle.nombre as nombretalle',
 				'pedido_combinacion_talle.cantidad as cantidadportalle',
 				'articulo_caja.caja_id as caja_id',
 				'caja.nombre as nombrecaja',
-				'caja.desdenro as desdenumero',
-				'caja.hastanro as hastanumero',
+				'articulo_caja.desdenro as desdenumero',
+				'articulo_caja.hastanro as hastanumero',
 				'articulo.descripcion as nombrearticulocaja')
 			->join('ordentrabajo_combinacion_talle', 'ordentrabajo_combinacion_talle.ordentrabajo_id', 'ordentrabajo.id')
 			->join('pedido_combinacion_talle', 'pedido_combinacion_talle.id', 'ordentrabajo_combinacion_talle.pedido_combinacion_talle_id')
 			->join('pedido_combinacion', 'pedido_combinacion.id', 'pedido_combinacion_talle.pedido_combinacion_id')
+			->join('pedido', 'pedido.id', 'pedido_combinacion.pedido_id')
+			->join('cliente', 'cliente.id', 'pedido.cliente_id')
 			->join('talle', 'talle.id', '=', 'pedido_combinacion_talle.talle_id')
 			->join('articulo_caja', 'articulo_caja.articulo_id', 'pedido_combinacion.articulo_id')
 			->join('caja', 'caja.id', 'articulo_caja.caja_id')

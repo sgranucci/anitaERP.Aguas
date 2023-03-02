@@ -249,7 +249,7 @@ class PrecioController extends Controller
                 'application/vnd.ms-excel',
         ]);
 
-        $rowEncabezado = 3;
+        $rowEncabezado = 1;
         $headings = (new HeadingRowImport($rowEncabezado))->toArray(request("file"));
 
         try {

@@ -549,6 +549,17 @@ Route::put('stock/combinacion/save', 'Stock\CombinacionController@save')->name('
 Route::delete('stock/combinacion/delete/{id}', 'Stock\CombinacionController@delete')->name('eliminar_combinacion');
 Route::get('stock/combinacion/product/{sku}', 'Stock\CombinacionController@create')->name('combinacion.product');
 
+/* 
+ * Movimientos de stock
+ */
+
+ Route::get('stock/movimientostock', 'Stock\MovimientoStockController@index')->name('movimientostock');
+ Route::get('stock/movimientostock/crear', 'Stock\MovimientoStockController@crear')->name('crear_movimientostock');
+ Route::post('stock/movimientostock', 'Stock\MovimientoStockController@guardar')->name('guardar_movimientostock');
+ Route::get('stock/movimientostock/{id}/editar', 'Stock\MovimientoStockController@editar')->name('editar_movimientostock');
+ Route::put('stock/movimientostock/{id}', 'Stock\MovimientoStockController@actualizar')->name('actualizar_movimientostock');
+ Route::delete('stock/movimientostock/{id}', 'Stock\MovimientoStockController@eliminar')->name('eliminar_movimientostock');
+ Route::get('stock/listarmovimientostock/{id}', 'Stock\MovimientoStockController@listarMovimientoStock')->name('listar_movimientostock');
 // Modulo de ventas
 // Reportes de ventas
 
@@ -754,6 +765,7 @@ Route::post('ventas/ordenestrabajo/generar', 'Ventas\OrdentrabajoController@gene
 Route::get('ventas/guardaordenestrabajo/{origen}/{ids}/{checkotstock}/{ordentrabajo_stock_codigo}/{leyenda?}', 'Ventas\OrdentrabajoController@guardar')->name('guardar_ordentrabajo');
 Route::get('ventas/listaordenestrabajo/{id}', 'Ventas\OrdentrabajoController@listar')->name('listar_ordentrabajo');
 Route::get('ventas/estadoot/{id}', 'Ventas\OrdentrabajoController@estadoOt')->name('estado_ot');
+Route::get('ventas/controlaordentrabajostock/{id}/{articulo_id}/{combinacion_id}', 'Ventas\OrdentrabajoController@controlaOtStock')->name('controla_ordetrabajo_stock');
 
 /* PRODUCCION */
 

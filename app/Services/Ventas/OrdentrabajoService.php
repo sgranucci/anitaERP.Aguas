@@ -761,7 +761,12 @@ class OrdentrabajoService
 						if ($combinacion)
 						{
 							$file = "/var/www/html/anitaERP/public/storage/imagenes/fotos_articulos/".$articulo->sku.".zpl";
+							
+							if (!file_exists($file))
+								return redirect()->back()->with('mensaje','Articulo '.$articulo->sku.' SIN FOTO');
+								
 							$fp = fopen($file, "r");
+
 							$contents = fread($fp, filesize($file));
 
 							$cod_art = "";
@@ -1725,9 +1730,26 @@ class OrdentrabajoService
 			calculaConsumo($consumoCapellada, $material['nombretalle'], $material['cantidadportalle'], 
 							$material['consumocapellada1'], $material['consumocapellada2'], 
 							$material['consumocapellada3'], $material['consumocapellada4']);
+
 			if ($consumoCapellada > 0)
-				$dataCapellada[] = ['nombrematerial' => $material['nombrematerialcapellada'].' '.$material['nombrecolorcapellada'],
+			{
+				$tipoMaterial = 'Capellada';
+				switch($material['tipomaterial'])
+				{
+				case 'C':
+					$tipoMaterial = 'Capellada';
+					break;
+				case 'B':
+           			$tipoMaterial = 'Base';
+					break;
+				case 'F':
+           			$tipoMaterial = 'Forro';
+					break;
+				}
+				
+				$dataCapellada[] = ['nombrematerial' => $tipoMaterial.' '.$material['nombrematerialcapellada'].' '.$material['nombrecolorcapellada'],
 									'consumo' => $consumoCapellada];
+			}
 		}
 
 		$dataAvio = [];
@@ -1754,38 +1776,52 @@ class OrdentrabajoService
 	public function generaDatosRepConsumoCaja($desdefecha, $hastafecha, $ordenestrabajo)
 	{
 		$data = $this->ordentrabajoQuery->findConsumoCaja($desdefecha, $hastafecha, $ordenestrabajo);
-	
+
 		// Agrupa por nombre de caja
 		$retorno = [];
+		$retornoEspecial = [];
 		foreach($data as $item)
 		{
 			if ($item['nombretalle'] >= $item['desdenumero'] &&
 				$item['nombretalle'] <= $item['hastanumero'])
 			{
-				for ($i = 0, $flEncontro = false; $i < count($retorno); $i++)
+				if ($item['cajaespecial'] == 'S')
 				{
-					if ($retorno[$i]['caja_id'] == $item['caja_id'])
-					{
-						$flEncontro = true;
-						break;
-					}
+					Self::armaTablaRepConsumoCaja($retornoEspecial, $item);
 				}
-				if (!$flEncontro)
-					$retorno[] = ['nombrecaja' => $item['nombrecaja'], 
-								'caja_id' => $item['caja_id'],
-								'consumo' => $item['cantidadportalle'],
-								'nombrearticulocaja' => $item['nombrearticulocaja'],
-								'desdenumero' => $item['desdenumero'],
-								'hastanumero' => $item['hastanumero']
-								];
 				else
-					$retorno[$i]['consumo'] += $item['cantidadportalle'];
+				{
+					Self::armaTablaRepConsumoCaja($retorno, $item);
+				}
 			}
 		}
 
-		return $retorno;
+		return ['cajas' => $retorno, 'cajasespeciales' => $retornoEspecial];
 	}
 	
+	// Arma tabla de reporte de cajas
+	private function armaTablaRepConsumoCaja(&$retorno, $item)
+	{
+		for ($i = 0, $flEncontro = false; $i < count($retorno); $i++)
+		{
+			if ($retorno[$i]['caja_id'] == $item['caja_id'])
+			{
+				$flEncontro = true;
+				break;
+			}
+		}
+		if (!$flEncontro)
+			$retorno[] = ['nombrecaja' => $item['nombrecaja'], 
+						'caja_id' => $item['caja_id'],
+						'consumo' => $item['cantidadportalle'],
+						'nombrearticulocaja' => $item['nombrearticulocaja'],
+						'desdenumero' => $item['desdenumero'],
+						'hastanumero' => $item['hastanumero']
+						];
+		else
+			$retorno[$i]['consumo'] += $item['cantidadportalle'];
+	}
+
 	// Genera datos para reporte consumo de OT
 
 	public function generaDatosRepProgArmado($ordenestrabajo, $tipoprogramacion)
@@ -1929,7 +1965,7 @@ class OrdentrabajoService
 	public function otFacturada($codigoOt)
 	{
 		$ordentrabajo = $this->ordentrabajoQuery->leeOrdenTrabajoPorCodigo($codigoOt);
-		$secuenciaTareas = Config::get("consprod.SECUENCIA_TAREAS");
+		$secuenciaTareas = config("consprod.SECUENCIA_TAREAS");
 
 		$numeroFactura = '-1';
 		if ($ordentrabajo)
@@ -1991,6 +2027,22 @@ class OrdentrabajoService
 			}
 		}
 		return ['sku' => $sku, 'nombrelinea' => $nombreLinea, 'pares' => $pares];
+	}
+
+	// Controla el saldo de OT de stock
+	public function controlaOtStock($codigoOt, $articulo_id, $combinacion_id)
+	{
+		$stock = $this->articulo_movimientoService->leeStockPorLote($codigoOt, $articulo_id, $combinacion_id);
+
+		$estado = '-1';
+		$saldo = 0;
+		foreach($stock as $movimiento)
+		{
+			$estado = 0;
+			$saldo += $movimiento->cantidad;
+		}
+
+		return ['estado' => $estado, 'saldo' => $saldo];
 	}
 }
 

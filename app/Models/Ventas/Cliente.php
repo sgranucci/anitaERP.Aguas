@@ -31,7 +31,7 @@ class Cliente extends Model
 							'provincia_id','pais_id','zonavta_id','subzonavta_id','vendedor_id','nroinscripcion','condicioniva_id',
 							'retieneiva','nroiibb','condicioniibb','condicionventa_id','listaprecio_id','cuentacontable_id','vaweb',
 							'estado','usuario_id','codigopostal','transporte_id','descuento','leyenda','tiposuspension_id',
-                            'tipoalta','modofacturacion'];
+                            'tipoalta','modofacturacion', 'cajaespecial'];
     protected $table = 'cliente';
 	protected $dates = ['deleted_at'];
 

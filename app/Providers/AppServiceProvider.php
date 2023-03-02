@@ -124,6 +124,11 @@ class AppServiceProvider extends ServiceProvider
         	'App\Repositories\Stock\LoteRepositoryInterface',
         	'App\Repositories\Stock\LoteRepository',
     	);
+		
+		$this->app->bind(
+        	'App\Repositories\Stock\MovimientoStockRepositoryInterface',
+        	'App\Repositories\Stock\MovimientoStockRepository',
+    	);
 	    
 		$this->app->bind(
         	'App\Repositories\Stock\Articulo_CostoRepositoryInterface',

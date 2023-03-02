@@ -71,5 +71,34 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
 
 		return $articulo_query;
     }
+
+    public function leeStockPorLote($lote, $articulo_id, $combinacion_id)
+    {
+        $articulo_query = $this->model->select('articulo_movimiento.ordentrabajo_id as ordentrabajo_id',
+            'articulo.sku as sku', 
+            'combinacion.id as combinacion_id',
+            'combinacion.codigo as codigocombinacion',
+            'combinacion.nombre as nombrecombinacion',
+            'mventa.nombre as nombremarca',
+            'combinacion.estado as estado',
+            'articulo_movimiento.lote as lote',
+            'articulo_movimiento.modulo_id as modulo_id',
+            'articulo_movimiento_talle.talle_id as talle_id',
+            'talle.nombre as nombretalle',
+            'articulo_movimiento_talle.cantidad as cantidad',
+            'articulo_movimiento_talle.precio as precio')
+            ->join('combinacion', 'combinacion.articulo_id', 'articulo.id')
+            ->join('mventa', 'mventa.id', 'articulo.mventa_id')
+            ->join('articulo_movimiento', 'articulo_movimiento.combinacion_id', 'combinacion.id')
+            ->join('articulo_movimiento_talle', 'articulo_movimiento_talle.articulo_movimiento_id', 'articulo_movimiento.id')
+            ->join('talle', 'talle.id', 'articulo_movimiento_talle.talle_id')
+            ->where('articulo_movimiento.lote', '=', $lote)
+            ->where('articulo.id', '=', $articulo_id)
+            ->where('combinacion.id', '=', $combinacion_id)
+            ->orderBy('lote','ASC')
+            ->get();
+
+        return $articulo_query;
+    }
 }
 

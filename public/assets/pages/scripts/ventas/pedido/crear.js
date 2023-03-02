@@ -304,7 +304,7 @@
 		
 			$.get(listarUri, function(data){
 				
-				if (data.numerofactura != -1)
+				if (data.numerofactura != -1 && data.numerofactura != -2)
 				{
 					$(ot).css("background-color","red");
 						$(ot).css("font-weight","900");
@@ -405,7 +405,7 @@
             
 				$.get(listarUri, function(data){
 					
-					if (data.numerofactura != -1)
+					if (data.numerofactura != -1 && data.numerofactura != -2)
 					{
 						alert("OT ya facturada "+data.numerofactura);
 						$(tilde).prop("checked",false);
@@ -649,28 +649,71 @@
             var leyenda = $("#leyendaot").val();
             var checkotstock = $("input:checkbox[class=checkboxotstock]:checked").val();
 			var ordentrabajo_stock_codigo = $("#ordentrabajo_stock_codigo").val();
-
+			var articulo_id = $(pedido_combinacion).parents('tr').find('.articulo').val();
+			var combinacion_id = $(pedido_combinacion).parents('tr').find('.combinacion').val();
+			
 			if (ordentrabajo_stock_codigo == '')
 				ordentrabajo_stock_codigo = 0;
 
-            $('#crearOrdenTrabajoModal').modal('hide');
+			if (ordentrabajo_stock_codigo > 0)
+			{
+				var listarUri = "/anitaERP/public/ventas/controlaordentrabajostock/"+ordentrabajo_stock_codigo+"/"+articulo_id+"/"+combinacion_id;
 
-            if (checkotstock == 'on')
-                var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/pedido/"+$(pedido_combinacion).val()+"/on/"+ordentrabajo_stock_codigo+'/'+leyenda;
-            else
-                var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/pedido/"+$(pedido_combinacion).val()+"/off/"+ordentrabajo_stock_codigo+'/'+leyenda;
+				$.get(listarUri, function(data){
+					if (data.estado != -1)
+					{
+						alert("Saldo lote "+ordentrabajo_stock_codigo+" "+data.saldo);
 
-        	$.get(listarUri, function(data){
-				// Asigna ot id y nro. de orden 
-				if (data.id > 0)
-				{
-					$(pedido_combinacion).parents('tr').find('.ot').val(data.id);
-					$(pedido_combinacion).parents('tr').find('.otcodigo').val(data.nro_orden);
+						$('#crearOrdenTrabajoModal').modal('hide');
 
-					alert("OT "+data.nro_orden+" creada con exito");
-				}
-			});
-        });
+						if (checkotstock == 'on')
+							var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/pedido/"+$(pedido_combinacion).val()+"/on/"+ordentrabajo_stock_codigo+'/'+leyenda;
+						else
+							var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/pedido/"+$(pedido_combinacion).val()+"/off/"+ordentrabajo_stock_codigo+'/'+leyenda;
+			
+						$.get(listarUri, function(data){
+							// Asigna ot id y nro. de orden 
+							if (data.id > 0)
+							{
+								$(pedido_combinacion).parents('tr').find('.ot').val(data.id);
+								$(pedido_combinacion).parents('tr').find('.otcodigo').val(data.nro_orden);
+			
+								alert("OT "+data.nro_orden+" creada con exito");
+			
+								$("#ordentrabajo_stock_codigo").val('');
+							}
+						});
+					}
+					else	
+					{
+						alert("Lote inexistente");
+						return;
+					}
+				});
+			}
+			else
+			{
+				$('#crearOrdenTrabajoModal').modal('hide');
+
+				if (checkotstock == 'on')
+					var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/pedido/"+$(pedido_combinacion).val()+"/on/"+ordentrabajo_stock_codigo+'/'+leyenda;
+				else
+					var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/pedido/"+$(pedido_combinacion).val()+"/off/"+ordentrabajo_stock_codigo+'/'+leyenda;
+	
+				$.get(listarUri, function(data){
+					// Asigna ot id y nro. de orden 
+					if (data.id > 0)
+					{
+						$(pedido_combinacion).parents('tr').find('.ot').val(data.id);
+						$(pedido_combinacion).parents('tr').find('.otcodigo').val(data.nro_orden);
+	
+						alert("OT "+data.nro_orden+" creada con exito");
+	
+						$("#ordentrabajo_stock_codigo").val('');
+					}
+				});
+			}
+		});
 
 		// Asigna los lotes a cada item
 		$('#lote_id').on('change', function () {
@@ -861,6 +904,7 @@
     function generaOt() {
 		var ot = $(this).parents("tr").find(".ot").val();
 		var tiposuspension_id = $('#tiposuspension_id').val();
+		var tipoalta = $('#tipoalta').val();
 
         pedido_combinacion = $(this).parents("tr").find(".ids");
 
@@ -872,10 +916,15 @@
 				alert('No puede generar ot a cliente moroso');
 			else
 			{
-				var leyenda = $(this).parents("tr").find(".observacion").val();
-				$("#leyendaot").val(leyenda);
-
-				$("#crearOrdenTrabajoModal").modal('show');
+				if (tipoalta == 'P')
+					alert('No puede generar ot a cliente provisorio');
+				else
+				{
+					var leyenda = $(this).parents("tr").find(".observacion").val();
+					$("#leyendaot").val(leyenda);
+	
+					$("#crearOrdenTrabajoModal").modal('show');
+				}
 			}
 		}
 	}
@@ -894,12 +943,24 @@
 
 	  	flAnulacionItem = true;
 
-	  	// Muestra modal si tiene orden de trabajo generada
-		armaMedidas(itemAnulacionOt);
+		// Busca si tiene factura asociada
+		var listarUri = "/anitaERP/public/ventas/estadoot/"+codigoAnulacionOt;
 
-       	setTimeout(() => {
-			$("#anulacionModal").modal('show');
-       	}, 300);
+		$.get(listarUri, function(data){
+			
+			if (data.numerofactura != -1 && data.numerofactura != -2)
+			{
+				alert("OT ya facturada "+data.numerofactura);
+			}
+			else
+			{
+				armaMedidas(itemAnulacionOt);
+
+				setTimeout(() => {
+					$("#anulacionModal").modal('show');
+				}, 300);	
+			}
+		});
 	}
 
 	// Controla apertura modal de anulacion
@@ -1058,13 +1119,33 @@
 
     function borraRenglon() {
         event.preventDefault();
-  		if (confirm("¿Desea borrar renglon?"))
-	  	{
-       		$(this).parents('tr').remove();
-       		actualizaRenglones();
-		}
-		TotalParesPedido();
-    }
+		ordentrabajo = $(this).parents('tr').find('.otcodigo').val();
+		
+		// Busca si tiene factura asociada
+		var listarUri = "/anitaERP/public/ventas/estadoot/"+ordentrabajo;
+		var flError = false;
+
+		$.get(listarUri, function(data){
+							
+			if (data.numerofactura != -1 && data.numerofactura != -2)
+			{
+				alert("OT ya facturada "+data.numerofactura);
+				flError = true;
+			}
+		});
+
+		setTimeout(() => {
+			if (!flError)
+			{
+				if (confirm("¿Desea borrar renglon?"))
+				{
+					$(this).parents('tr').remove();
+					actualizaRenglones();
+				}
+				TotalParesPedido();
+			}
+		}, 300);
+	}
 
     function actualizaRenglones() {
         var item = 1;
@@ -1188,6 +1269,19 @@
 		let sel_tipotransaccion = JSON.parse(document.querySelector('#datosfactura').dataset.tipotransaccion);
 		let selectTipoTransaccion = $('#tipotransaccion_id');
 		let tipoTransaccionDefault = $('#tipotransacciondefault_id').val();
+
+		if (document.querySelector('#datosfactura').dataset.incoterm !== '')
+		{
+			var sel_incoterm = JSON.parse(document.querySelector('#datosfactura').dataset.incoterm);
+			var selectIncoterm = $('#incoterm_id');
+		}
+			
+		if (document.querySelector('#datosfactura').dataset.formapago !== '')
+		{
+			var sel_formapago = JSON.parse(document.querySelector('#datosfactura').dataset.formapago);
+			var selectFormapago = $('#formapago_id');
+		}
+	
 		const tiempoTranscurrido = Date.now();
 		const hoy = new Date(tiempoTranscurrido);
 
@@ -1196,6 +1290,9 @@
 		modal.find('.modal-title').text('Factura PEDIDO '+numeroPedido);
 		modal.find('#facturarMedidasModal').empty();
 
+    	// Lee punto de venta si es de exportacion
+    	leePuntoVenta(puntoVentaDefault);
+    
 		for (i = 0; i < offFactura; i++)
 		{
 			modal.find('#facturarMedidasModal').append(titulofactura_txt[i]+tallesfactura_txt[i]+medidasfactura_txt[i]+preciosfactura_txt[i]+tallesidfactura_txt[i]);
@@ -1233,6 +1330,26 @@
 				op = '';
 			selectPuntoVentaRemito.append('<option value="' + item.id + '"'+op+'>' + item.codigo + '-' + item.nombre + '</option>');
 		});
+
+		// Arma select de incoterms
+		if (document.querySelector('#datosfactura').dataset.incoterm !== '')
+		{
+			selectIncoterm.empty();
+			selectIncoterm.append('<option value="">-- Seleccionar incoterm --</option>');
+			$.each(sel_incoterm, function(obj, item) {
+				selectIncoterm.append('<option value="' + item.id + '">' + item.nombre + '</option>');
+			});
+		}
+
+		// Arma select de formas de pago
+		if (document.querySelector('#datosfactura').dataset.formapago !== '')
+		{
+			selectFormapago.empty();
+			selectFormapago.append('<option value="">-- Seleccionar forma de pago --</option>');
+			$.each(sel_formapago, function(obj, item) {
+				selectFormapago.append('<option value="' + item.id + '">' + item.nombre + '</option>');
+			});
+		}
 
 		let _cant = 1;
 
@@ -1276,6 +1393,10 @@
 		var leyendafactura = $('#leyendafactura').val();
 		var cantidadbulto = $('#cantidadbulto').val();
 		var puntoventaremito_id = $('#puntoventaremito_id').val();
+		var formapago_id = $('#formapago_id').val();
+		var incoterm_id = $('#incoterm_id').val();
+		var mercaderia = $('#mercaderia').val();
+		var leyendaexportacion = $('#leyendaexportacion').val();
 		
 		$('#facturarOrdenTrabajoModal').modal('hide');
 
@@ -1291,6 +1412,10 @@
 					leyendafactura: leyendafactura,
 					cantidadbulto: cantidadbulto,
 					puntoventaremito_id: puntoventaremito_id,
+					formapago_id: formapago_id,
+					incoterm_id: incoterm_id,
+					mercaderia: mercaderia,
+					leyendaexportacion: leyendaexportacion,
 					_token: token
 				},
 				function(data, status){
@@ -1311,6 +1436,36 @@
 		precios_txt = "";
 		tallesid_txt = "";
 	});
+
+	$('#puntoventa_id').on('change', function () {
+		let puntoventa_id = $('#puntoventa_id').val();
+
+		// Lee punto de venta si es de exportacion
+		leePuntoVenta(puntoventa_id);
+	});
+
+	function leePuntoVenta(puntoventa_id)
+	{
+		var listarUri = "/anitaERP/public/ventas/chequeapuntoventa/"+puntoventa_id;
+
+		$.get(listarUri, function(data){
+			
+			if (data.modofacturacion == 'E')
+			{
+				$('#div_formapago').show();
+				$('#div_mercaderia').show();
+				$('#div_incoterm').show();
+				$('#div_leyendaexportacion').show();
+			}
+			else
+			{
+				$('#div_formapago').hide();
+				$('#div_mercaderia').hide();
+				$('#div_incoterm').hide();
+				$('#div_leyendaexportacion').hide();
+			}
+		});
+	}
 
    	function asignaDatosCliente(cliente_id, flCambioCliente){
         $.get('/anitaERP/public/ventas/leercliente/'+cliente_id, function(data){

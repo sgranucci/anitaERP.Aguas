@@ -19,16 +19,39 @@
 			var leyenda = JSON.stringify($("#leyendaot").val());
 			var checkotstock = $("input:checkbox[class=checkboxotstock]:checked").val();
 			var ids = JSON.stringify(checksId);
+			var ordentrabajo_stock_codigo = $("#ordentrabajo_stock_codigo").val();
+			var articulo_id = $("#articulo_id").val();
+			var combinacion_id = $("#combinacion_id").val();
+
+			if (ordentrabajo_stock_codigo == '')
+				ordentrabajo_stock_codigo = 0;
+
+			if (ordentrabajo_stock_codigo > 0)
+			{
+				var listarUri = "/anitaERP/public/ventas/controlaordentrabajostock/"+ordentrabajo_stock_codigo+"/"+articulo_id+"/"+combinacion_id;
+
+				$.get(listarUri, function(data){
+					if (data.estado != -1)
+					{
+						alert("Saldo lote "+ordentrabajo_stock_codigo+" "+data.saldo);
+
+						$('#crearOrdenTrabajoModal').modal('hide');
 	
-			$('#crearOrdenTrabajoModal').modal('hide');
-	
-			if (checkotstock == 'on')
-				var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/ordentrabajo/"+ids+"/on/"+leyenda;
-			else
-				var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/ordentrabajo/"+ids+"/off/"+leyenda;
-	
-			window.location.href = listarUri;
-    	});
+						if (checkotstock == 'on')
+							var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/ordentrabajo/"+ids+"/on/"+ordentrabajo_stock_codigo+'/'+leyenda;
+						else
+							var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/ordentrabajo/"+ids+"/off/"+ordentrabajo_stock_codigo+'/'+leyenda;
+				
+						window.location.href = listarUri;
+					}
+					else	
+					{
+						alert("Lote inexistente");
+						return;
+					}
+				});
+			}
+		});
 	});
 
 	function generaOt()
@@ -56,6 +79,8 @@
     <div class="col-lg-12">
         @include('includes.mensaje')
         <div class="card card-info">
+			<input type="hidden" id="articulo_id" class="form-control" value="{{$articulo_id}}" />
+			<input type="hidden" id="combinacion_id" class="form-control" value="{{$combinacion_id}}" />
             <div class="card-header">
                 <h3 class="card-title">Crear Ordenes de trabajo</h3>
 				@if ($datas[0] ?? '')

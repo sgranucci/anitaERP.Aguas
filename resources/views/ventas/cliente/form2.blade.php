@@ -186,6 +186,21 @@
     					<input type="text" name="descuento" id="descuento" class="form-control" value="{{old('descuento', $data->descuento ?? '0')}}">
     				</div>
     			</div>
+				<div class="form-group row">
+					@if ($tipoalta != 'P')
+    					<label for="cajaespecial" class="col-lg-4 col-form-label requerido">Caja especial</label>
+					@else
+						<label for="cajaespecial" class="col-lg-4 col-form-label">Caja especial</label>
+					@endif
+					<select name="cajaespecial" class="col-lg-3 form-control" @if ($tipoalta != 'P') required @endif>
+    					<option value="">-- Elija si lleva caja especial --</option>
+        				@foreach ($cajaespecial_enum as $value => $cajaespecial)
+        					<option value="{{ $value }}"
+        						@if (old('cajaespecial', $data->cajaespecial ?? '') == $value) selected @endif
+        						>{{ $cajaespecial }}</option>
+        				@endforeach
+					</select>
+				</div>
 			</div>
 		</div>
 </div>

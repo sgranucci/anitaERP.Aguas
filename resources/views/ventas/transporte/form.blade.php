@@ -11,7 +11,7 @@
 				<div class="form-group row">
     				<label for="codigo" class="col-lg-3 col-form-label">C&oacute;digo</label>
     				<div class="col-lg-4">
-    					<input type="text" name="codigo" id="codigo" class="form-control" value="{{old('codigo', $data->codigo ?? '')}}" required/>
+    					<input type="text" name="codigo" id="codigo" class="form-control" value="{{old('codigo', $data->codigo ?? '')}}" readonly>
     				</div>
 				</div>
 				<div class="form-group row">
@@ -25,7 +25,7 @@
         			<select name="condicioniva_id" id="condicioniva_id" data-placeholder="Condicion de iva" class="col-lg-5 form-control required" data-fouc>
         				<option value="">-- Seleccionar --</option>
         				@foreach($condicionesiva_query as $key => $value)
-        					@if( isset($data) && (int) $value->id == (int) $data->condicioniva_id )
+        					@if( isset($data) && (int) $value->id == (int) old('condicioniva_id', $data->condicioniva_id ?? '') )
         						<option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
         					@else
         						<option value="{{ $value->id }}">{{ $value->nombre }}</option>    

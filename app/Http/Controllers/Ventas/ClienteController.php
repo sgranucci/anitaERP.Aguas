@@ -109,7 +109,7 @@ class ClienteController extends Controller
 		$this->armaTablasVista($pais_query, $provincia_query, $condicioniva_query, $zonavta_query,
         	$subzonavta_query, $vendedor_query, $transporte_query, $condicionventa_query, $listaprecio_query,
         	$cuentacontable_query, $retieneiva_enum, $condicioniibb_enum, $vaweb_enum, $estado_enum, '', $tasaarba,
-			$tasacaba, $modofacturacion_enum, 'crear'); 
+			$tasacaba, $modofacturacion_enum, $cajaespecial_enum, 'crear'); 
 
         if (!isset($tipoalta))
             $tipoalta = config('cliente.tipoalta')['DEFINITIVO'][0];
@@ -118,7 +118,7 @@ class ClienteController extends Controller
 			'condicioniva_query', 'zonavta_query', 'subzonavta_query', 'vendedor_query', 'transporte_query',
 			'condicionventa_query', 'listaprecio_query', 'retieneiva_enum', 'condicioniibb_enum', 'cuentacontable_query',
 			'vaweb_enum', 'tasaarba', 'tasacaba', 'estado_enum', 'tipoalta',
-            'modofacturacion_enum'));
+            'modofacturacion_enum', 'cajaespecial_enum'));
     }
 
     /**
@@ -134,9 +134,9 @@ class ClienteController extends Controller
 		// Guarda tablas asociadas
 		if ($cliente)
 		{
-			$cliente_entrega = $this->cliente_entregaRepository->create($request->all());
+			$cliente_entrega = $this->cliente_entregaRepository->create($request->all(), $cliente->id);
 
-        	$cliente_archivo = $this->cliente_archivoRepository->create($request);
+        	$cliente_archivo = $this->cliente_archivoRepository->create($request, $cliente->id);
 		}
 
         return redirect('ventas/cliente')->with('mensaje', 'Cliente creado con exito');
@@ -147,11 +147,11 @@ class ClienteController extends Controller
  		$cliente = $this->clienteRepository->create($request->all());
 
 		// Guarda tablas asociadas
-		if ($cliente)
+        if ($cliente)
 		{
-			$cliente_entrega = $this->cliente_entregaRepository->create($request->all());
+			$cliente_entrega = $this->cliente_entregaRepository->create($request->all(), $cliente->id);
 
-        	$cliente_archivo = $this->cliente_archivoRepository->create($request);
+        	$cliente_archivo = $this->cliente_archivoRepository->create($request, $cliente->id);
 		}
 
         // Procesa envio del correo para aprobacion del cliente provisorio
@@ -176,7 +176,7 @@ class ClienteController extends Controller
 		$this->armaTablasVista($pais_query, $provincia_query, $condicioniva_query, $zonavta_query,
         	$subzonavta_query, $vendedor_query, $transporte_query, $condicionventa_query, $listaprecio_query,
         	$cuentacontable_query, $retieneiva_enum, $condicioniibb_enum, $vaweb_enum, $estado_enum, 
-			$data->nroinscripcion, $tasaarba, $tasacaba, $modofacturacion_enum, 'editar'); 
+			$data->nroinscripcion, $tasaarba, $tasacaba, $modofacturacion_enum, $cajaespecial_enum, 'editar'); 
 
         $tiposuspensioncliente_query = $this->tiposuspensionclienteRepository->all();
         
@@ -188,6 +188,7 @@ class ClienteController extends Controller
 			'condicioniva_query', 'zonavta_query', 'subzonavta_query', 'vendedor_query', 'transporte_query',
 			'condicionventa_query', 'listaprecio_query', 'retieneiva_enum', 'condicioniibb_enum', 'cuentacontable_query',
 			'vaweb_enum', 'tasaarba', 'tasacaba', 'estado_enum', 'tipoalta', 'modofacturacion_enum',
+            'cajaespecial_enum',
             'tiposuspensioncliente_query'));
     }
 
@@ -250,7 +251,7 @@ class ClienteController extends Controller
 	private function armaTablasVista(&$pais_query, &$provincia_query, &$condicioniva_query, &$zonavta_query,
         	&$subzonavta_query, &$vendedor_query, &$transporte_query, &$condicionventa_query, &$listaprecio_query,
         	&$cuentacontable_query, &$retieneiva_enum, &$condicioniibb_enum, &$vaweb_enum, &$estado_enum, 
-			$nroinscripcion, &$tasaarba, &$tasacaba, &$modofacturacion_enum, $funcion)
+			$nroinscripcion, &$tasaarba, &$tasacaba, &$modofacturacion_enum, &$cajaespecial_enum, $funcion)
 	{
         $pais_query = Pais::orderBy('nombre')->get();
         $provincia_query = Provincia::orderBy('nombre')->get();
@@ -267,6 +268,7 @@ class ClienteController extends Controller
 		$vaweb_enum = Cliente::$enumVaweb;
 		$estado_enum = Cliente::$enumEstado;
         $modofacturacion_enum = Cliente::$enumModoFacturacion;
+        $cajaespecial_enum = Cliente::$enumCajaEspecial;
 
 		if ($funcion == 'editar')
 		{

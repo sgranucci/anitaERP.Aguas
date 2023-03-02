@@ -54,6 +54,8 @@ class ClienteRepository implements ClienteRepositoryInterface
 
 		// Graba anita
 		self::guardarAnita($data);
+
+		return $cliente;
     }
 
     public function update(array $data, $id)

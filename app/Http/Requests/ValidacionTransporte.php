@@ -26,7 +26,6 @@ class ValidacionTransporte extends FormRequest
     {
         return [
             'nombre' => 'required|max:50|unique:transporte,nombre,' . $this->route('id'),
-            'codigo' => 'required|max:10|unique:transporte,codigo,' . $this->route('id'),
             'domicilio' => 'required|max:255',
             'provincia_id' => 'sometimes|integer',
             'localidad_id' => 'sometimes|integer',

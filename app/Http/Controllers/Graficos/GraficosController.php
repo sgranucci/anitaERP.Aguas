@@ -7,11 +7,23 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use App\Exports\Graficos\LecturasExport;
 use App\Exports\Graficos\IndicadoresExport;
+use App\Exports\Graficos\OperacionesExport;
+use App\Exports\Graficos\ReporteIndicadoresExport;
+use App\Services\Graficos\IndicadoresService;
 use PDF;
 use DB;
 
 class GraficosController extends Controller
 {
+	private $indicadoresService;
+
+	public function __construct(IndicadoresService $indicadoresservice)
+	{
+		$this->middleware('auth');
+
+		$this->indicadoresService = $indicadoresservice;
+	}
+
     /**
      * Display a listing of the resource.
      *
@@ -22,11 +34,6 @@ class GraficosController extends Controller
 		'2' => 'HLC/3',
 		'3' => 'OHLC/4',
 	];
-
-	public function __construct()
-    {
-        $this->middleware('auth');
-    }
 
 	public function index()
     {
@@ -100,8 +107,15 @@ class GraficosController extends Controller
 			'4' => '1 hora',
 			'5' => '1 día'
 			];
+
+		$filtroSetup_enum = [
+			'A' => 'Solo alcistas',
+			'B' => 'Solo bajistas',
+			'T' => 'Alcistas y Bajistas',
+			];
 		$calculoBase_enum = $this->calculoBase_enum;
-		return view('graficos.reporteindicadores.create', compact('calculoBase_enum', 'compresion_enum'));
+		return view('graficos.reporteindicadores.create', compact('calculoBase_enum', 'compresion_enum',
+																'filtroSetup_enum'));
 	}
 
 	public function crearReporteIndicadores(Request $request)
@@ -118,9 +132,26 @@ class GraficosController extends Controller
 			$extension = "csv";
 			break;
 		}
-		
 		$calculoBase_enum = $this->calculoBase_enum;
-		return (new IndicadoresExport)
+
+        $indicadores = $this->indicadoresService->calculaIndicadores($request->desdefecha, 
+                        $request->hastafecha, 
+                        $request->desdeHhra, 
+                        $request->hastahora, 
+                        $request->especie,
+                        $request->calculobase,
+                        $request->mmcorta,
+                        $request->mmlarga,
+                        $request->compresion,
+                        $request->largovma,
+                        $request->largocci,
+                        $request->largoxtl,
+                        $request->umbralxtl,
+                        $calculoBase_enum,
+                        $request->swingsize,
+						$request->filtroSetup);
+
+		return (new ReporteIndicadoresExport)
 				->parametros($request->desdefecha, 
 							$request->hastafecha, 
 							$request->desdehora, 
@@ -135,7 +166,10 @@ class GraficosController extends Controller
 							$request->largoxtl,
 							$request->umbralxtl,
 							$calculoBase_enum,
-							$request->swingsize)
+							$request->swingsize,
+							$request->filtroSetup,
+							$indicadores['indicadores'],
+							$indicadores['operaciones'])
 				->download('reporteIndicadores.'.$extension);
     }
 	

@@ -33,6 +33,7 @@ Transportes
                             <th>Domicilio</th>
                             <th>Localidad</th>
                             <th>Tel&eacute;fono</th>
+                            <th>Código</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>
                     </thead>
@@ -44,6 +45,7 @@ Transportes
                             <td>{{$data->domicilio}}</td>
                             <td>{{($data->localidades ?? '' ? $data->localidades->nombre : '')}}</td>
                             <td>{{$data->telefono}}</td>
+                            <td>{{$data->codigo}}</td>
                             <td>
                        			@if (can('editar-transportes', false))
                                 	<a href="{{route('editar_transporte', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">

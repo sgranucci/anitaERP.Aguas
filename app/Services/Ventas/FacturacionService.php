@@ -20,6 +20,8 @@ use App\Repositories\Ventas\Venta_ImpuestoRepositoryInterface;
 use App\Repositories\Ventas\Venta_ExportacionRepositoryInterface;
 use App\Repositories\Ventas\Cliente_CuentacorrienteRepositoryInterface;
 use App\Repositories\Ventas\TransporteRepositoryInterface;
+use App\Repositories\Ventas\IncotermRepositoryInterface;
+use App\Repositories\Ventas\FormapagoRepositoryInterface;
 use App\Repositories\Produccion\TareaRepositoryInterface;
 use App\Repositories\Configuracion\CondicionivaRepositoryInterface;
 use App\Repositories\Stock\LoteRepositoryInterface;
@@ -78,6 +80,8 @@ class FacturacionService
 	protected $tipotransaccionRepository;
 	protected $condicionivaRepository;
 	protected $transporteRepository;
+	protected $incotermRepository;
+	protected $formapagoRepository;
 	protected $pedidoQuery;
 	protected $clienteQuery;
 	protected $cliente_comisionQuery;
@@ -92,7 +96,8 @@ class FacturacionService
 	protected $tot_pares1, $tot_pares2, $tot_pares3, $tot_pares4;
 	protected $mventa_id;
 	protected $cantidadBulto, $puntoventaremito_id;
-	protected $formapago_id, $mercaderiaExportacion, $leyendaExportacion, $incoterm_id;
+	protected $formapago_id, $mercaderiaExportacion, $leyendaExportacion, $incoterm_id, $abreviaturaIncoterm;
+	protected $condicionVentaExportacion, $formaPagoExportacion, $monedaExportacion;
 	protected $descuentoPie, $descuentoLinea;
 	protected $numeroDespacho;
 	protected $cuentacontable_id, $codigoCuentaContable, $nombreTipoTransaccion;
@@ -120,6 +125,8 @@ class FacturacionService
 								Venta_ImpuestoRepositoryInterface $venta_impuestorepository,
 								Venta_ExportacionRepositoryInterface $venta_exportacionrepository,
 								TransporteRepositoryInterface $transporterepository,
+								IncotermRepositoryInterface $incotermrepository,
+								FormapagoRepositoryInterface $formapagorepository,
 								Cliente_CuentacorrienteRepositoryInterface $cliente_cuentacorrienterepository,
 								LoteRepositoryInterface $loterepository
 								)
@@ -147,6 +154,8 @@ class FacturacionService
 		$this->venta_exportacionRepository = $venta_exportacionrepository;
 		$this->cliente_cuentacorrienteRepository = $cliente_cuentacorrienterepository;
 		$this->transporteRepository = $transporterepository;
+		$this->incotermRepository = $incotermrepository;
+		$this->formapagoRepository = $formapagorepository;
 		$this->loteRepository = $loterepository;
     }
 
@@ -176,6 +185,27 @@ class FacturacionService
 		$this->mercaderiaExportacion = $data['mercaderia'];
 		$this->leyendaExportacion = $data['leyendaexportacion'];
 		$this->numeroDespacho = '';
+		$this->condicionVentaExportacion = '';
+		$this->formaPagoExportacion = '';
+		$this->monedaExportacion = '';
+		$this->abreviaturaIncoterm = '';
+
+		// Arma variables de exportacion
+		if ($this->incoterm_id >= 1)
+		{
+			$incoterm = $this->incotermRepository->find($this->incoterm_id);
+
+			if ($incoterm)
+			{
+				$this->condicionVentaExportacion = $incoterm->nombre;
+				$this->abreviaturaIncoterm = $incoterm->abreviatura;
+			}
+			
+			$formapago = $this->formapagoRepository->find($this->formapago_id);
+
+			if ($formapago)
+				$this->formaPagoExportacion = $formapago->nombre;
+		}
 
 		// Lee los items a facturar
 		$dataFactura = [];
@@ -378,12 +408,14 @@ class FacturacionService
 			// Numera factura con web service si es factura electronica
 			if ($puntoventa->modofacturacion != 'M')
 			{
-				$this->armaTipoTransaccion($letra, $cliente->modoFacturacion, $codigoTipoTransaccion);
+				$this->facturaelectronicaService->armaTipoTransaccion($letra, $cliente->modoFacturacion, $codigoTipoTransaccion,
+																		$puntoventa);
 
 				$numero = $this->facturaelectronicaService
 							->traeUltimoNumeroComprobante($empresa->nroinscripcion,
 															$codigoTipoTransaccion,
 															$puntoventa);
+
 			}
 			else // Numera manualmente
 			{
@@ -401,7 +433,7 @@ class FacturacionService
 					return 'Error al numerar Remito';
 
 				// Procesa Factura electronica
-				if ($puntoventa->modofacturacion == 'C')
+				if ($puntoventa->modofacturacion != 'M')
 				{
 					// Arma tributos
 					$tributos = [];
@@ -421,7 +453,12 @@ class FacturacionService
 					$moneda = Moneda::find($moneda_id);
 					$codigomoneda = 'PES';
 					if ($moneda)
+					{
 						$codigoMoneda = $moneda->codigo;
+
+						if ($this->incoterm_id >= 1)
+							$this->monedaExportacion = $moneda->nombre;
+					}
 
 					$dataCAE = [
 							'tipodoc' => 80,
@@ -446,11 +483,11 @@ class FacturacionService
 							'nombrecliente' => $cliente->nombre,
 							'domicilio' => $cliente->domicilio,
 							'formapago' => $cliente->condicionventas->nombre,
-							'incoterms' => '',
+							'formapagoexportacion' => $this->formaPagoExportacion,
+							'incoterms' => $this->abreviaturaIncoterm,
 							'items' => $dataFactura
 					];
 				}
-
 				// Graba la factura
 				DB::beginTransaction();
 				try 
@@ -515,7 +552,7 @@ class FacturacionService
 					$vta = $this->ventaRepository->create($venta);
 
 					// Graba venta de exportacion si existen parametros
-					if ($this->formpago_id >= 1)
+					if ($this->formapago_id >= 1)
 					{
 						$ventaExportacion = [
 							'venta_id' => $vta->id,
@@ -639,7 +676,7 @@ class FacturacionService
 							
 					// Graba anita
 					$anita = self::grabaAnita($puntoventa->codigo, $letra, $puntoventaremito->codigo, $numeroremito,
-									$venta, $dataCAE, $conceptosTotales, $cuentacorriente, $dataFactura);
+									$venta, $dataCAE, $conceptosTotales, $cuentacorriente, $dataFactura, $signo);
 
 					if ($anita == 'Error')
 						throw new Exception('Error en grabacion anita.');
@@ -665,7 +702,7 @@ class FacturacionService
 
 	// Graba factura en Anita
 	private function grabaAnita($puntoventa, $letra, $puntoventaremito, $numeroremito, $venta, 
-								$dataCAE, $conceptostotales, $cuentacorriente, $datatalle)
+								$dataCAE, $conceptostotales, $cuentacorriente, $datatalle, $signo)
 	{
 		// Lee el cliente
 		$cliente = $this->clienteQuery->traeClienteporId($venta['cliente_id']);
@@ -1096,6 +1133,39 @@ class FacturacionService
 		// Graba subdiario
 		$apiAnita = new ApiAnita();
 
+		// Graba leyenda de exportacion
+		if ($this->leyendaExportacion != '')
+		{
+			// Graba compaux
+			$orden = 0;
+			$leyendas = explode("\n", $this->leyendaExportacion);
+			foreach($leyendas as $renglon)
+			{
+				$orden++;
+
+				$apiAnita = new ApiAnita();
+				
+				$data = array( 	'tabla' => 'compley', 
+								'acc' => 'insert',
+								'campos' => ' 
+									compl_tipo, compl_letra, compl_sucursal, compl_nro, 
+									compl_orden, compl_leyenda ',
+								'valores' => "
+									'".substr($venta['codigo'], 0, 3)."',
+									'".$letra."',
+									'".$puntoventa."',
+									'".$venta['numerocomprobante']."',
+									'".$orden."',
+									'".$renglon."'
+									"
+						);
+				$compley = $apiAnita->apiCall($data);
+
+				if (strpos($compley, 'Error') !== false)
+					return 'Error';
+			}
+		}
+
 		$totalVentaNeta = $dataCAE['exento']+$dataCAE['nogravado']+$dataCAE['gravado'];
 
 		// Lee numero de operacion
@@ -1140,7 +1210,7 @@ class FacturacionService
 									'".$puntoventa."',
 									'".$venta['numerocomprobante']."',
 									'".str_pad($cliente->codigo, 6, "0", STR_PAD_LEFT)."',
-									'".'H'."',
+									'".($signo == -1 ? 'H' : 'D')."',
 									'".$this->codigoCuentaContable."',
 									'".'411000001'."',
 									'".$numeroOperacion."',
@@ -1217,7 +1287,7 @@ class FacturacionService
 							'".$puntoventa."',
 							'".$venta['numerocomprobante']."',
 							'".str_pad($cliente->codigo, 6, "0", STR_PAD_LEFT)."',
-							'".'H'."',
+							''".($signo == -1 ? 'H' : 'D')."',
 							'".$this->codigoCuentaContable."',
 							'".$cuenta."',
 							'".$numeroOperacion."',
@@ -1360,6 +1430,16 @@ class FacturacionService
 												compa_letra = '".$letra."' AND
 												compa_sucursal = '".$puntoventa."' AND
 												compa_nro_fact = '".$numero."'
+						" );
+        $apiAnita->apiCall($data);
+
+		$apiAnita = new ApiAnita();
+        $data = array( 'acc' => 'delete', 
+						'tabla' => 'compley', 
+						'whereArmado' => " WHERE compl_tipo = '".$tipo."' AND
+												compl_letra = '".$letra."' AND
+												compl_sucursal = '".$puntoventa."' AND
+												compl_nro = '".$numero."'
 						" );
         $apiAnita->apiCall($data);
 

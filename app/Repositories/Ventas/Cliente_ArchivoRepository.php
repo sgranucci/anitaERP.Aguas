@@ -26,9 +26,9 @@ class Cliente_ArchivoRepository implements Cliente_ArchivoRepositoryInterface
         $this->model = $cliente_archivo;
     }
 
-    public function create(array $data)
+    public function create(ValidacionCliente $request, $id)
     {
-		return self::guardaCliente_Archivo($data, 'create', $nombrearchivos, $id);
+		return self::guardaCliente_Archivo($request, 'create', $id);
     }
 
     public function update(ValidacionCliente $request, $id)
@@ -79,7 +79,7 @@ class Cliente_ArchivoRepository implements Cliente_ArchivoRepositoryInterface
 		self::eliminarAnita($request->codigo);
 
 		// Recorre todos los files nuevos
-		if ($nombrearchivos)
+		if ($nombrearchivos ?? '')
 		{
 			foreach ($nombrearchivos as $archivo)
 			{
@@ -105,34 +105,37 @@ class Cliente_ArchivoRepository implements Cliente_ArchivoRepositoryInterface
 		}
 
 		// Recorre los files originales para agregarlos
-		for ($i_archivo = 0; $i_archivo < count($request->nombresanteriores); $i_archivo++)
+		if ($request->nombresanteriores ?? '')
 		{
-		  	// Busca en los files agregados si el archivo es uno nuevo
-		  	$fl_encontro = false;
-			if ($nombrearchivos)
+			for ($i_archivo = 0; $i_archivo < count($request->nombresanteriores); $i_archivo++)
 			{
-				foreach($nombrearchivos as $archivo)
+				// Busca en los files agregados si el archivo es uno nuevo
+				$fl_encontro = false;
+				if ($nombrearchivos)
 				{
-		  			if ($archivo)
+					foreach($nombrearchivos as $archivo)
 					{
-						// Guarda fisicamente el archivo
-    					$file = $archivo->getClientOriginalName();
-	
-						if ($file == $request->nombresanteriores[$i_archivo])
-					  		$fl_encontro = true;
+						if ($archivo)
+						{
+							// Guarda fisicamente el archivo
+							$file = $archivo->getClientOriginalName();
+		
+							if ($file == $request->nombresanteriores[$i_archivo])
+								$fl_encontro = true;
+						}
 					}
 				}
-			}
-			// Agrega el archivo anterior no tocado
-			if (!$fl_encontro && $request->nombresanteriores[$i_archivo] != '')
-			{
-				$cliente_archivo = $this->model->create([
-								'cliente_id' => $id,
-								'nombrearchivo' => $request->nombresanteriores[$i_archivo],
-								]);
+				// Agrega el archivo anterior no tocado
+				if (!$fl_encontro && $request->nombresanteriores[$i_archivo] != '')
+				{
+					$cliente_archivo = $this->model->create([
+									'cliente_id' => $id,
+									'nombrearchivo' => $request->nombresanteriores[$i_archivo],
+									]);
 
-				// Guarda en anita
-				self::guardarAnita($request->all(), $lineaAnita++, $request->nombresanteriores[$i_archivo]);
+					// Guarda en anita
+					self::guardarAnita($request->all(), $lineaAnita++, $request->nombresanteriores[$i_archivo]);
+				}
 			}
 		}
 	}

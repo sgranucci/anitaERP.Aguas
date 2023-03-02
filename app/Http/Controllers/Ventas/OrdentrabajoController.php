@@ -54,6 +54,8 @@ class OrdentrabajoController extends Controller
 
     public function index()
     {
+		can("listar-ordenes-de-trabajo");
+		
 		$ordentrabajo_query = $this->ordentrabajoService->leeOrdenestrabajoPendientes();
 
         return view('ventas.ordentrabajo.index', compact('ordentrabajo_query'));
@@ -62,9 +64,9 @@ class OrdentrabajoController extends Controller
     public function indexEtiqueta()
     {
 		$tipoetiqueta_enum = [
-			'CAJA' => 'Etiqueta CAJA',
-			'CUIT' => 'Etiqueta CUIT',
 			'CAJA FOTO' => 'Etiqueta CAJA CON FOTO',
+			'CUIT' => 'Etiqueta CUIT',
+			'CAJA' => 'Etiqueta CAJA',
 		];
 
         return view('ventas.repetiquetaot.create', compact('tipoetiqueta_enum'));
@@ -307,7 +309,7 @@ class OrdentrabajoController extends Controller
 		$articulo_query = $this->articuloQuery->allQuery(['id', 'sku', 'descripcion', 'mventa_id']);
 		$tarea_query = Tarea::all();
 		$puntoventa_query = $this->puntoventaRepository->all('A');
-		$tipotransaccion_query = $this->tipotransaccionRepository->all('A');
+		$tipotransaccion_query = $this->tipotransaccionRepository->all(['V','C'], ['A']);
 		$formapago_query = $this->formapagoRepository->all();
 		$incoterm_query = $this->incotermRepository->all();
 			
@@ -328,6 +330,12 @@ class OrdentrabajoController extends Controller
 	public function estadoOt($codigoordentrabajo)
 	{
 		return $this->ordentrabajoService->otFacturada($codigoordentrabajo);
+	}
+
+	// controla orden de trabajo de stock
+	public function controlaOtStock($codigoordentrabajo, $articulo_id, $combinacion_id)
+	{
+		return $this->ordentrabajoService->controlaOtStock($codigoordentrabajo, $articulo_id, $combinacion_id);
 	}
 	
 }

@@ -21,6 +21,8 @@ class CrearTablaArticuloMovimiento extends Migration
             $table->foreign('tipotransaccion_id', 'fk_articulo_movimiento_tipotransaccion')->references('id')->on('tipotransaccion')->onDelete('restrict')->onUpdate('restrict');
             $table->unsignedBigInteger('venta_id')->nullable();
 			$table->foreign('venta_id', 'fk_articulo_movimiento_venta')->references('id')->on('venta')->onDelete('cascade');
+            $table->unsignedBigInteger('movimientostock_id')->nullable();
+			$table->foreign('movimientostock_id', 'fk_articulo_movimiento_movimientostock')->references('id')->on('movimientostock')->onDelete('cascade');
             $table->unsignedBigInteger('pedido_combinacion_id')->nullable();
 			$table->foreign('pedido_combinacion_id', 'fk_articulo_movimiento_pedido_combinacion')->references('id')->on('pedido_combinacion')->onDelete('cascade');
 			$table->unsignedBigInteger('ordentrabajo_id')->nullable();
@@ -43,6 +45,8 @@ class CrearTablaArticuloMovimiento extends Migration
 			$table->foreign('moneda_id', 'fk_articulo_movimiento_moneda')->references('id')->on('moneda')->onUpdate('restrict')->onDelete('restrict');
 			$table->decimal('descuento',5,2)->nullable();
             $table->string('descuentointegrado',100)->nullable();
+            $table->unsignedBigInteger('deposito_id');
+            $table->foreign('deposito_id', 'fk_articulo_movimiento_depmae')->references('id')->on('depmae')->onDelete('restrict')->onUpdate('restrict');
             $table->timestamps();
             $table->softDeletes();
             $table->charset = 'utf8mb4';

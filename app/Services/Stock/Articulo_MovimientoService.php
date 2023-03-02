@@ -47,6 +47,9 @@ class Articulo_MovimientoService
 		{
 			$dataMovimiento['cantidad'] = $dataMovimiento['cantidad'] * ($tipotransaccion->signo == 'S' ? 1 : -1);
 
+			if (!array_key_exists('deposito_id', $dataMovimiento))
+				$dataMovimiento['deposito_id'] = 1;
+
 			$articulo_movimiento = $this->articulo_movimientoRepository->create($dataMovimiento);
 			if ($articulo_movimiento)
 			{
@@ -150,6 +153,7 @@ class Articulo_MovimientoService
 								'foto' => $foto,
 								'nombrelinea' => $nombreLinea,
 								'sku' => $sku,
+								'codigo' => $codigoCombinacion,
 								'nombrecombinacion' => $nombreCombinacion,
 								'lote' => $lote,
 								'precio' => $precio,
@@ -168,6 +172,7 @@ class Articulo_MovimientoService
 				$foto = $movimiento['foto'];
 				$nombreLinea = $movimiento['nombrelinea'];
 				$sku = $movimiento['sku'];
+				$codigoCombinacion = $movimiento['codigocombinacion'];
 				$nombreCombinacion = $movimiento['nombrecombinacion'];
 				$lote = $movimiento['lote'];
 				$precio = $movimiento['precio'];
@@ -223,6 +228,7 @@ class Articulo_MovimientoService
 						'foto' => $foto,
 						'nombrelinea' => $nombreLinea,
 						'sku' => $sku,
+						'codigo' => $codigoCombinacion,
 						'nombrecombinacion' => $nombreCombinacion,
 						'lote' => $lote,
 						'precio' => $precio,
@@ -234,6 +240,13 @@ class Articulo_MovimientoService
 			];
 		}
 		return $datas;
+	}
+
+	// Lee stock por numero de lote antes de generar OT consumiendo de stock
+
+	public function leeStockPorLote($codigoOt, $articulo_id, $combinacion_id)
+	{
+		return $this->articulo_movimientoQuery->leeStockPorLote($codigoOt, $articulo_id, $combinacion_id);
 	}
 }
 

@@ -12,7 +12,7 @@
 			<select name="tipoetiqueta" class="col-lg-3 form-control" required>
     			<option value="">-- Elija tipo de etiqueta --</option>
        			@foreach($tipoetiqueta_enum as $value => $tipoetiqueta)
-       				@if($value == 'CAJA')
+       				@if($value == 'CAJA FOTO')
        					<option value="{{ $value }}" selected="select">{{ $tipoetiqueta }}</option>    
        				@else
        					<option value="{{ $value }}">{{ $tipoetiqueta }}</option>    

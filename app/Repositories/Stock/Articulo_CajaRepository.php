@@ -29,9 +29,6 @@ class Articulo_CajaRepository implements Articulo_CajaRepositoryInterface
     {
         $hay_articulo_cajas = $this->model->first();
 
-		if (!$hay_articulo_cajas)
-			self::sincronizarConAnita();
-
         $ret = $this->model->get();
 
         return $ret;
@@ -40,17 +37,11 @@ class Articulo_CajaRepository implements Articulo_CajaRepositoryInterface
     public function create(array $data)
     {
         $articulo_caja = $this->model->create($data);
-
-		// Graba anita
-		self::guardarAnita($data['sku'], $data['caja_id']);
     }
 
     public function deletePorArticulo($articulo_id, $sku)
     {
         $articulo_caja = $this->model->where('articulo_id', $articulo_id)->delete();
-		//
-		// Elimina anita
-		self::eliminarAnita($sku);
 
 		return $articulo_caja;
     }

@@ -120,78 +120,111 @@ class MovimientoOrdentrabajoService
 					$ordentrabajo_tarea_filtrada = $this->ordentrabajo_tareaRepository
 												->findPorOrdentrabajoId($ordentrabajo->id, $data['tarea_id']);
 					
-					if ($funcion == 'create')
+					$accion = '';
+					if ($tipooperacionEnum[$operacion->tipooperacion] == 'Inicio')
 					{
-						$accion = '';
-						if ($tipooperacionEnum[$operacion->tipooperacion] == 'Inicio')
+						if (count($ordentrabajo_tarea_filtrada) == 0)
+							// Crea la tarea
+							$accion = 'create';
+						else
 						{
-							if (count($ordentrabajo_tarea_filtrada) == 0)
-								// Crea la tarea
-								$accion = 'create';
-							else
+							// Verifica si tiene desde fecha
+							if ($ordentrabajo_tarea_filtrada[0]->desdefecha != null)
 								throw new ModelNotFoundException("La tarea ya existe");
+							else
+								$accion = 'update';
 						}
+					}
+					
+					if ($tipooperacionEnum[$operacion->tipooperacion] == 'Fin')
+					{
+						if (count($ordentrabajo_tarea_filtrada) == 0)
+							throw new ModelNotFoundException("La tarea no fue iniciada");
+
+						if ($ordentrabajo_tarea_filtrada[0]->empleado_id != $data['empleado_id'])
+							throw new ModelNotFoundException("No puede grabar tarea iniciada por otro empleado");
 						
-						if ($tipooperacionEnum[$operacion->tipooperacion] == 'Fin')
-						{
-							if (count($ordentrabajo_tarea_filtrada) == 0)
-								throw new ModelNotFoundException("La tarea no fue iniciada");
-							
-							// Actualiza la tarea
-							$accion = 'update';
-						}
+						// Actualiza la tarea
+						$accion = 'update';
+					}
 
-						if ($accion != '')
-						{
-							$dataTarea = array(
-								'ordentrabajo_id' => $ordentrabajo->id,
-								'tarea_id' => $data['tarea_id'],
-								'operacion_id' => $data['operacion_id'],
-								'empleado_id' => $data['empleado_id'],
-								'pedido_combinacion_id' => $pedido_combinacion_id,
-								'fecha' => $data['fecha'],
-								'estado' => $estadoEnum['A'],
-								'usuario_id' => $usuario_id,
-								// Campos para Anita
-								'nro_orden' => $codigos_ot[$i],
-								'codigo' => $codigos_ot[$i],
-								'articulo' => str_pad($sku, 13, "0", STR_PAD_LEFT),
-								'cantidad' => $cantidad,
-								'costo' => $costo
-								);
+					if ($accion != '')
+					{
+						$dataTarea = array(
+							'ordentrabajo_id' => $ordentrabajo->id,
+							'tarea_id' => $data['tarea_id'],
+							'operacion_id' => $data['operacion_id'],
+							'empleado_id' => $data['empleado_id'],
+							'pedido_combinacion_id' => $pedido_combinacion_id,
+							'fecha' => $data['fecha'],
+							'estado' => $estadoEnum['A'],
+							'usuario_id' => $usuario_id,
+							// Campos para Anita
+							'nro_orden' => $codigos_ot[$i],
+							'codigo' => $codigos_ot[$i],
+							'articulo' => str_pad($sku, 13, "0", STR_PAD_LEFT),
+							'cantidad' => $cantidad,
+							'costo' => $costo
+							);
 
+						if ($funcion == 'create')
+						{
 							// Crea la tarea
 							if ($accion == 'create')
 							{
 								$dataTarea['desdefecha'] = $dataTarea['fecha'];
 								$dataTarea['hastafecha'] = null;
 
-       							$item_tarea = $this->ordentrabajo_tareaRepository->create($dataTarea);
+								$item_tarea = $this->ordentrabajo_tareaRepository->create($dataTarea);
 
 								if ($item_tarea)
 									$dataTarea['ordentrabajo_tarea_id'] = $item_tarea->id;
 							}
 							else // Actualiza la tarea
 							{
-								$dataTarea['desdefecha'] = $ordentrabajo_tarea_filtrada[0]->desdefecha;
-								$dataTarea['hastafecha'] = $dataTarea['fecha'];
+								if ($ordentrabajo_tarea_filtrada[0]->hastafecha != null)
+								{
+									$dataTarea['desdefecha'] = $dataTarea['fecha'];
+									$dataTarea['hastafecha'] = $ordentrabajo_tarea_filtrada[0]->hastafecha;
+								}								
+								else
+								{
+									$dataTarea['desdefecha'] = $ordentrabajo_tarea_filtrada[0]->desdefecha;
+									$dataTarea['hastafecha'] = $dataTarea['fecha'];
+								}
 
-       							$item_tarea = $this->ordentrabajo_tareaRepository->update($dataTarea, $ordentrabajo_tarea_filtrada[0]->id);
+								$item_tarea = $this->ordentrabajo_tareaRepository->update($dataTarea, $ordentrabajo_tarea_filtrada[0]->id);
 
 								if ($item_tarea)
 									$dataTarea['ordentrabajo_tarea_id'] = $ordentrabajo_tarea_filtrada[0]->id;
 							}
 
 							// Crea el movimiento de OT
-      						$movimientoordentrabajo = $this->movimientoordentrabajoRepository->create($dataTarea);
+							$movimientoordentrabajo = $this->movimientoordentrabajoRepository->create($dataTarea);
 						}
 						else
-						{
-							throw new ModelNotFoundException("No puede grabar movimiento tarea ya existente en OT");
+						{								
+							$dataTarea['ordentrabajo_tarea_id'] = $ordentrabajo_tarea_filtrada[0]->id;
+
+							// Crea la tarea
+							if ($accion == 'create')
+							{
+								$dataTarea['desdefecha'] = $dataTarea['fecha'];
+							}
+							else // Actualiza la tarea
+							{
+								$dataTarea['hastafecha'] = $dataTarea['fecha'];
+								
+							}
+							$item_tarea = $this->ordentrabajo_tareaRepository->update($dataTarea, $ordentrabajo_tarea_filtrada[0]->id);
+
+							// Crea el movimiento de OT
+							$movimientoordentrabajo = $this->movimientoordentrabajoRepository->update($dataTarea, $id);
 						}
 					}
 					else
 					{
+						throw new ModelNotFoundException("No puede grabar movimiento tarea ya existente en OT");
 					}
 					DB::commit();
 				} catch (\Exception $e) {
@@ -226,9 +259,17 @@ class MovimientoOrdentrabajoService
 				{
 					// Si el movimiento es de finalizacion borra la fecha en la tarea si no borra la tarea
 					if ($movimientoordentrabajo->operaciones->tipooperacion == 'F')
-						$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository->update(['hastafecha' => null]);
+						$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository
+													->update(['hastafecha' => null], $movimientoordentrabajo->ordentrabajo_tarea_id);
 					else
-						$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository->delete($ordentrabajo_tarea->id);
+					{
+						// Si no tiene fin borra la tarea, si tiene fecha de fin actualiza desde fecha
+						if ($ordentrabajo_tarea->hastafecha == null)
+							$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository->delete($ordentrabajo_tarea->id);
+						else
+							$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository
+													->update(['desdefecha' => null], $movimientoordentrabajo->ordentrabajo_tarea_id);
+					}
 				}
 
 				$this->movimientoordentrabajoRepository->delete($id);

@@ -40,6 +40,10 @@ class TransporteRepository implements TransporteRepositoryInterface
 
     public function create(array $data)
     {
+		$codigo = '';
+		self::ultimoCodigo($codigo);
+		$data['codigo'] = $codigo;
+
         $transporte = $this->model->create($data);
 		//
 		// Graba anita
@@ -192,7 +196,7 @@ class TransporteRepository implements TransporteRepositoryInterface
 	public function guardarAnita($request) {
         $apiAnita = new ApiAnita();
 
-		$this->setCondicionIvaAnita($request, $condicioniva);
+		$this->setCondicionIvaAnita($request, $condicioniva_id);
 
         $data = array( 'tabla' => $this->tableAnita, 'acc' => 'insert',
             'campos' => ' 
@@ -278,4 +282,22 @@ class TransporteRepository implements TransporteRepositoryInterface
 			break;
 		}
 	}
+
+	// Devuelve ultimo codigo de clientes + 1 para agregar nuevos en Anita
+
+	private function ultimoCodigo(&$codigo) {
+		$apiAnita = new ApiAnita();
+		$data = array( 'acc' => 'list', 
+				'tabla' => $this->tableAnita, 
+				'campos' => " max(expr_codigo) as $this->keyFieldAnita "
+				);
+		$dataAnita = json_decode($apiAnita->apiCall($data));
+
+		if (count($dataAnita) > 0) 
+		{
+			$codigo = ltrim($dataAnita[0]->{$this->keyFieldAnita}, '0');
+			$codigo = $codigo + 1;
+		}
+	}
+	
 }

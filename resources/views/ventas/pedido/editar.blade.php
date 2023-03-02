@@ -15,7 +15,7 @@
 
 	function sub()
 	{
-	  	// Validar precio en 0
+        // Validar precio en 0
         $(".precio").each(function(){
             precio = $(this).val();
 
@@ -25,9 +25,9 @@
 				//return false;
 			//}
         });
-	  
-		$('#form-general').submit();
-	}
+        
+        $('#formgeneral').submit();
+    }
 
     $(function () {
         $("#cliente_id").change(function(){
@@ -84,7 +84,7 @@
 					</button>
                 </div>
             </div>
-            <form action="{{route('actualizar_pedido', ['id' => $pedido->id])}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
+            <form action="{{route('actualizar_pedido', ['id' => $pedido->id])}}" id="formgeneral" class="form-horizontal form--label-right" method="POST" autocomplete="off">
                 @csrf @method("put")
                 <div class="card-body">
         			<input type="hidden" id="codigo" name="codigo" value="{{$pedido->codigo}}" >

@@ -36,6 +36,7 @@ class PrecioImport implements OnEachRow, WithHeadingRow
 
         $arrayPrecios = [];
         $fechavigencia = Carbon::createFromFormat('d-m-Y', $this->fechavigencia);
+
         if ($articulo)
         {
             // Verifica que lista de precio tiene que cambiar 
@@ -75,6 +76,7 @@ class PrecioImport implements OnEachRow, WithHeadingRow
                     }
                 }
             }
+            
             // Graba los precios de la fila del excel
             foreach ($arrayPrecios as $precio)
             {
@@ -86,6 +88,6 @@ class PrecioImport implements OnEachRow, WithHeadingRow
 
     public function headingRow(): int
     {
-        return 3;
+        return 1;
     }
 }

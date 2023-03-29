@@ -19,6 +19,8 @@ class CrearTablaMovimientostock extends Migration
             $table->date('fechajornada');
             $table->unsignedBigInteger('tipotransaccion_id');
             $table->foreign('tipotransaccion_id', 'fk_movimientostock_tipotransaccion')->references('id')->on('tipotransaccion')->onDelete('restrict')->onUpdate('restrict');
+            $table->unsignedBigInteger('mventa_id')->nullable();
+            $table->foreign('mventa_id', 'fk_movimientostock_mventa')->references('id')->on('mventa')->onDelete('set null')->onUpdate('set null');
             $table->string('codigo',50);
             $table->string('leyenda',2048)->nullable();
             $table->string('estado', 1);

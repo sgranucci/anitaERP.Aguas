@@ -1962,9 +1962,13 @@ class OrdentrabajoService
 
 	// Controla estado de la orden de trabajo
 
-	public function otFacturada($codigoOt)
+	public function otFacturada($codigoOt, $id)
 	{
-		$ordentrabajo = $this->ordentrabajoQuery->leeOrdenTrabajoPorCodigo($codigoOt);
+		if ($id != null)
+			$ordentrabajo = $this->ordentrabajoQuery->leeOrdenTrabajo($id);
+		else
+			$ordentrabajo = $this->ordentrabajoQuery->leeOrdenTrabajoPorCodigo($codigoOt);
+
 		$secuenciaTareas = config("consprod.SECUENCIA_TAREAS");
 
 		$numeroFactura = '-1';

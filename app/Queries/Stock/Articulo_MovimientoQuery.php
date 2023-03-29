@@ -36,6 +36,7 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
                             'articulo_movimiento.modulo_id as modulo_id',
                             'articulo_movimiento_talle.talle_id as talle_id',
                             'talle.nombre as nombretalle',
+                            'articulo_movimiento_talle.id as idmov',
                             'articulo_movimiento_talle.cantidad as cantidad',
                             'articulo_movimiento_talle.precio as precio')
                             ->join('combinacion', 'combinacion.articulo_id', 'articulo.id')
@@ -51,7 +52,7 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
                             ->orderBy('sku','ASC')
                             ->orderBy('codigocombinacion', 'ASC')
                             ->orderBy('lote','ASC');
-                            
+
         if ($desdearticulo != '' && $hastaarticulo != '')
             $articulo_query = $articulo_query->whereBetween('articulo.descripcion', [$desdearticulo, $hastaarticulo]);
             
@@ -68,7 +69,6 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
             break;
         }
         $articulo_query = $articulo_query->get();
-
 		return $articulo_query;
     }
 

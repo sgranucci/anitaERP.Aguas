@@ -24,16 +24,21 @@ class MovimientoStockRepository implements MovimientoStockRepositoryInterface
         return $this->model->estadoEnum();
     }
 
+    public function latest($campo)
+    {
+        return $this->model->latest($campo)->first();
+    }
+
     public function all()
     {
-        $ret = $this->model->with('articulos_movimiento')->get();
+        $ret = $this->model->with('articulos_movimiento')->with('tipostransaccion')->with('mventas')->get();
 
         return $ret;
     }
 
     public function find($id)
     {
-        if (null == $movimientostock = $this->model->find($id)) {
+        if (null == $movimientostock = $this->model->where('id', $id)->with('articulos_movimiento')->with('tipostransaccion')->first()) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
 

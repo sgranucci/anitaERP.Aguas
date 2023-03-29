@@ -31,11 +31,11 @@ class PedidoService
 	protected $ordentrabajo_combinacion_talleRepository;
 	protected $ordentrabajo_tareaRepository;
     protected $ordentrabajoQuery;
+	protected $ordentrabajoService;
 	protected $pedidoQuery;
 	protected $clienteQuery;
 	protected $impuestoService;
 	protected $articulo_movimientoService;
-	protected $ordentrabajoService;
 
     public function __construct(PedidoRepositoryInterface $pedidorepository,
     							Pedido_CombinacionRepositoryInterface $pedidocombinacionrepository,
@@ -47,8 +47,8 @@ class PedidoService
 								PedidoQueryInterface $pedidoquery,
 								ClienteQueryInterface $clientequery,
 								ImpuestoService $impuestoservice,
-								Articulo_MovimientoService $articulo_movimientoservice,
-								OrdentrabajoService $ordentrabajoservice
+								OrdentrabajoService $ordentrabajoservice,
+								Articulo_MovimientoService $articulo_movimientoservice
 								)
     {
         $this->pedidoRepository = $pedidorepository;
@@ -72,7 +72,74 @@ class PedidoService
         return $pedido;
 	}
 
-	public function leePedidosPendientes($cliente_id)
+	public function leePedidosPorEstado($cliente_id, $estado)
+	{
+		ini_set('memory_limit', '512M');
+        ini_set('max_execution_time', '2400');
+
+        //$hay_pedidos = $this->pedidoQuery->first();
+
+		//if (!$hay_pedidos)
+		//{
+			//$this->pedidoRepository->sincronizarConAnita();
+			//$this->pedido_combinacionRepository->sincronizarConAnita();
+			//$this->pedido_combinacion_talleRepository->sincronizarConAnita();
+		//}
+		$pedidos = $this->pedidoQuery->allPedidoIndex($cliente_id, $estado);
+
+		$datas = [];
+        foreach($pedidos as $pedido)
+        {
+            $pares = 0;
+            $qPendiente = 0;
+            $qProduccion = 0;
+            $qFacturado = 0;
+            foreach($pedido->pedido_combinaciones as $item)
+            {
+                $pares += $item->cantidad;
+                if ($item->ot_id == 0)
+                    $qPendiente++;
+                if ($item->ot_id != 0)
+                {
+                    $qProduccion++;
+
+					if ($estado == 'F')
+					{
+						$factura = $this->ordentrabajoService->otFacturada(0, $item->ot_id);
+						if ($factura['numerofactura'] != -1 && $factura['numerofactura'] != -2)
+							$qFacturado++;
+					}
+                }
+            }
+			// Determina el estado
+			$estadoPedido = "Pendiente";
+			if ($qPendiente > 0 && $qProduccion > 0)
+				$estadoPedido = "Pendiente/parcial en produccion";
+			if ($qPendiente == 0 && $qProduccion > 0)
+				$estadoPedido = "En produccion";
+			if ($qFacturado == $qProduccion)
+				$estadoPedido = "Facturado";
+			else
+			{
+				if ($qFacturado > 0)
+					$estadoPedido .= " y facturado parcial";
+			}
+            if ($estado == 'P' ? $qPendiente > 0: ($estado == 'E' ? $qProduccion > 0: ($estado == 'F' ? $qFacturado > 0 : false)))
+            {
+                $datas[] = ['id' => $pedido->id,
+                        'fecha' => $pedido->fecha,
+                        'nombrecliente' => $pedido->clientes->nombre,
+                        'codigo' => $pedido->codigo,
+                        'nombremarca' => $pedido->mventas->nombre,
+                        'pares' => $pares,
+                        'estado' => $estadoPedido
+                ];
+            }
+        }
+		return $datas;
+	}
+
+	public function leePedidosProduccion($cliente_id)
 	{
         //$hay_pedidos = $this->pedidoQuery->first();
 
@@ -82,7 +149,7 @@ class PedidoService
 			//$this->pedido_combinacionRepository->sincronizarConAnita();
 			//$this->pedido_combinacion_talleRepository->sincronizarConAnita();
 		//}
-		return $this->pedidoQuery->allPendienteIndex($cliente_id);
+		return $this->pedidoQuery->allProduccionIndex($cliente_id);
 	}
 
 	/* Lee pedidos pendientes para generacion de OT por articulo / combinacion */

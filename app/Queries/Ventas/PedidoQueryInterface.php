@@ -7,6 +7,7 @@ interface PedidoQueryInterface
     public function all();
     public function first();
     public function allPendiente($cliente_id = null);
+    public function allPedidoIndex($cliente_id, $estado);
     public function allPendienteOt($articulo_id, $combinacion_id);
     public function leePedidoporCodigo($codigo);
     public function leePedidoporId($id);

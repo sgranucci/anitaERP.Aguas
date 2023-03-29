@@ -3,6 +3,7 @@
 
 return [
 	"DIGITOS_SUCURSAL" => "5",
-    "DIGITOS_COMPROBANTE" => "8"
+    "DIGITOS_COMPROBANTE" => "8",
+    "LIMITE_FCE" => 299555
     
 ];

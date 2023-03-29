@@ -46,10 +46,16 @@ class Articulo_MovimientoService
 		if ($tipotransaccion)
 		{
 			$dataMovimiento['cantidad'] = $dataMovimiento['cantidad'] * ($tipotransaccion->signo == 'S' ? 1 : -1);
+			$dataMovimiento['precio'] = str_replace(',', '', $dataMovimiento['precio']);
 
 			if (!array_key_exists('deposito_id', $dataMovimiento))
 				$dataMovimiento['deposito_id'] = 1;
-
+			if ($dataMovimiento['listaprecio_id'] == 'NaN')
+				$dataMovimiento['listaprecio_id'] = null;
+			if ($dataMovimiento['moneda_id'] == 'NaN')
+				$dataMovimiento['moneda_id'] = null;
+			if ($dataMovimiento['incluyeimpuesto'] == 'NaN')
+				$dataMovimiento['incluyeimpuesto'] = null;				
 			$articulo_movimiento = $this->articulo_movimientoRepository->create($dataMovimiento);
 			if ($articulo_movimiento)
 			{
@@ -59,9 +65,8 @@ class Articulo_MovimientoService
 					$data['articulo_movimiento_id'] = $articulo_movimiento->id;
 					$data['pedido_combinacion_talle_id'] = $talle['id'];
 					$data['talle_id'] = $talle['talle_id'];
-					$data['cantidad'] = $talle['cantidad']*($tipotransaccion->signo == 'S' ? 1 : -1);
-					$data['precio'] = $talle['precio'];
-
+					$data['cantidad'] = $talle['cantidad'];
+					$data['precio'] = str_replace(',', '', $talle['precio']);
 					$this->guardaArticuloMovimientoTalle($dataMovimiento['pedido_combinacion_id'], $data);
 				}
 			}
@@ -111,7 +116,7 @@ class Articulo_MovimientoService
 
 				if (array_key_exists('cantidad', $data))
 					$data['cantidad'] = $data['cantidad']*($tipotransaccion->signo == 'S' ? 1 : -1);	
-				
+				 
 				$articulo_movimiento_talle = $this->articulo_movimiento_talleRepository->create($data);
 			}
 			else
@@ -139,6 +144,7 @@ class Articulo_MovimientoService
 		$anterSku = '';
 		$anterCodigoCombinacion = '';
 		$anterModulo_Id = 0;
+
 		foreach ($data as $movimiento)
 		{
 			// Realiza corte
@@ -243,10 +249,15 @@ class Articulo_MovimientoService
 	}
 
 	// Lee stock por numero de lote antes de generar OT consumiendo de stock
-
 	public function leeStockPorLote($codigoOt, $articulo_id, $combinacion_id)
 	{
 		return $this->articulo_movimientoQuery->leeStockPorLote($codigoOt, $articulo_id, $combinacion_id);
 	}
+
+	// Borra un registro por ID de movimiento de stock
+	public function deletePorMovimientoStockId($movimientostock_id)
+    {
+		return $this->articulo_movimientoRepository->deletePorMovimientoStockId($movimientostock_id);
+    }
 }
 

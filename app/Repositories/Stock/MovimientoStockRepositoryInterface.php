@@ -11,6 +11,6 @@ interface MovimientoStockRepositoryInterface
     public function delete($id);
     public function find($id);
     public function deletePorId($id);
-
+    public function latest($campo);
 }
 

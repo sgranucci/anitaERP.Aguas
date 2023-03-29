@@ -409,7 +409,7 @@ class FacturacionService
 			if ($puntoventa->modofacturacion != 'M')
 			{
 				$this->facturaelectronicaService->armaTipoTransaccion($letra, $cliente->modoFacturacion, $codigoTipoTransaccion,
-																		$puntoventa);
+																		$puntoventa, $totalComprobante);
 
 				$numero = $this->facturaelectronicaService
 							->traeUltimoNumeroComprobante($empresa->nroinscripcion,
@@ -509,6 +509,11 @@ class FacturacionService
 							throw new Exception('No pudo asignar CAE');
 					}
 					
+					if ($codigoTipoTransaccion >= '200')
+						$tipoAnita = substr($tipotransaccion->abreviatura,0,1)+"CE";
+					else
+						$tipoAnita = $tipotransaccion->abreviatura;
+
 					$venta = ['fecha' => $fechaFactura,
 						'fechajornada' => $fechaFactura,
 						'empresa_id' => $puntoventa->empresa_id,
@@ -528,7 +533,7 @@ class FacturacionService
 						'descuentointegrado' => ' ',
 						'lugarentrega' => $pedido->lugarentrega,
 						'cliente_entrega_id' => $pedido->cliente_entrega_id,
-						'codigo' => $tipotransaccion->abreviatura.' '.$letra.'-'.
+						'codigo' => $tipoAnita.' '.$letra.'-'.
 										str_pad($puntoventa->codigo, config('facturacion.DIGITOS_SUCURSAL'), "0", STR_PAD_LEFT).'-'.
 										str_pad($numero, config('facturacion.DIGITOS_COMPROBANTE'), "0", STR_PAD_LEFT),
 						'nombre' => $cliente->nombre,

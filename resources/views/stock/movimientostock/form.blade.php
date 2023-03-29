@@ -23,7 +23,7 @@
 		<div class="form-group row">
 			<label for="lote" class="col-lg-3 col-form-label">Lote de stock</label>
 			<div class="col-lg-3">
-				<input type="text" name="lote" id="lote" class="form-control" value="{{old('lote', $movimientostock->lote ?? '')}}" required>		
+				<input type="text" name="lote" id="lote" class="form-control" value="{{old('lote', $movimientostock->articulos_movimiento[0]->lote ?? '')}}" required>		
 			</div>				
 		</div>
 		<div class="form-group row">
@@ -44,7 +44,7 @@
         	<select name="mventa_id" id="mventa_id" data-placeholder="Marca de Venta" class="col-lg-3 form-control required" data-fouc>
         		<option value="">-- Seleccionar marca --</option>
         		@foreach($mventa_query as $key => $value)
-        			@if( (int) $value->id == (int) old('mventa_id', $pedido->mventa_id ?? ''))
+        			@if( (int) $value->id == (int) old('mventa_id', $movimientostock->mventa_id ?? ''))
         				<option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
         			@else
         				<option value="{{ $value->id }}">{{ $value->nombre }}</option>    
@@ -71,8 +71,8 @@
     			</tr>
     		</thead>
     		<tbody id="tbody-tabla">
-		 		@if ($pedido->pedido_combinaciones ?? '') 
-					@foreach (old('items', $pedido->pedido_combinaciones->count() ? $pedido->pedido_combinaciones : ['']) as $pedidoitem)
+		 		@if ($movimientostock->articulos_movimiento[0] ?? '') 
+					@foreach ($movimientostock->articulos_movimiento as $pedidoitem)
             			<tr class="item-pedido">
                 			<td>
 								@if ($pedidoitem->estado ?? '' == 'A')
@@ -80,7 +80,7 @@
 								@else
                 					<input type="text" name="items[]" class="form-control item" value="{{ $loop->index+1 }}" readonly>
 								@endif
-                				<input type="hidden" name="medidas[]" class="form-control medidas" readonly value="{{old('medidas', $pedidoitem->pedido_combinacion_talles??'')}}" />
+                				<input type="hidden" name="medidas[]" class="form-control medidas" readonly value="{{old('medidas', $pedidoitem->articulo_movimiento_talles??'')}}" />
                 				<input type="hidden" name="listasprecios_id[]" class="form-control listaprecio_id" readonly value="{{old('listaprecios_id', $pedidoitem->listaprecio_id??'')}}" />
                 				<input type="hidden" name="monedas_id[]" class="form-control moneda_id" readonly value="{{old('monedas_id', $pedidoitem->moneda_id??'')}}" />
                 				<input type="hidden" name="incluyeimpuestos[]" class="form-control incluyeimpuesto" readonly value="{{old('incluyeimpuestos', $pedidoitem->incluyeimpuesto??'')}}" />
@@ -117,7 +117,7 @@
         						<input type="hidden" class="desc_modulo" name="desc_modulo[]" class="desc_modulo" value="{{old('desc_modulo', $pedidoitem->desc_modulo ?? '')}}" >
                 			</td>
                 			<td>
-                				<input type="text" id="icantidad" name="cantidades[]" class="form-control cantidad" readonly value="{{number_format(old('cantidades.'.$loop->index, optional($pedidoitem)->cantidad),0)}}" />
+                				<input type="text" id="icantidad" name="cantidades[]" class="form-control cantidad" readonly value="{{abs(number_format(old('cantidades.'.$loop->index, optional($pedidoitem)->cantidad),0))}}" />
                 			</td>
                 			<td>
                 				<input type="text" style="text-align: right;" id="iprecio" name="precios[]" class="form-control precio" readonly value="{{number_format(old('precios.'.$loop->index, optional($pedidoitem)->precio),2)}}" />
@@ -138,37 +138,16 @@
 								<input name="checkscomb[]" class="checkCombinacion" title="Todas las combinaciones" type="checkbox" autocomplete="off"> 
                 			</td>
                 			<td>
-								<button type="button" title="Genera OT" style="padding:0;" class="btn-accion-tabla generaot tooltipsC">
-                            		<i class="fa fa-industry text-success"></i>
-								</button>
-								<button type="button" title="Imprime OT" style="padding:0;" class="btn-accion-tabla imprimeot tooltipsC">
-                            		<i class="fa fa-print text-success"></i>
-								</button>
-								@if ($pedidoitem->estado == 'A')
-									<button type="button" title="Recupera Item" style="padding:0;" class="btn-accion-tabla anulaitem tooltipsC">
-                            			<i class="fa fa-window-close text-success ianulaItem"></i>
-								@else
-									<button type="button" title="Anula Item" style="padding:0;" class="btn-accion-tabla anulaitem tooltipsC">
-                            			<i class="fa fa-window-close text-danger ianulaItem"></i>
-								@endif
-								</button>
 								<button type="button" title="Elimina esta linea" style="padding:0;" class="btn-accion-tabla eliminar tooltipsC">
                             		<i class="fa fa-trash text-danger"></i>
 								</button>
-								@if (count($pedidoitem->pedido_combinacion_estados) > 0)
-									<button type="button" title="Historia de anulaci&oacute;nes" style="padding:0;" class="btn-accion-tabla historiaitem tooltipsC">
-                            			<i class="fa fa-book text-danger"></i>
-									</button>
-									<input type="hidden" class="historiaanulacion" value="{{$pedidoitem->pedido_combinacion_estados}}" >
-								@endif
-								<input name="checks[]" style="display:none;" class="checkImpresion" type="checkbox" autocomplete="off"> 
                 			</td>
                 		</tr>
            			@endforeach
 				@endif
        		</tbody>
        	</table>
-		@include('ventas.pedido.template')
+		@include('stock.movimientostock.template')
         <div class="row col-md-12">
         	<div class="col-md-3">
         		<button id="agrega_renglon" class="pull-right btn btn-danger">+ Agrega rengl&oacute;n</button>
@@ -177,7 +156,7 @@
                	<!-- textarea -->
                	<div class="form-group">
                		<label>Leyendas</label>
-               		<textarea name="leyenda" class="form-control" rows="3" placeholder="Leyendas ...">{{old('leyenda', $pedido->leyenda ?? '')}}</textarea>
+               		<textarea name="leyenda" class="form-control" rows="3" placeholder="Leyendas ...">{{old('leyenda', $movimientostock->leyenda ?? '')}}</textarea>
                	</div>
             </div>
         	<div class="col-md-3 row">
@@ -190,5 +169,5 @@
 <input type="hidden" id="csrf_token" class="form-control" value="{{csrf_token()}}" />
 <input type="hidden" id="tipotransacciondefault_id" class="form-control" value="{{$tipotransacciondefault_id}}" />
 
-@include('ventas.pedido.modal')
+@include('stock.movimientostock.modal')
 @include('includes.stock.modalarticuloxsku')

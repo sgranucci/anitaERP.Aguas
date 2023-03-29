@@ -329,7 +329,7 @@ class OrdentrabajoController extends Controller
 	// controla estado de orden de trabajo
 	public function estadoOt($codigoordentrabajo)
 	{
-		return $this->ordentrabajoService->otFacturada($codigoordentrabajo);
+		return $this->ordentrabajoService->otFacturada($codigoordentrabajo, null);
 	}
 
 	// controla orden de trabajo de stock

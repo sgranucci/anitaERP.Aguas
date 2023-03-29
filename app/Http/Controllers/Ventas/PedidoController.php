@@ -76,14 +76,93 @@ class PedidoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index($cliente_id = null)
+    public function index(Request $request, $cliente_id = null)
     {
 		can('listar-pedidos');
 
-		$datas = $this->pedidoService->leePedidosPendientes($cliente_id);
+		$filtros = [];
+		if ($request->url() != $request->fullUrl())
+		{
+			$url = urldecode($request->fullUrl());
+			$components = parse_url($url);
+			parse_str($components['query'], $filtros);
 
-        return view('ventas.pedido.index', compact('datas'));
+			session(['filtrosPedidos' => $filtros]);
+		}
+		else
+		{
+			$filtros = session('filtrosPedidos');
+		}
+
+		// Aplica los filtros si es que hay definidos
+		if ($filtros != '' && $filtros['filter_column'] ?? '')
+		{
+			for ($ii = 0; $ii < count($filtros['filter_column']); $ii++)
+			{
+				if ($filtros['filter_column'][$ii]['type'] == '')
+					continue;
+
+				if ($filtros['filter_column'][$ii]['column'] == 'estado' &&
+					$filtros['filter_column'][$ii]['type'] == '=')
+				{
+					switch($filtros['filter_column'][$ii]['value'])
+					{
+					case 'P':
+						$datas = $this->pedidoService->leePedidosPorEstado($cliente_id, 'P');
+						break;
+					case 'F':
+						$datas = $this->pedidoService->leePedidosPorEstado($cliente_id, 'F');
+						break;
+					case 'E':
+						$datas = $this->pedidoService->leePedidosPorEstado($cliente_id, 'E');
+						break;
+					}
+				}
+				else
+				{
+					switch($filtros['filter_column'][$ii]['type'])
+					{
+					case 'in':
+						$query = $datas->whereIn($filtros['filter_column'][$ii]['column'], explode(',', $filtros['filter_column'][$ii]['value']));
+						break;
+					case 'not in':
+						$query = $datas->whereNotIn($filtros['filter_column'][$ii]['column'], explode(',', $filtros['filter_column'][$ii]['value']));
+						break;
+					case 'like':
+					case 'not like':
+						$query = $datas->where($filtros['filter_column'][$ii]['column'], $filtros['filter_column'][$ii]['type'], '%'.$filtros['filter_column'][$ii]['value'].'%');
+						break;
+					case '';
+						$query = $datas->whereExists(function($query)
+								{
+    								$query->select(DB::raw(1))
+										->from("combinacion")
+          								->whereRaw("combinacion.articulo_id=articulo.id and combinacion.estado='A'");
+								});
+						break;
+					default:
+						if ($filtros['filter_column'][$ii]['value'])
+							$query = $datas->where($filtros['filter_column'][$ii]['column'], $filtros['filter_column'][$ii]['type'], $filtros['filter_column'][$ii]['value']);
+						break;
+					}
+				}
+
+				if($filtros['filter_column'][$ii]['sorting'] != '')
+				{
+				}
+			}
+		}
+		else
+			$datas = $this->pedidoService->leePedidosPorEstado($cliente_id, 'P');
+
+		return view('ventas.pedido.index', compact('datas'));
     }
+
+	public function limpiafiltro(Request $request) {
+		session()->forget('filtrosPedidos');
+
+        return json_encode(["ok"]);
+	}
 
 	// Reporte de pedidos por vendedor
     public function indexReportePedido()

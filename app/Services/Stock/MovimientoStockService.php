@@ -6,6 +6,7 @@ use App\Services\Stock\Articulo_MovimientoService;
 use App\Repositories\Ventas\TipotransaccionRepositoryInterface;
 use App\Models\Stock\Talle;
 use Auth;
+use DB;
 
 class MovimientoStockService 
 {
@@ -37,7 +38,7 @@ class MovimientoStockService
 
 	public function leeMovimientoStock($id)
 	{
-        $movimientostock = $this->movimientostockRepository->find($id)->with('articulo_movimientos');
+        $movimientostock = $this->movimientostockRepository->find($id);
 
         return $movimientostock;
 	}
@@ -47,8 +48,7 @@ class MovimientoStockService
 	  	ini_set('memory_limit', '512M');
 
 		$estadoEnum = Self::estadoEnum();
-
-		$data['estado'] = $estadoEnum['Activa'];
+		$data['estado'] = array_search('Activa', $estadoEnum);
 		$data['usuario_id'] = Auth::user()->id;
 		$data['descuentointegrado'] = ' ';
 
@@ -67,7 +67,11 @@ class MovimientoStockService
 
 			if ($funcion == 'create')
 			{
-				$id = $this->movimientostockRepository->all()->last()->id;
+				$movimientostock = $this->movimientostockRepository->latest('id');
+				
+				$id = 0;
+				if ($movimientostock)
+					$id = $movimientostock->id;
 
 				$data['codigo'] = $id + 1;
 				
@@ -83,12 +87,12 @@ class MovimientoStockService
 			// Guarda items
 			if ($movimientostock)
 			{
-				$data['movimientostock_id'] = ($funcion == 'update' ? $id : $movimientostock->id);
+				$movimientostock_id = ($funcion == 'update' ? $id : $movimientostock->id);
 
 				// Borra los registros de movimientos antes de grabar nuevamente
 				if ($funcion == 'update')
 				{
-					$this->articulo_movimientoRepository->deletePorMovimientoStockId($data['movimientostock_id']);
+					$this->articulo_movimientoService->deletePorMovimientoStockId($movimientostock_id);
 				}
 
 				$articulos = $data['articulos_id'];
@@ -113,6 +117,7 @@ class MovimientoStockService
 						'fecha' => $data['fecha'],
 						'fechajornada' => $data['fecha'],
 						'tipotransaccion_id' => $data['tipotransaccion_id'],
+						'movimientostock_id' => $movimientostock_id,
 						'venta_id' => null,
 						'pedido_combinacion_id' => null,
 						'ordentrabajo_id' => null,
@@ -127,20 +132,21 @@ class MovimientoStockService
 						'descuento' => $descuentos[$i],
 						'descuentointegrado' => null,
 						'moneda_id' => $monedas[$i],
-						'incluyeimpuesto' => $incluyeimpuesto[$i],
+						'incluyeimpuesto' => $incluyeimpuestos[$i],
 						'listaprecio_id' => $listaprecios[$i],
 					];
-					
 					$dataTalle = [];
-					foreach($medidas as $medida)
+					$jtalles = json_decode($medidas[$i]);
+					foreach($jtalles as $medida)
 					{
 						$dataTalle[] = [
 							'id' => null,
-							'talle_id' => $medida['talle'],
-							'cantidad' => $medida['cantidad']*($tipotransaccion->signo == 'S' ? 1 : -1),
-							'precio' => $medida['precio'],
+							'talle_id' => $medida->talle_id,
+							'cantidad' => $medida->cantidad*($tipotransaccion->signo == 'S' ? 1 : -1),
+							'precio' => $precios[$i],
 						];
 					}
+					
 					$articulo_movimiento = $this->articulo_movimientoService->
 									guardaArticuloMovimiento('create',
 									$dataArticuloMovimiento, $dataTalle);
@@ -154,7 +160,7 @@ class MovimientoStockService
 			return $e->getMessage();
 		}
 		
-		return ['id'=>$data['movimientostock_id'], 'codigo'=>$data['codigo']];
+		return ['id'=>$movimientostock_id, 'codigo'=>$data['codigo']];
 	}
 
 	public function borraMovimientoStock($id)

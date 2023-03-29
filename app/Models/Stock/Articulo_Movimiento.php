@@ -6,15 +6,21 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use App\Models\Ventas\Ordentrabajo;
 
 class Articulo_Movimiento extends Model
 {
     use SoftDeletes;
     protected $fillable = ['fecha','fechajornada', 'tipotransaccion_id', 'venta_id', 'movimientostock_id',
                         'pedido_combinacion_id', 'ordentrabajo_id', 'lote', 'articulo_id', 'combinacion_id', 
-                        'concepto', 'modulo_id', 'cantidad', 'costo', 'listaprecio_id', 'incluyeimpuesto', 
+                        'concepto', 'modulo_id', 'cantidad', 'precio', 'costo', 'listaprecio_id', 'incluyeimpuesto', 
                         'moneda_id', 'descuento', 'descuentointegrado', 'deposito_id'];
     protected $table = 'articulo_movimiento';
+
+    public function articulo_movimiento_talles()
+	{
+    	return $this->hasMany(Articulo_Movimiento_Talle::class, 'articulo_movimiento_id');
+	}
 
     public function ordenestrabajo()
 	{

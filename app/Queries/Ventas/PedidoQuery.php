@@ -20,43 +20,19 @@ class PedidoQuery implements PedidoQueryInterface
         $this->model = $pedido;
     }
 
-    public function allPendienteIndex()
+    public function allPedidoIndex($cliente_id, $opcion)
     {
         ini_set('memory_limit', '512M');
         ini_set('max_execution_time', '2400');
-		//$mod = $this->model->with('clientes:id,nombre')->with('mventas:id,nombre')->with('transportes:id,nombre')
-                            //->with('pedido_combinaciones')
-                            //->orderBy('id','desc')
-                            //->get();
+
         $pedidos = $this->model->with('clientes:id,nombre')->with('mventas:id,nombre')
                                 ->orderBy('id','desc')
                                 ->with('pedido_combinaciones')
                                 ->get();
 
-        $datas = [];
-        foreach($pedidos as $pedido)
-        {
-            $pares = 0;
-            foreach($pedido->pedido_combinaciones as $item)
-            {
-                $pares += $item->cantidad;
-                $estado = $item->estado;
-            }
-            $estado = '';
-            if ($estado != 'A' && $estado != 'F')
-            {
-                $datas[] = ['id' => $pedido->id,
-                        'fecha' => $pedido->fecha,
-                        'nombrecliente' => $pedido->clientes->nombre,
-                        'codigo' => $pedido->codigo,
-                        'nombremarca' => $pedido->mventas->nombre,
-                        'pares' => $pares
-                ];
-            }
-        }
-		return $datas;
+        return $pedidos;
     }
-
+    
     public function allPendiente($cliente_id = null)
     {
 		if ($cliente_id)

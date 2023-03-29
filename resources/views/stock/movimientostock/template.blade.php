@@ -57,19 +57,9 @@
 			<input name="checkscomb[]" class="checkCombinacion" title="Todas las combinaciones" type="checkbox" autocomplete="off"> 
         </td>
         <td>
-			<button type="button" title="Genera OT" style="padding:0;" class="btn-accion-tabla generaot tooltipsC">
-        		<i class="fa fa-industry text-success"></i>
-			</button>
-			<button type="button" title="Imprime OT" style="padding:0;" class="btn-accion-tabla imprimeot tooltipsC">
-        		<i class="fa fa-print text-success"></i>
-			</button>
-			<button type="button" title="Anula Item" style="padding:0;" class="btn-accion-tabla anulaitem tooltipsC">
-                <i class="fa fa-window-close text-success"></i>
-			</button>
 			<button type="button" title="Elimina esta linea" style="padding:0;" class="btn-accion-tabla eliminar tooltipsC">
         		<i class="fa fa-trash text-danger"></i>
 			</button>
-			<input name="checks[]" style="display:none;" class="checkImpresion" type="checkbox" autocomplete="off"> 
         </td>
 	</tr>
 </template>

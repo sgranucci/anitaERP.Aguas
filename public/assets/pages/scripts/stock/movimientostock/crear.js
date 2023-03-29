@@ -203,7 +203,7 @@
 		else
 			nombre = "cantidadesportallesa";
 		
-		medidas_txt = medidas_txt + "<th><input name='"+nombre+"[]' "+cantidadmodal_txt+" class='"+nombre+"' style='width:30px;' type='text' value='"+Pcant+"'></input></th>";
+		medidas_txt = medidas_txt + "<th><input name='"+nombre+"[]' "+cantidadmodal_txt+" class='"+nombre+"' style='width:30px;' type='text' value='"+Math.abs(Pcant)+"'></input></th>";
 
     	precios_txt = precios_txt + "<th><input name='preciosportalles[]' class='preciosportalles' type='hidden' value='"+Pprec+"'></input></th>";
     	tallesid_txt = tallesid_txt + "<th><input name='tallesid[]' class='tallesid' type='hidden' value='"+Ptalle_id+"'></input></th>";
@@ -320,61 +320,6 @@
 
 				//* Asigna nuevo articulo
 				$(this).parents("tr").find(".articulo_id_previo").val(articulo_nuevo);
-			}
-        });
-
-		$('.checkImpresion').on('change', function (event) {
-			event.preventDefault();
-			
-			if (flFactura && $(this).prop("checked"))
-			{
-				let ordentrabajo = $(this).parents("tr").find(".otcodigo").val();
-				let tilde = this;
-				let cliente_id = $("#cliente_id").val();
-				let estadocliente = $("#estadocliente").val();
-				let tiposuspensioncliente_id = $("#tiposuspensioncliente_id").val();
-				let nombretiposuspensioncliente = $("#nombretiposuspensioncliente").val();
-			
-				// No deja factura cliente stock
-				if (cliente_id == CLIENTE_STOCK_ID)
-				{
-					alert("No puede facturar cliente STOCK");
-					$(tilde).prop("checked",false);
-					return;
-				}
-
-				// Debe chequear estado del cliente
-				if (estadocliente > '0' && 
-					(tiposuspensioncliente_id == PROFORMA ||
-					tiposuspensioncliente_id == MOROSO ||
-					tiposuspensioncliente_id == NO_FACTURAR
-					))
-				{
-					alert("No puede facturar cliente en estado "+nombretiposuspensioncliente);
-					$(tilde).prop("checked",false);
-					return;
-				}
-			
-				// chequea si puede facturar
-				if (ordentrabajo <= 0)
-				{
-					alert('No puede facturar porque no tiene OT generada');
-					$(tilde).prop("checked",false);
-					return;
-				}
-
-				// Busca si tiene factura asociada
-				var listarUri = "/anitaERP/public/ventas/estadoot/"+ordentrabajo;
-            
-				$.get(listarUri, function(data){
-					
-					if (data.numerofactura != -1 && data.numerofactura != -2)
-					{
-						alert("OT ya facturada "+data.numerofactura);
-						$(tilde).prop("checked",false);
-						return;
-					}
-				});
 			}
         });
 
@@ -766,9 +711,11 @@
 		totPares = 0;
 
 		$(".cantidad").each(function() {
-			if (parseFloat($(this).val()) >= 1 && parseFloat($(this).val()) <= 999999)
+			if ((parseFloat($(this).val()) >= 1 && parseFloat($(this).val()) <= 999999) ||
+				(parseFloat($(this).val()) <= -1 && parseFloat($(this).val()) >= -999999))
 				totPares += parseFloat($(this).val());
 		});
+		
 		$("#totalparespedido").val(totPares.toFixed(0));
 	}
 
@@ -827,20 +774,12 @@
     $(function () {
         $('#agrega_renglon').on('click', agregaRenglon);
         $(document).on('click', '.eliminar', borraRenglon);
-        $(document).on('click', '.generaot', generaOt);
-        $(document).on('click', '.imprimeot', imprimeOt);
         $(document).on('click', '.anulaitem', anulaItem);
 		$(document).on('click', '.historiaitem', historiaItem);
 
 		// Si no tiene items agrega el primero
 		if(!$('.item-pedido').length)
 			agregaRenglon();
-
-		let cliente_id = $("#cliente_id").val();
-		if (cliente_id == CLIENTE_STOCK_ID)
-			$("#divlote").show();
-		else
-			$("#divlote").hide();
     });
 
     function agregaRenglon(){
@@ -853,44 +792,6 @@
 
 		activa_eventos(false);
     }
-
-    function imprimeOt() {
-		var ot = $(this).parents("tr").find(".ot").val();
-        var listarUri = "/anitaERP/public/ventas/crearemisionot";
-		
-		if (ot == 0 || ot == -1)
-			alert("No puede listar OT");
-		else
-			$.post(listarUri, {_token: $('input[name=_token]').val(), ordenestrabajo: ot, tipoemision: "COMPLETA"}, function(data){ alert(data); });
-	}
-
-    function generaOt() {
-		var ot = $(this).parents("tr").find(".ot").val();
-		var tiposuspension_id = $('#tiposuspension_id').val();
-		var tipoalta = $('#tipoalta').val();
-
-        pedido_combinacion = $(this).parents("tr").find(".ids");
-
-		if (ot > 0)
-			alert("No puede volver a generar OT");
-		else
-		{
-			if (tiposuspension_id == 3)
-				alert('No puede generar ot a cliente moroso');
-			else
-			{
-				if (tipoalta == 'P')
-					alert('No puede generar ot a cliente provisorio');
-				else
-				{
-					var leyenda = $(this).parents("tr").find(".observacion").val();
-					$("#leyendaot").val(leyenda);
-	
-					$("#crearOrdenTrabajoModal").modal('show');
-				}
-			}
-		}
-	}
 
 	// Anula item 
     function anulaItem() {
@@ -905,25 +806,6 @@
 	  	botonAnulacion = $(this).parents('tr').find('.ianulaItem');
 
 	  	flAnulacionItem = true;
-
-		// Busca si tiene factura asociada
-		var listarUri = "/anitaERP/public/ventas/estadoot/"+codigoAnulacionOt;
-
-		$.get(listarUri, function(data){
-			
-			if (data.numerofactura != -1 && data.numerofactura != -2)
-			{
-				alert("OT ya facturada "+data.numerofactura);
-			}
-			else
-			{
-				armaMedidas(itemAnulacionOt);
-
-				setTimeout(() => {
-					$("#anulacionModal").modal('show');
-				}, 300);	
-			}
-		});
 	}
 
 	// Controla apertura modal de anulacion
@@ -1012,6 +894,7 @@
 		medidas_txt = "";
 		precios_txt = "";
 		tallesid_txt = "";
+	
 	});
 
 	// Muestra historia del item

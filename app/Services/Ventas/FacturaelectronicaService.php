@@ -376,7 +376,7 @@ class FacturaElectronicaService
 			return -1;
 	}
 
-	public function armaTipoTransaccion($letra, $modofacturacion, &$tipotransaccion, $puntoventa)
+	public function armaTipoTransaccion($letra, $modofacturacion, &$tipotransaccion, $puntoventa, $totalcomprobante)
 	{
 		// Arma el tipo de transaccion
 		if ($letra == 'B')
@@ -388,7 +388,11 @@ class FacturaElectronicaService
 
 		// Si es FCE
 		if ($modofacturacion == 'C')
-			$tipotransaccion += 200;
+		{
+			// Si supera limite asume factura electronica MyPiME
+			if ($totalComprobate >= config("facturacion.LIMITE_FCE"))
+				$tipotransaccion += 200;
+		}
 	}
 
 	private function ejecutaAfip($pathafip, $nombrexml)

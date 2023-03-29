@@ -39,7 +39,6 @@ class MovimientoStockController extends Controller
         
 		$datas = $this->movimientoStockService->all();
 		$estado_enum = $this->movimientoStockService->estadoEnum();
-
         return view('stock.movimientostock.index', compact('datas', 'estado_enum'));
     }
 
@@ -76,7 +75,7 @@ class MovimientoStockController extends Controller
 		$mensaje = '';
 		try
 		{
-			$data = $this->movimientoStockService->guardaMovimientoStock($request->all(), 'create');
+            $data = $this->movimientoStockService->guardaMovimientoStock($request->all(), 'create');
 			if (is_array($data))
 				$mensaje = "Movimiento de stock creado con exito";
 			else
@@ -87,9 +86,7 @@ class MovimientoStockController extends Controller
 			$mensaje = $e->getMessage();
 		}
 
-		$this->armarTablasVista($tipotransaccion_query, $deposito_query);
-
-        return redirect('stock/movimientostock/crear')->with('mensaje', $mensaje);
+        return redirect('stock/movimientostock')->with('mensaje', 'Movimiento de Stock actualizado con exito');
     }
 
     /**
@@ -109,8 +106,8 @@ class MovimientoStockController extends Controller
                             $tipotransaccion_query, $movimientostock);
 
 		$tipotransacciondefault_id = cache()->get(generaKey('tipotransaccion'));
-		
-        return view('stock.movimientoStock.editar', compact('movimientostock', 
+
+        return view('stock.movimientostock.editar', compact('movimientostock', 
 			'mventa_query', 'articulo_query', 'modulo_query', 
 			'listaprecio_query', 'articuloall_query', 'articuloxsku_query', 
 			'tipotransaccion_query', 'tipotransacciondefault_id', 'deposito_query'));            
@@ -176,10 +173,7 @@ class MovimientoStockController extends Controller
         $articulo_ids = Array();
         if ($movimientostock != null)	
         {
-            foreach ($movimientostock as $item)
-            {
-                $articulo_ids[] = $item->articulo_id;
-            };
+            $articulo_ids[] = $movimientostock->articulo_id;
         }
         else
             $articulo_ids[] = 0;

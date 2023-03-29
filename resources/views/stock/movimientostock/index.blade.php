@@ -31,7 +31,9 @@ Movimientos de Stock
                             <th class="width20">ID</th>
                             <th>Fecha</th>
 							<th>Tipo de transacción</th>
-                            <th>Codigo Anita</th>
+                            <th>Número</th>
+							<th>Marca</th>
+							<th>Lote</th>
                             <th>Pares</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>
@@ -46,13 +48,23 @@ Movimientos de Stock
             						{{date("d/m/Y", strtotime($movimientostock['fecha'] ?? ''))}} 
         						</td>
         						<td>
-            						<b>{{ $movimientostock['tipotransaccion_id'] ?? '' }}</b>
+            						<b>{{ $movimientostock['tipostransaccion']['nombre'] ?? '' }}</b>
         						</td>
         						<td>
                 					<small> {{$movimientostock['codigo']}}</small>
         						</td>
+								<td>
+                					<small> {{$movimientostock['mventas']['nombre']}}</small>
+        						</td>
+								<td>
+                					<small> {{$movimientostock['articulos_movimiento'][0]['lote']}}</small>
+        						</td>
         						<td>
-									{{ $movimientostock['pares'] }}
+									@php $totalPares = 0; @endphp
+									@foreach ($movimientostock['articulos_movimiento'] as $item)
+										@php $totalPares += $item->cantidad; @endphp
+									@endforeach
+									{{ $totalPares }}
 								</td>
         						<td>
                        			@if (can('editar-movimientos-de-stock', false))

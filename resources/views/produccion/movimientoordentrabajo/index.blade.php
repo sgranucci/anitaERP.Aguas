@@ -18,7 +18,7 @@
                 <h3 class="card-title">Movimientos de OT</h3>
                 <div class="card-tools">
                     <a href="{{route('crear_movimientoordentrabajo')}}" class="btn btn-outline-secondary btn-sm">
-                       	@if (can('crear-movimientos-orden_trabajo', false))
+                       	@if (can('crear-movimientos-orden-trabajo', false))
                         	<i class="fa fa-fw fa-plus-circle"></i> Nuevo registro
 						@endif
                     </a>
@@ -49,7 +49,7 @@
             				<td>{{date("d/m/Y", strtotime($data->fecha ?? ''))}}</td>
                             <td>{{$estado_enum[$data->estado]}}</td>
                             <td>
-                       			@if (can('editar-movimientos-orden_trabajo', false))
+                       			@if (can('editar-movimientos-orden-trabajo', false))
                                 	<a href="{{route('editar_movimientoordentrabajo', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">
                                     <i class="fa fa-edit"></i>
                                 	</a>

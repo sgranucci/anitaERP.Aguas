@@ -17,6 +17,7 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use App\Services\Ventas\PedidoService;
 use App\Models\Ventas\Vendedor;
 use Carbon\Carbon;
 use App\ApiAnita;
@@ -25,7 +26,16 @@ class PedidoExport implements FromView, WithColumnFormatting, WithMapping, Shoul
 {
 	use Exportable;
 	private $desdefecha, $hastafecha;
+	private $origen;
 	protected $dates = ['fecha'];
+	private $pedidoService;
+
+	public function __construct(
+								PedidoService $pedidoservice
+								)
+	{
+		$this->pedidoService = $pedidoservice;
+	}
 
 	public function view(): View
 	{
@@ -35,54 +45,65 @@ class PedidoExport implements FromView, WithColumnFormatting, WithMapping, Shoul
 		$hasta_fecha = date('Ymd', $fecha);
 
         $apiAnita = new ApiAnita();
-
-        $data = array( 
-           	'acc' => 'list', 
-			'tabla' => 'pendmae, climae, pendmov, combinacion, stkmae, linmae, mventa',
-           	'campos' => '
-				penv_fecha as fecha,
-               	penv_tipo as tipo,
-               	penv_letra as letra,
-               	penv_sucursal as sucursal,
-               	penv_nro as numero,
-               	penv_cliente as cliente,
-               	clim_nombre as nombre,
-				penv_articulo as articulo,
-				penv_capellada as combinacion,
-				comb_desc as desc_combinacion,
-				(penv_cantidad) as cantidad,
-				penm_estado as estado,
-				mvta_desc as marca,
-				linm_desc as linea,
-				penv_nro_orden as nro_orden,
-				penv_medida,
-				(select sum(stkv_cantidad) from stkmov where
-					stkv_ref_tipo="OT" and
-					stkv_letra=penv_letra and
-					stkv_ref_sucursal=0 and
-					stkv_ref_nro=penv_nro_orden and
-					stkv_cli_pro=penv_cliente and
-					stkv_articulo=penv_articulo) as cantfact
-           	' , 
-           	'whereArmado' => " WHERE penv_cliente=clim_cliente AND penv_tipo='PED' and
-						penv_fecha>=".$desde_fecha." AND penv_fecha<=".$hasta_fecha." and
-						penv_tipo=penm_tipo and penv_letra=penm_letra and penv_sucursal=penm_sucursal and
-						penv_nro=penm_nro and
-						penv_vendedor=".$this->vendedor." and
-						penv_articulo=stkm_articulo and
-						stkm_linea=linm_linea and
-						stkm_o_compra=mvta_mventa and
-						penv_articulo=comb_articulo and
-						penv_capellada=comb_combinacion",
-           	'orderBy' => " penv_cliente, penv_fecha, penv_tipo, penv_letra, penv_sucursal, penv_nro,
-					penv_articulo, penv_capellada, penv_medida"
-        );
-        $datas = json_decode($apiAnita->apiCall($data));
+		if ($this->origen == 'ANITA') // origen anita
+		{
+			$data = array( 
+				'acc' => 'list', 
+				'tabla' => 'pendmae, climae, pendmov, combinacion, stkmae, linmae, mventa, vendedor',
+				'campos' => '
+					penv_fecha as fecha,
+					penv_tipo as tipo,
+					penv_letra as letra,
+					penv_sucursal as sucursal,
+					penv_nro as numero,
+					penv_cliente as cliente,
+					clim_nombre as nombre,
+					penv_articulo as articulo,
+					penv_capellada as combinacion,
+					comb_desc as desc_combinacion,
+					(penv_cantidad) as cantidad,
+					penm_estado as estado,
+					mvta_desc as marca,
+					linm_desc as linea,
+					penv_nro_orden as nro_orden,
+					penv_vendedor as vendedor,
+					vend_nombre as nombre_vendedor,
+					penv_medida,
+					(select sum(stkv_cantidad) from stkmov where
+						stkv_ref_tipo="OT" and
+						stkv_letra=penv_letra and
+						stkv_ref_sucursal=0 and
+						stkv_ref_nro=penv_nro_orden and
+						stkv_cli_pro=penv_cliente and
+						stkv_articulo=penv_articulo) as cantfact
+				' , 
+				'whereArmado' => " WHERE penv_cliente=clim_cliente AND penv_tipo='PED' and
+							penv_fecha>=".$desde_fecha." AND penv_fecha<=".$hasta_fecha." and
+							penv_tipo=penm_tipo and penv_letra=penm_letra and penv_sucursal=penm_sucursal and
+							penv_nro=penm_nro and
+							penv_vendedor>=".$this->desdevendedor." and
+							penv_vendedor<=".$this->hastavendedor." and
+							penv_articulo=stkm_articulo and
+							penv_vendedor=vend_codigo and
+							stkm_linea=linm_linea and
+							stkm_o_compra=mvta_mventa and
+							penv_articulo=comb_articulo and
+							penv_capellada=comb_combinacion",
+				'orderBy' => " penv_vendedor, penv_cliente, penv_fecha, penv_tipo, penv_letra, penv_sucursal, 
+						penv_nro, penv_articulo, penv_capellada, penv_medida"
+			);
+			$datas = json_decode($apiAnita->apiCall($data));
+		}
+		else
+		{
+			$datas = $this->pedidoService->generaDatosRepPedido($desde_fecha, $hasta_fecha, 
+															$this->desdevendedor, $this->hastavendedor);
+		}
 
 		if ($this->tipolistado == "ABRE")
-			return view('exports.ventas.reportepedido.reportepedidoabre', ['comprobantes' => $datas, 'vendedor' => $this->vendedor, 'desdefecha' => $this->desdefecha, 'hastafecha' => $this->hastafecha, 'nombre_vendedor' => $this->nombre_vendedor]);
+			return view('exports.ventas.reportepedido.reportepedidoabre', ['comprobantes' => $datas, 'vendedor' => $this->desdevendedor.' al '.$this->hastavendedor, 'desdefecha' => $this->desdefecha, 'hastafecha' => $this->hastafecha, 'nombre_vendedor' => '']);
 		else
-			return view('exports.ventas.reportepedido.reportepedidototal', ['comprobantes' => $datas, 'vendedor' => $this->vendedor, 'desdefecha' => $this->desdefecha, 'hastafecha' => $this->hastafecha, 'nombre_vendedor' => $this->nombre_vendedor]);
+			return view('exports.ventas.reportepedido.reportepedidototal', ['comprobantes' => $datas, 'vendedor' => $this->desdevendedor.' al '.$this->hastavendedor, 'desdefecha' => $this->desdefecha, 'hastafecha' => $this->hastafecha, 'nombre_vendedor' => '']);
 	}
 
 	public function columnFormats(): array
@@ -162,23 +183,20 @@ class PedidoExport implements FromView, WithColumnFormatting, WithMapping, Shoul
 		return $this;
 	}
 
-	public function asignaVendedor($vendedor)
+	public function asignaRangoVendedor($desdevendedor, $hastavendedor)
 	{
-		$this->vendedor = $vendedor;
+		$this->desdevendedor = $desdevendedor;
+		$this->hastavendedor = $hastavendedor;
 
-        $data = Vendedor::findOrFail($vendedor);
-
-		if ($data)
-			$this->nombre_vendedor = $data->nombre;
-		else
-			$this->nombre_vendedor = '';
+		$this->nombre_vendedor = '';
 
 		return $this;
 	}
 
-	public function asignaTipoListado($tipolistado)
+	public function asignaTipoListado($tipolistado, $origen)
 	{
 		$this->tipolistado = $tipolistado;
+		$this->origen = $origen;
 
 		return $this;
 	}

@@ -16,6 +16,7 @@ use App\Repositories\Ventas\Ordentrabajo_Combinacion_TalleRepositoryInterface;
 use App\Repositories\Ventas\Ordentrabajo_TareaRepositoryInterface;
 use App\Repositories\Ventas\VentaRepositoryInterface;
 use App\Repositories\Produccion\TareaRepositoryInterface;
+use App\Repositories\Configuracion\SeteosalidaRepositoryInterface;
 use App\Models\Stock\Articulo;
 use App\Models\Stock\Combinacion;
 use App\Models\Stock\Categoria;
@@ -65,6 +66,7 @@ class OrdentrabajoService
 	protected $cliente_comisionQuery;
 	protected $articuloQuery;
 	protected $articulo_movimientoService;
+	protected $seteosalidaRepository;
 	protected $tot_pares1, $tot_pares2, $tot_pares3, $tot_pares4;
 
     public function __construct(
@@ -80,7 +82,8 @@ class OrdentrabajoService
 								ArticuloQueryInterface $articuloquery,
 								Articulo_MovimientoService $articulo_movimientoservice,
     							Pedido_CombinacionRepositoryInterface $pedidocombinacionrepository,
-    							Pedido_Combinacion_TalleRepositoryInterface $pedidocombinaciontallerepository
+    							Pedido_Combinacion_TalleRepositoryInterface $pedidocombinaciontallerepository,
+								SeteosalidaRepositoryInterface $seteosalidarepository
 								)
     {
         $this->ordentrabajoQuery = $ordentrabajoquery;
@@ -96,6 +99,7 @@ class OrdentrabajoService
 		$this->articulo_movimientoService = $articulo_movimientoservice;
         $this->pedido_combinacionRepository = $pedidocombinacionrepository;
         $this->pedido_combinacion_talleRepository = $pedidocombinaciontallerepository;
+		$this->seteoSalidaRepository = $seteosalidarepository;
     }
 
 	public function leeOrdenestrabajoPendientesAnita()
@@ -105,14 +109,14 @@ class OrdentrabajoService
 
 	public function leeOrdenestrabajoPendientes()
 	{
-        $hay_ordentrabajo = $this->ordentrabajoQuery->first();
+        //$hay_ordentrabajo = $this->ordentrabajoQuery->first();
 
-		if (!$hay_ordentrabajo)
-		{
-			$this->ordentrabajoRepository->sincronizarConAnita();
-			$this->ordentrabajo_combinacion_talleRepository->sincronizarConAnita();
-			$this->ordentrabajo_tareaRepository->sincronizarConAnita();
-		}
+		//if (!$hay_ordentrabajo)
+		//{
+		//	$this->ordentrabajoRepository->sincronizarConAnita();
+		//	$this->ordentrabajo_combinacion_talleRepository->sincronizarConAnita();
+		//	$this->ordentrabajo_tareaRepository->sincronizarConAnita();
+		//}
 
 		return $this->ordentrabajoQuery->all();
 	}
@@ -131,7 +135,7 @@ class OrdentrabajoService
 		if (count($ids) > 1)
 			$flBoletasJuntas = true;
 
-		$ordentrabajo_stock_id = '';
+		$ordentrabajo_stock_id = null;
 		$lote_id = null;
 		if ($ordentrabajo_stock_codigo > 0)
 		{
@@ -147,8 +151,9 @@ class OrdentrabajoService
 					$lote_id = $ot_stock->ordentrabajo_combinacion_talles[0]->pedido_combinacion_talles->pedido_combinaciones->lote_id;
 				}
 			}
+			else // Asigna el codigo de lote ingresado
+				$ordentrabajo_stock_id = $ordentrabajo_stock_codigo;
 		}
-		
 		// Recorre cada id de linea de pedido
 		DB::beginTransaction();
 	
@@ -325,7 +330,7 @@ class OrdentrabajoService
 						// Actualiza el nro. de ot en el pedido
 						if ($funcion == 'create')
 						{
-							if ($ordentrabajo_stock_codigo > 0)
+							if ($lote_id > 0)
 								$this->pedido_combinacionRepository->find($ids[$i])->update([
 													'ot_id'=>$ordentrabajo_id,
 													'lote_id'=>$lote_id
@@ -337,21 +342,21 @@ class OrdentrabajoService
 						}
 
 						// Graba stock si el cliente es el correspondiente
-						if ($cliente->id == config("consprod.CLIENTE_STOCK") || $ordentrabajo_stock_id)
+						if ($cliente->id == config("consprod.CLIENTE_STOCK") || $ordentrabajo_stock_codigo > 0)
 						{
 							$dataArticuloMovimiento = [
 									'fecha' => Carbon::now(),
 									'fechajornada' => Carbon::now(),
-									'tipotransaccion_id' => $ordentrabajo_stock_id ? 
+									'tipotransaccion_id' => $ordentrabajo_stock_codigo > 0? 
 														config("consprod.TIPOTRANSACCION_CONSUME_OT") :
 														config("consprod.TIPOTRANSACCION_ALTA_PRODUCCION"),
 									'pedido_combinacion_id' => $ids[$i],
 									'ordentrabajo_id' => $ordentrabajo_id,
-									'lote' => $ordentrabajo_stock_id ? $ordentrabajo_stock_id : $nro_orden,
+									'lote' => $ordentrabajo_stock_codigo > 0 ? $ordentrabajo_stock_codigo : $nro_orden,
 									'articulo_id' => $articulo->id,
 									'combinacion_id' => $combinacion->id,
 									'modulo_id' => $pedido_combinacion->modulo_id,
-									'concepto' => $ordentrabajo_stock_id ? 'Consumo de OT' : 'Alta de produccion',
+									'concepto' => $ordentrabajo_stock_codigo > 0 ? 'Consumo de OT' : 'Alta de produccion',
 									'cantidad' => $pedido_combinacion->cantidad,
 									'precio' => $pedido_combinacion->precio,
 									'costo' => 0,
@@ -361,7 +366,6 @@ class OrdentrabajoService
 									'incluyeimpuesto' => $pedido_combinacion->incluyeimpuesto,
 									'listaprecio_id' => $pedido_combinacion->listaprecio_id,
 							];
-							
 							$articulo_movimiento = $this->articulo_movimientoService->
 													guardaArticuloMovimiento($funcion, 
 													$dataArticuloMovimiento, $pedido_combinacion_talle);
@@ -433,23 +437,47 @@ class OrdentrabajoService
 
 	public function borraOrdenTrabajo($id)
 	{
-		// Recorre cada id de linea de pedido
-		DB::beginTransaction();
-
-		try 
+		$pedido_combinacion_id = 0;
+		$ordentrabajo_combinacion_talle = $this->ordentrabajo_combinacion_talleRepository
+												->findPorOrdenTrabajoId($id);
+		if ($ordentrabajo_combinacion_talle)
 		{
-			$this->pedido_combinacionRepository->updatePorOtId($id);
-			$this->ordentrabajo_combinacion_talleRepository->deleteporordentrabajo($id);
-			$this->ordentrabajo_tareaRepository->deleteporordentrabajo($id, 0);
-			$this->ordentrabajoRepository->delete($id);
-		
-			DB::commit();
-		} catch (\Exception $e) {
-			DB::rollback();
-			dd($e->getMessage());
-			return $e->getMessage();
-		}
+			// Busca pedido_combinacion_talle para traer el item del pedido
+			$pedido_combinacion_talle = $this->pedido_combinacion_talleRepository
+											->find($ordentrabajo_combinacion_talle[0]->pedido_combinacion_talle_id);
 
+			if ($pedido_combinacion_talle)										
+			{
+				// Lee pedido_combinacion
+				$pedido_combinacion = $this->pedido_combinacionRepository
+											->find($pedido_combinacion_talle->pedido_combinacion_id);
+
+				$pedido_combinacion_id = $pedido_combinacion->id;
+			}
+		}
+		// Recorre cada id de linea de pedido
+		if ($pedido_combinacion_id > 0)
+		{
+			DB::beginTransaction();
+			try 
+			{
+				$this->pedido_combinacionRepository
+						->updatePorOtId($pedido_combinacion_talle->pedido_combinacion_id);
+				//$this->ordentrabajo_combinacion_talleRepository->deleteporordentrabajo($id);
+				//$this->ordentrabajo_tareaRepository->deleteporordentrabajo($id, 0);
+				$this->ordentrabajoRepository->delete($id);
+
+				// Borra stock
+				$stock = $this->articulo_movimientoService
+								->deletePorOrdentrabajoId($id);
+			
+				DB::commit();
+			} catch (\Exception $e) {
+				DB::rollback();
+				dd($e->getMessage());
+				return $e->getMessage();
+			}
+		}
 		return true;
 	}
 
@@ -489,10 +517,14 @@ class OrdentrabajoService
 		$etiqueta = "";
 		//$pos = [44,66,88,110,132,154];
 		$pos = [25,46,68,90,112,134];
+
 		foreach($ordenes as $id)
 		{
-    		$ot = $this->ordentrabajoQuery->traeOrdentrabajoPorId($id);
-
+			// Verifica origen
+			if ($data['origen'] == 'ANITA')
+	    		$ot = $this->ordentrabajoQuery->traeOrdentrabajoPorId($id);
+			else
+				$ot = $this->ordentrabajoQuery->traeOrdentrabajoPorIdERP($id);
 			$buff = [];
 			$buff[] = " ";
 			$buff[] = " ";
@@ -606,9 +638,11 @@ class OrdentrabajoService
 				$buffimpar = [];
 			}
 		}
-		
 		Storage::disk('local')->put($nombreEtiqueta, $etiqueta);
 		$path = Storage::path($nombreEtiqueta);
+
+		// Busca configuracion
+		$usuario_id = Auth::user()->id;
 
 		system("lp -dzebra2 ".$path);
 
@@ -627,8 +661,11 @@ class OrdentrabajoService
 		$etiqueta = "";
 		foreach($ordenes as $id)
 		{
-    		$ot = $this->ordentrabajoQuery->traeOrdentrabajoPorId($id);
-
+			// Verifica origen
+			if ($data['origen'] == 'ANITA')
+				$ot = $this->ordentrabajoQuery->traeOrdentrabajoPorId($id);
+			else
+				$ot = $this->ordentrabajoQuery->traeOrdentrabajoPorIdERP($id);
 			foreach($ot as $item)
 			{
 				// Gira por cada unidad en funcion de la cantidad del item
@@ -655,6 +692,7 @@ class OrdentrabajoService
 
 							$cod_art = "";
 							$cod_art_red = "";
+							$item->ordtv_articulo = str_pad($articulo->sku, 13, "0", STR_PAD_LEFT);
     						if (substr($item->ordtv_articulo, 5, 1) == '0')
     						{
         						$cod_art = substr($item->ordtv_articulo,6,2).'-'.'0'.substr($item->ordtv_articulo,8,3).'-'.substr($item->ordtv_articulo,11,2).'-'.$item->ordtv_medida.'-'.$combinacion->codigo;
@@ -742,7 +780,11 @@ class OrdentrabajoService
 		$etiqueta = "";
 		foreach($ordenes as $id)
 		{
-    		$ot = $this->ordentrabajoQuery->traeOrdentrabajoPorId($id);
+			// Verifica origen
+			if ($data['origen'] == 'ANITA')
+				$ot = $this->ordentrabajoQuery->traeOrdentrabajoPorId($id);
+			else
+				$ot = $this->ordentrabajoQuery->traeOrdentrabajoPorIdERP($id);
 
 			foreach($ot as $item)
 			{
@@ -758,6 +800,7 @@ class OrdentrabajoService
 												->where('codigo', $item->ordtm_capellada)
 												->first();
 
+						$item->ordtv_articulo = str_pad($articulo->sku, 13, "0", STR_PAD_LEFT);
 						if ($combinacion)
 						{
 							$file = "/var/www/html/anitaERP/public/storage/imagenes/fotos_articulos/".$articulo->sku.".zpl";
@@ -783,7 +826,6 @@ class OrdentrabajoService
 
         						$cod_art_red = substr($item->ordtv_articulo,5,2).'-'.substr($item->ordtv_articulo,7,4).'-'.substr($item->ordtv_articulo,11,2);
     						}
-
 					  		$empresa = Empresa::where('codigo',1)->first();
 
 							$linea = Linea::find($articulo->linea_id);
@@ -829,7 +871,6 @@ class OrdentrabajoService
 					{
            				$etiqueta .= $buff[$i];
 			  		}
-	
 					$etiqueta .= "^XZ\n";
 			  	}
 			}
@@ -842,6 +883,110 @@ class OrdentrabajoService
 		Storage::disk('local')->delete($nombreEtiqueta);
 
         return redirect()->back()->with('status','Las ordenes seleccionadas no existen');
+    }
+
+	public function listaEtiquetaPruebaCajaZPL(array $data)
+	{
+		// Arma nombre de archivo
+		$nombreEtiqueta = "tmp/etiCAJA-" . Str::random(10) . '.txt';
+		$articulo = Articulo::where('id', $data['articulo_id'])->first();
+		$medida = 38;
+
+		$etiqueta = "";
+		// Gira por cada unidad en funcion de la cantidad del item
+		for ($unidad = 0; $unidad < 2; $unidad++)
+		{
+			// Lee articulo
+			$buff = [];
+			if ($articulo)
+			{
+				$combinacion = Combinacion::where('articulo_id', $articulo->id)
+										->first();
+
+				$articuloCompleto = str_pad($articulo->sku, 13, "0", STR_PAD_LEFT);
+				if ($combinacion)
+				{
+					$file = "/var/www/html/anitaERP/public/storage/imagenes/fotos_articulos/".$articulo->sku.".zpl";
+					
+					if (!file_exists($file))
+						return redirect()->back()->with('mensaje','Articulo '.$articulo->sku.' SIN FOTO');
+						
+					$fp = fopen($file, "r");
+
+					$contents = fread($fp, filesize($file));
+
+					$cod_art = "";
+					$cod_art_red = "";
+					if (substr($articuloCompleto, 5, 1) == '0')
+					{
+						$cod_art = substr($articuloCompleto,6,2).'-'.'0'.substr($articuloCompleto,8,3).'-'.substr($articuloCompleto,11,2).'-'.$medida.'-'.$combinacion->codigo;
+				
+						$cod_art_red = substr($item->articuloCompleto,6,2).'-'.'0'.substr($articuloCompleto,8,3).'-'.substr($articuloCompleto,11,2);
+					}
+					else
+					{
+						$cod_art = substr($articuloCompleto,5,2).'-'.substr($articuloCompleto,7,4).'-'.substr($articuloCompleto,11,2).'-'.$medida.'-'.$combinacion->codigo;
+
+						$cod_art_red = substr($articuloCompleto,5,2).'-'.substr($articuloCompleto,7,4).'-'.substr($articuloCompleto,11,2);
+					}
+					$empresa = Empresa::where('codigo',1)->first();
+
+					$linea = Linea::find($articulo->linea_id);
+
+					$buff[] = "^XA".chr(13).chr(10);
+					$buff[] = "^SZ2".chr(13).chr(10);
+					$buff[] = "^JMA".chr(13).chr(10);
+					$buff[] = "^MCY".chr(13).chr(10);
+					$buff[] = "^PMN".chr(13).chr(10);
+					$buff[] = "^PW792".chr(13).chr(10);
+					$buff[] = "~JSN".chr(13).chr(10);
+					$buff[] = "^JZY".chr(13).chr(10);
+					$buff[] = "^LH0,0".chr(13).chr(10);
+					$buff[] = "^XZ".chr(13).chr(10);
+
+					$buff[] = "^XA".chr(13).chr(10);
+					$buff[] = $contents;
+					$buff[] = chr(13).chr(10);
+
+					$buff[] = "^CF0,50".chr(13).chr(10);
+					$buff[] = "^FO40,30^FDART: ".$cod_art_red."^FS".chr(13).chr(10);
+					$buff[] = "^CF0,30".chr(13).chr(10);
+					$buff[] = "^FO40,85^FD".$combinacion->nombre."^FS".chr(13).chr(10);
+					$buff[] = "^FO40,125^FDLinea: ".$linea->nombre."^FS".chr(13).chr(10);
+					$buff[] = "^FO40,175^FDNRO.: ^FS".chr(13).chr(10);
+
+					$buff[] = "^FO15,240^GB700,3,3^FS".chr(13).chr(10);
+
+					// Codigo de barras
+					$buff[] = "^BY3^B3N,N,70,Y,N".chr(13).chr(10);
+					$buff[] = "^FO40,250^BC^FD".$cod_art."^FS".chr(13).chr(10);
+
+					$buff[] = "^FO25,10^GB3,250,3^FS".chr(13).chr(10);
+
+					/* MEDIDA */
+					$buff[] = "^CF0,100".chr(13).chr(10);
+					$buff[] = "^FO200,160^FD".$medida."^FS".chr(13).chr(10);
+					$buff[] = "^CF0,30".chr(13).chr(10);
+				}
+			}
+
+			for ($i = 0; $i < count($buff); $i++)
+			{
+				$etiqueta .= $buff[$i];
+			}
+			$etiqueta .= "^XZ\n";
+		}
+		Storage::disk('local')->put($nombreEtiqueta, $etiqueta);
+		$path = Storage::path($nombreEtiqueta);
+		$usuario_id = Auth::user()->id;
+        $seteosalida = $this->seteoSalidaRepository->buscaSeteo($usuario_id, "");
+
+		$comando = sprintf($seteosalida->salidas->comando, $path);
+		system($comando);
+
+		Storage::disk('local')->delete($nombreEtiqueta);
+
+        return redirect()->back()->with('status','El articulo seleccionado no existen');
     }
 
 	public function EmisionOt(array $data)
@@ -880,6 +1025,8 @@ class OrdentrabajoService
     		$ot = $this->ordentrabajoQuery->leeOrdenTrabajoPorCodigo($codigo);
 
 			$mventa = 0;
+			$observacion = '';
+			$leyendaPedido = '';
 			if ($ot)
 			{
 				// Lee articulo
@@ -893,6 +1040,7 @@ class OrdentrabajoService
 				$totPares = 0;
 				$medidas = [];
 				$pedidos = [];
+
 				foreach($ot->ordentrabajo_combinacion_talles as $item)
 				{
 					// lee el talle 
@@ -918,6 +1066,9 @@ class OrdentrabajoService
 
 					if (!in_array($item->pedido_combinacion_talles->pedidos_combinacion->pedidos->id, $pedidos))
 						$pedidos[] = $item->pedido_combinacion_talles->pedidos_combinacion->pedidos->id;
+
+					$observacion = $item->pedido_combinacion_talles->pedidos_combinacion->observacion;
+					$leyendaPedido = $item->pedido_combinacion_talles->pedidos_combinacion->pedidos->leyenda;
 				}
 
 				// Lee combinacion 
@@ -1088,6 +1239,8 @@ class OrdentrabajoService
 				$leyenda = $ot->leyenda;
 			}
 			
+			$leyenda .= " ".$observacion." ".$leyendaPedido;
+
 			// Genera QR
 			$nombreQR = 'ot-'.$ot->codigo.'.svg';
 			QrCode::size(400)->generate((string) $ot->codigo, $nombreQR);
@@ -1132,7 +1285,7 @@ class OrdentrabajoService
 					$posicion = $copia;
 
 				if ($data['tipoemision'] != 'COMPLETA')
-					$d_copia = "tag @titulo_copia".$nroPosicionOt.$fin;
+					$d_copia = "tag @titulo_copia".'11'.$nroPosicionOt."---------------@";
 				else
 					$d_copia = "tag @titulo_copia".sprintf("%02d", $posicion).'-'.$fin;
 
@@ -1146,8 +1299,16 @@ class OrdentrabajoService
         		$reporte .= $d_copia.' {'.$tituloCopia.'}'."\n";
 
 				// Imprime clientes
-				$d_cli[0] = "tag @cliente-----------------------------------------------------@ ";
-				$d_cli[1] = "tag @cliente1----------------------------------------------------@ ";
+				if ($data['tipoemision'] != 'COMPLETA')
+				{
+					$d_cli[0] = "tag @cliente".$nroPosicionOt."----------------------------------------------------@ ";
+					$d_cli[1] = "tag @cliente1".$nroPosicionOt."---------------------------------------------------@ ";
+				}
+				else
+				{
+					$d_cli[0] = "tag @cliente-----------------------------------------------------@ ";
+					$d_cli[1] = "tag @cliente1----------------------------------------------------@ ";
+				}
 				$d_cli[2] = "tag @CLIENTES:-cliente2------------------------------------------------------------------------@ ";
 
 				// Arma impresion de clientes
@@ -1186,11 +1347,22 @@ class OrdentrabajoService
 				}
 
 				// Imprime clientes formato grande
-                $d_cli[0] =  "tag @cliente2------------------------------------------------------------------------@ ";
-                $d_cli[1] =  "tag @cliente3------------------------------------------------------------------------@ ";
-                $d_cli[2] =  "tag @cliente4------------------------------------------------------------------------@ ";
-                $d_cli[3] =  "tag @cliente5------------------------------------------------------------------------@ ";
-                $d_cli[4] =  "tag @cliente6------------------------------------------------------------------------@ ";
+				if ($data['tipoemision'] != 'COMPLETA')
+				{
+					$d_cli[0] =  "tag @cliente2".$nroPosicionOt."-------------------------------------------------------------------------@ ";
+					$d_cli[1] =  "tag @cliente3".$nroPosicionOt."-------------------------------------------------------------------------@ ";
+					$d_cli[2] =  "tag @cliente4".$nroPosicionOt."-------------------------------------------------------------------------@ ";
+					$d_cli[3] =  "tag @cliente5".$nroPosicionOt."-------------------------------------------------------------------------@ ";
+					$d_cli[4] =  "tag @cliente6".$nroPosicionOt."-------------------------------------------------------------------------@ ";
+				}
+				else
+				{
+					$d_cli[0] =  "tag @cliente2------------------------------------------------------------------------@ ";
+					$d_cli[1] =  "tag @cliente3------------------------------------------------------------------------@ ";
+					$d_cli[2] =  "tag @cliente4------------------------------------------------------------------------@ ";
+					$d_cli[3] =  "tag @cliente5------------------------------------------------------------------------@ ";
+					$d_cli[4] =  "tag @cliente6------------------------------------------------------------------------@ ";
+				}
 
 				// Arma impresion de clientes
 				$cliStr = "";
@@ -1228,11 +1400,18 @@ class OrdentrabajoService
 				}
 
 				// Imprime localidad
-				$d_loc = "tag @localidad-----------@ ";
+				if ($data['tipoemision'] != 'COMPLETA')
+					$d_loc = "tag @localidad".$nroPosicionOt."----------@ ";
+				else
+					$d_loc = "tag @localidad-----------@ ";
 				$reporte .= $d_loc.'{ Loc.:'.$nombreLocalidad.'}'."\n";
 
 				// Imprime pares
-				$d_pares = "tag @pares-@ ";
+				if ($data['tipoemision'] != 'COMPLETA')
+					$d_pares = "tag @pares".$nroPosicionOt."@ ";
+				else
+					$d_pares = "tag @pares-@ ";
+
 				$reporte .= $d_pares.'{'.$totPares.'}'."\n";
 
 				// Tipo corte
@@ -1245,16 +1424,29 @@ class OrdentrabajoService
 				$d_tipocorteforro = "tag @tipo_corte_forro----@ ";
 				$reporte .= $d_tipocorteforro.'{'.$nombreTipoCorteForro.'}'."\n";
 
-				$d_vendedor = "tag @vendedor----------------------@ ";
+				if ($data['tipoemision'] != 'COMPLETA')
+					$d_vendedor = "tag @vendedor".$nroPosicionOt."---------------------@ ";
+				else
+					$d_vendedor = "tag @vendedor----------------------@ ";
 				if ($nombreVendedor)
 					$reporte .= $d_vendedor.'{'.$nombreVendedor.'}'."\n";
 				else
 					$reporte .= $d_vendedor.'{'.' '.'}'."\n";
-
-				$d_obs[0] = "tag @obs1--------------------------@ ";
-				$d_obs[1] = "tag @obs2--------------------------@ ";
-				$d_obs[2] = "tag @obs3--------------------------@ ";
-				$d_obs[3] = "tag @obs4--------------------------@ ";
+				
+				if ($data['tipoemision'] != 'COMPLETA')
+				{
+					$d_obs[0] = "tag @obs1".$nroPosicionOt."-------------------------@ ";
+					$d_obs[1] = "tag @obs2".$nroPosicionOt."-------------------------@ ";
+					$d_obs[2] = "tag @obs3".$nroPosicionOt."-------------------------@ ";
+					$d_obs[3] = "tag @obs4".$nroPosicionOt."-------------------------@ ";
+				}
+				else
+				{
+					$d_obs[0] = "tag @obs1--------------------------@ ";
+					$d_obs[1] = "tag @obs2--------------------------@ ";
+					$d_obs[2] = "tag @obs3--------------------------@ ";
+					$d_obs[3] = "tag @obs4--------------------------@ ";
+				}
 
 				$reporte .= $d_obs[0].'{'.substr($leyenda, 0, 30).'}'."\n";
 				$reporte .= $d_obs[1].'{'.substr($leyenda, 30, 30).'}'."\n";
@@ -1264,22 +1456,34 @@ class OrdentrabajoService
 				$d_articulo = "tag @articulo@ ";
 				$reporte .= $d_articulo.'{'.$codigoArticulo.'}'."\n";
 
-				$d_cod_art = "tag @art".sprintf("%02d", $posicion)."---@ ";
+				if ($data['tipoemision'] != 'COMPLETA')
+					$d_cod_art = "tag @art".$nroPosicionOt."----@ ";
+				else
+					$d_cod_art = "tag @art".sprintf("%02d", $posicion)."---@ ";
 				$reporte .= $d_cod_art.'{'.$codigoArticulo.'}'."\n";
 
 				$d_cod_art = "tag @cod_art@ ";
 				$reporte .= $d_cod_art.'{'.$codigoArticuloReducido.'}'."\n";
 
-				$d_cod_art = "tag @Cod.Art.:-cod_art".sprintf("%01d", $posicion)."-@ ";
+				if ($data['tipoemision'] != 'COMPLETA')
+					$d_cod_art = "tag @Cod.Art.:-cod_art".$nroPosicionOt."@ ";
+				else
+					$d_cod_art = "tag @Cod.Art.:-cod_art".sprintf("%01d", $posicion)."-@ ";
 				$reporte .= $d_cod_art.'{'.'Cod.Art.:'.$codigoArticuloReducido.'}'."\n";
 
 				$d_color_fondo = "tag @color_fondo--------------------@ ";
 				$reporte .= $d_color_fondo.'{'.$colorFondo.'}'."\n";
-
-				$d_combinacion = "tag @combinacion-------------------------------------------------@ ";
+				
+				if ($data['tipoemision'] != 'COMPLETA')
+					$d_combinacion = "tag @combinacion".$nroPosicionOt."------------------------------------------------@ ";
+				else
+					$d_combinacion = "tag @combinacion-------------------------------------------------@ ";
 				$reporte .= $d_combinacion.'{'.$codigoCombinacion.' '.$descripcionCombinacion.'}'."\n";
 
-				$d_fondo = "tag @fondo-------------------------------------------------------@ ";
+				if ($data['tipoemision'] != 'COMPLETA')
+					$d_fondo = "tag @fondo".$nroPosicionOt."------------------------------------------------------@ ";
+				else
+					$d_fondo = "tag @fondo-------------------------------------------------------@ ";
 				$reporte .= $d_fondo.'{'.$nombreFondo.'}'."\n";
 
 				$d_color_fondo = "tag @fondo_color-------------------------------------------------@ ";
@@ -1306,7 +1510,10 @@ class OrdentrabajoService
 				$d_forradofondo[1] = "tag @forrado_fondo2------------------------------------------------------------------@ ";
 				$reporte .= $d_forradofondo[1].'{'.substr($forradoFondoConConsumo,80,80).'}'."\n";
 
-				$d_forradobase = "tag @forrado_base------------------------------------------------@ ";
+				if ($data['tipoemision'] != 'COMPLETA')
+					$d_forradobase = "tag @forrado_base".$nroPosicionOt."-----------------------------------------------@ ";
+				else
+					$d_forradobase = "tag @forrado_base------------------------------------------------@ ";
 				$reporte .= $d_forradobase.'{'.'FORRADO BASE: '.substr($forradoBaseConConsumo,0,60).'}'."\n";
 				$d_aplique[0] = "tag @aplique----------------------------------------------------------@ ";
 				$reporte .= $d_aplique[0].'{'.'APLIQUES: '.substr($aplique,0,55).'}'."\n";
@@ -1338,13 +1545,22 @@ class OrdentrabajoService
 				$d_contrafuerte = "tag @contrafuerte------------------@ ";
 				$reporte .= $d_contrafuerte.'{'.substr($nombreContrafuerte,0,30).'}'."\n";
 
-				$d_pedido = "tag @pedido----------------------------------@ ";
+				if ($data['tipoemision'] != 'COMPLETA')
+					$d_pedido = "tag @pedido".$nroPosicionOt."---------------------------------@ ";
+				else
+					$d_pedido = "tag @pedido----------------------------------@ ";
 				$reporte .= $d_pedido.'{'.'PEDIDOS: '.$numeroPedidos.'}'."\n";
 
-				$d_nro_ot = "tag @nro_ot--@ ";
+				if ($data['tipoemision'] != 'COMPLETA')
+					$d_nro_ot = "tag @nro_ot".$nroPosicionOt."-@ ";
+				else
+					$d_nro_ot = "tag @nro_ot--@ ";
 				$reporte .= $d_nro_ot.'{'.$ot->codigo.'}'."\n";
-				
-				$d_fecha = "tag @fecha---@ ";
+
+				if ($data['tipoemision'] != 'COMPLETA')
+					$d_fecha = "tag @fecha".$nroPosicionOt."--@ ";
+				else
+					$d_fecha = "tag @fecha---@ ";
 				$reporte .= $d_fecha.'{'.date('d-m-Y', strtotime($ot->fecha)).'}'."\n";
 
 				// Imprime cajas
@@ -1386,12 +1602,20 @@ class OrdentrabajoService
 					{
 						if ($numeracion == 'CHICO')
 						{
-							$d_med = "tag @".chr(97+$valor['medida']-config('consprod.HASTA_INTERVALO1')).sprintf("%01d", $posicion)."@ ";
-							$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
-							$d_med = "tag @".sprintf("%02d", $key).chr(97+$posicion-1)."@ ";
-							$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
-							$d_med = "tag @".sprintf("%01d", $valor['medida'])."@ ";
-							$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
+							if ($data['tipoemision'] != 'COMPLETA')
+							{
+								$d_med = "tag @".chr(97+$valor['medida']-config('consprod.DESDE_INTERVALO1')-2).$nroPosicionOt."@ ";
+								$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
+							}
+							else
+							{
+								$d_med = "tag @".chr(97+$valor['medida']-config('consprod.HASTA_INTERVALO1')).sprintf("%01d", $posicion)."@ ";
+								$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
+								$d_med = "tag @".sprintf("%02d", $key).chr(97+$posicion-1)."@ ";
+								$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
+								$d_med = "tag @".sprintf("%01d", $valor['medida'])."@ ";
+								$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
+							}
 						}
 						else
 						{
@@ -1401,6 +1625,12 @@ class OrdentrabajoService
 							$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
 							$d_med = "tag @".sprintf("%01d", $valor['medida'])."@ ";
 							$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
+
+							if ($data['tipoemision'] != 'COMPLETA')
+							{
+								$d_med = "tag @".chr(97+$valor['medida']-config('consprod.HASTA_MEDIDA_CHICO')).$nroPosicionOt."@ ";
+								$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
+							}
 						}
 					}
 
@@ -1426,6 +1656,12 @@ class OrdentrabajoService
 								$reporte .= $d_med.'{'.' '.'}'."\n";
 								$d_med = "tag @".sprintf("%01d", $ii)."@ ";
 								$reporte .= $d_med.'{'.' '.'}'."\n";
+
+								if ($data['tipoemision'] != 'COMPLETA')
+								{
+									$d_med = "tag @".chr(97+$ii-config('consprod.HASTA_INTERVALO1')).$nroPosicionOt."@ ";
+									$reporte .= $d_med.'{'.' '.'}'."\n";
+								}
 							}
 							else
 							{
@@ -1435,18 +1671,28 @@ class OrdentrabajoService
 								$reporte .= $d_med.'{'.' '.'}'."\n";
 								$d_med = "tag @".sprintf("%01d", $ii)."@ ";
 								$reporte .= $d_med.'{'.' '.'}'."\n";
+
+								if ($data['tipoemision'] != 'COMPLETA')
+								{
+									$d_med = "tag @".chr(97+$ii-config('consprod.HASTA_MEDIDA_CHICO')).$nroPosicionOt."@ ";
+									$reporte .= $d_med.'{'.' '.'}'."\n";									
+								}
 							}
 						}
 					}
 				}
 			}
 			$reporte .= "printform\n";
-					
 			$this->listaOt($reporte, $nombreQR);
 		}
 
         return redirect()->back()->with('status','Las ordenes seleccionadas no existen');
     }
+
+	private function imprimeOtEnBlanco($nroPosicionOt)
+	{
+
+	}
 
 	private function DefineFormulario($tipoemision, $copia, $flImpOtAsociadas, $marca, &$formulario)
 	{
@@ -1668,12 +1914,19 @@ class OrdentrabajoService
 		$path = Storage::path($nombreReporte);
 
 		$cmd = "./bin/imp_otr ".$path." ".$nombreQR." hp-diego";
+
+		//$usuario_id = Auth::user()->id;
+        //$seteosalida = $this->seteoSalidaRepository->buscaSeteo($usuario_id, "");
+
+		//$cmd = sprintf($seteosalida->salidas->comando, $path, $nombreQR);
+		//system($comando);
+
 		$process = new Process($cmd);
 		$process->run();
 		if (!$process->isSuccessful()) {
 	   		throw new ProcessFailedException($process);
 		}
-    	echo $process->getOutput();
+    	//echo $process->getOutput();
 
 		Storage::disk('local')->delete($nombreReporte);
 	}
@@ -1908,14 +2161,15 @@ class OrdentrabajoService
 
 		// Total de cajas
 		$dataCajas = $this->generaDatosRepConsumoCaja($fecha, $fecha, $codigoOt);
-
 		$reporte .= "CAJAS\n";
 		foreach($dataCajas as $caja)
 		{
-			$reporte .= "Caja: ". $caja['nombrecaja']." ".$caja['nombrearticulocaja']."\n";
-			$reporte .= "Consumo: ".$caja['consumo']." Medidas: ".$caja['desdenumero']." ".$caja['hastanumero']."\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+			for ($i = 0; $i < count($caja); $i++)
+			{
+				$reporte .= "Caja: ". $caja[$i]['nombrecaja']." ".$caja[$i]['nombrearticulocaja']."\n";
+				$reporte .= "Consumo: ".$caja[$i]['consumo']." Medidas: ".$caja[$i]['desdenumero']." ".$caja[$i]['hastanumero']."\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+			}
 		}
-
 		Storage::disk('local')->put($nombreReporte, $reporte);
 		$path = Storage::path($nombreReporte);
 		system("lp -darmado ".$path." 1>&2 2>/dev/null");
@@ -2016,7 +2270,9 @@ class OrdentrabajoService
 		if ($ot)
 		{
 			// Lee articulo
-			$articulo = $this->articuloQuery->traeArticuloPorId($ot->ordentrabajo_combinacion_talles[0]->pedido_combinacion_talles->pedido_combinaciones->articulo_id);
+			$articulo = false;
+			if (count($ot->ordentrabajo_combinacion_talles) > 0)
+				$articulo = $this->articuloQuery->traeArticuloPorId($ot->ordentrabajo_combinacion_talles[0]->pedido_combinacion_talles->pedido_combinaciones->articulo_id);
 
 			if ($articulo)
 			{
@@ -2037,15 +2293,16 @@ class OrdentrabajoService
 	public function controlaOtStock($codigoOt, $articulo_id, $combinacion_id)
 	{
 		$stock = $this->articulo_movimientoService->leeStockPorLote($codigoOt, $articulo_id, $combinacion_id);
-
 		$estado = '-1';
 		$saldo = 0;
 		foreach($stock as $movimiento)
 		{
-			$estado = 0;
+			if ($movimiento->ordentrabajo_id > 0)
+				$estado = 0;
+			else	
+				$estado = 1;
 			$saldo += $movimiento->cantidad;
 		}
-
 		return ['estado' => $estado, 'saldo' => $saldo];
 	}
 }

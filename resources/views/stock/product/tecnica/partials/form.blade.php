@@ -67,6 +67,19 @@
                         @endforeach
                     </select>
               	</div>
+                <div class="form-group row">
+    				<label for="horma_id" class="col-lg-4 col-form-label requerido">Horma</label>
+					<select id="horma_id" name="horma_id" class="col-lg-8 form-control">
+                        <option value="">-- Seleccionar --</option>
+                        @foreach($horma as $key => $value)
+                            @if( isset($producto) && (int) $value->id == (int) $producto->horma_id )
+                                <option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
+                            @else
+                                <option value="{{ $value->id }}">{{ $value->nombre }}</option>    
+                            @endif
+                        @endforeach
+                    </select>
+                </div>
         	</div>
             <div class="col-sm-6">
 				<div class="form-group row">
@@ -134,6 +147,32 @@
 								@else
                                 	<option value="{{ $value->id }}">{{ $value->nombre }}</option>    
                             	@endif
+                            @endif
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group row">
+    				<label for="fondo_id" class="col-lg-4 col-form-label requerido">Fondo</label>
+					<select id="fondo_id" name="fondo_id" class="col-lg-8 form-control">
+                        <option value="">-- Seleccionar --</option>
+                        @foreach($fondo as $key => $value)
+                            @if( isset($producto) && (int) $value->id == (int) $producto->fondo_id )
+                                <option value="{{ $value->id }}" selected="select">{{$value->nombre}}-{{ $value->codigo }}</option>    
+                            @else
+                                <option value="{{ $value->id }}">{{$value->nombre}}-{{ $value->codigo }}</option>    
+                            @endif
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group row">
+    				<label for="serigrafia_id" class="col-lg-4 col-form-label requerido">Serigraf&iacute;a</label>
+					<select id="serigrafia_id" name="serigrafia_id" class="col-lg-8 form-control">
+                        <option value="">-- Seleccionar --</option>
+                        @foreach($serigrafia as $key => $value)
+                            @if( isset($producto) && (int) $value->id == (int) $producto->serigrafia_id )
+                                <option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
+                            @else
+                                <option value="{{ $value->id }}">{{ $value->nombre }}</option>    
                             @endif
                         @endforeach
                     </select>

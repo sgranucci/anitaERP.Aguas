@@ -85,7 +85,7 @@ class EstadoOtExport implements FromView, WithColumnFormatting, WithMapping, Sho
                 // Arma encabezado
                 $encData[] = [
                             'ordentrabajo_id' => $ottarea->ordentrabajo_id,
-                            'codigo' => $ottarea->ordenestrabajo->codigo,
+                            'codigo' => $ottarea->ordenestrabajo->codigo ?? '',
                             'articulo' => $sku,
                             'linea' => $linea,
                             'pares' => $pares

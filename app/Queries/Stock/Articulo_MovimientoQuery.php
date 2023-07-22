@@ -22,7 +22,9 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
 
     public function generaDatosRepStockOt($estado, $mventa_id,
                                             $desdearticulo, $hastaarticulo,
-                                            $desdelinea_id, $hastalinea_id)
+                                            $desdelinea_id, $hastalinea_id,
+                                            $desdecategoria_id, $hastacategoria_id,
+                                            $desdelote, $hastalote)
     {
         $articulo_query = $this->model->select('articulo_movimiento.ordentrabajo_id as ordentrabajo_id',
                             'combinacion.foto as foto', 
@@ -43,9 +45,11 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
                             ->join('linea', 'linea.id', 'articulo.linea_id')
                             ->join('mventa', 'mventa.id', 'articulo.mventa_id')
                             ->join('articulo_movimiento', 'articulo_movimiento.combinacion_id', 'combinacion.id')
-                            ->join('articulo_movimiento_talle', 'articulo_movimiento_talle.articulo_movimiento_id', 'articulo_movimiento.id')
+                            ->join('articulo_movimiento_talle', 'articulo_movimiento_talle.articulo_movimiento_id', 
+                                'articulo_movimiento.id')
                             ->join('talle', 'talle.id', 'articulo_movimiento_talle.talle_id')
                             ->whereBetween('articulo.linea_id', [$desdelinea_id, $hastalinea_id])
+                            ->whereBetween('articulo.categoria_id', [$desdecategoria_id, $hastacategoria_id])
                             ->where('articulo_movimiento.lote', '>', '0')
         					->orderBy('nombrelinea','ASC')
                             ->orderBy('modulo_id', 'ASC')
@@ -68,6 +72,13 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
             $articulo_query = $articulo_query->where('combinacion.estado', 'I');
             break;
         }
+
+        if ($desdelote != '')
+            $articulo_query = $articulo_query->whereBetween('articulo_movimiento.lote', [
+                                                            $desdelote, 
+                                                            $hastalote
+                                                            ]);
+
         $articulo_query = $articulo_query->get();
 		return $articulo_query;
     }

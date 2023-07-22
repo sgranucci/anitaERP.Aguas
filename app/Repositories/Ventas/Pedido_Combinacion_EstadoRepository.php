@@ -73,7 +73,8 @@ class Pedido_Combinacion_EstadoRepository implements Pedido_Combinacion_EstadoRe
 
     public function traeEstado($pedido_combinacion_id)
     {
-    	$pedido_combinacion_estado = $this->model->where('pedido_combinacion_id', $pedido_combinacion_id)->get();
+    	$pedido_combinacion_estado = $this->model->where('pedido_combinacion_id', $pedido_combinacion_id)
+                                    ->orderBy('id','desc')->first();
 
 		return $pedido_combinacion_estado;
     }

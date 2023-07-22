@@ -37,7 +37,7 @@ class ValidacionMovimientoOrdentrabajo extends FormRequest
             'operacion_id' => 'required',
             'fecha' => 'required',
             'ordenestrabajo' => ['required', new RuleMovimientoOrdentrabajo('ordenestrabajo', request()->tarea_id, 
-                                    request()->operacion_id,
+                                    request()->operacion_id, request()->movimiento_id,
                                     $this->movimientoOrdentrabajoService)],
         ];
     }

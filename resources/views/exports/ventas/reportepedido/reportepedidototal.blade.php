@@ -21,6 +21,8 @@
 	@php
 		$cliente_actual = '';
 		$nombre_actual = '';
+		$vendedor_actual = '';
+		$nombrevendedor_actual = '';
 		$totv_pedido = $totc_pedido = $totp_pedido = 0;
 		$totv_produccion = $totc_produccion = $totp_produccion = 0;
 		$totv_facturado = $totc_facturado = $totp_facturado = 0;
@@ -33,7 +35,6 @@
 	@endphp
 
     @foreach ($comprobantes as $data)
-
 		@if ($id_actual != $data->numero)
 			@if ($id_actual != 0)
 				@include('exports.ventas.reportepedido.imprimeunrenglon')
@@ -66,6 +67,17 @@
 			@endphp
 		@endif
 
+		@if ($data->vendedor != $vendedor_actual)
+			@if ($vendedor_actual != '')
+				@include('exports.ventas.reportepedido.imprimetotalvendedor')
+			@endif
+			@php 
+				$vendedor_actual = $data->vendedor; 
+				$nombrevendedor_actual = $data->nombre_vendedor; 
+	
+				$totv_pedido = $totv_produccion = $totv_facturado = $totv_pendiente = 0;
+			@endphp
+		@endif
 		@php
 			$fecha_actual = $data->fecha;
 			$tipo_actual = $data->tipo;
@@ -76,13 +88,13 @@
 			$totp_pedido += $data->cantidad; 
 		@endphp
 
-		@if ($data->nro_orden != 0 && $data->nro_orden != -1 && $data->cantfact == 0)
+		@if ($data->nro_orden != 0 && $data->nro_orden != -1 && ($data->cantfact == 0 || $data->cantfact == null))
 			@php $totp_produccion += $data->cantidad; @endphp
 		@endif
 		@if ($data->cantfact > 0)
 			@php $totp_facturado += $data->cantidad; @endphp
 		@endif
-		@if ($data->cantfact <= 0 && ($data->nro_orden == 0 || $data->nro_orden == -1))
+		@if (($data->cantfact == 0 || $data->cantfact == null) && ($data->nro_orden == 0 || $data->nro_orden == -1))
 			@php $totp_pendiente += $data->cantidad; @endphp
 		@endif
 

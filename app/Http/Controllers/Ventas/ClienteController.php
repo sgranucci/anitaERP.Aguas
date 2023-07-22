@@ -273,12 +273,16 @@ class ClienteController extends Controller
 		if ($funcion == 'editar')
 		{
 			$tasaarba = $this->iibbService->leeTasaPercepcion($nroinscripcion, '902');
-			$tasacaba = $this->iibbService->leeTasaPercepcion($nroinscripcion, '901');
+            $tasacaba = $this->iibbService->leeTasaPercepcion($nroinscripcion, '901');
 
-			if ($tasaarba == '' || $tasaarba < 0.00001)
+            if ($tasaarba == '')
 				$tasaarba = 'No esta en padron';
+            else    
+                $tasaarba = round($tasaarba, 2).'%';
 			if ($tasacaba == '' || $tasacaba < 0.00001)
 				$tasacaba = 'No esta en padron';
+            else
+                $tasacaba = round($tasacaba, 2).'%';
 		}
 		else
 			$tasaarba = $tasacaba = '';

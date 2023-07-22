@@ -76,7 +76,6 @@ class MovimientoOrdentrabajoService
 			{
 				return $e->getMessage();
 			}
-
 			if ($ordentrabajo)
 			{
 				// Busca la tarea si existe
@@ -121,32 +120,37 @@ class MovimientoOrdentrabajoService
 												->findPorOrdentrabajoId($ordentrabajo->id, $data['tarea_id']);
 					
 					$accion = '';
-					if ($tipooperacionEnum[$operacion->tipooperacion] == 'Inicio')
+					if ($funcion == 'create')
 					{
-						if (count($ordentrabajo_tarea_filtrada) == 0)
-							// Crea la tarea
-							$accion = 'create';
-						else
+						if ($tipooperacionEnum[$operacion->tipooperacion] == 'Inicio')
 						{
-							// Verifica si tiene desde fecha
-							if ($ordentrabajo_tarea_filtrada[0]->desdefecha != null)
-								throw new ModelNotFoundException("La tarea ya existe");
+							if (count($ordentrabajo_tarea_filtrada) == 0)
+								// Crea la tarea
+								$accion = 'create';
 							else
-								$accion = 'update';
+							{
+								// Verifica si tiene desde fecha
+								if ($ordentrabajo_tarea_filtrada[0]->desdefecha != null)
+									throw new ModelNotFoundException("La tarea ya existe");
+								else
+									$accion = 'update';
+							}
+						}
+						
+						if ($tipooperacionEnum[$operacion->tipooperacion] == 'Fin')
+						{
+							if (count($ordentrabajo_tarea_filtrada) == 0)
+								throw new ModelNotFoundException("La tarea no fue iniciada");
+
+							if ($ordentrabajo_tarea_filtrada[0]->empleado_id != $data['empleado_id'])
+								throw new ModelNotFoundException("No puede grabar tarea iniciada por otro empleado");
+							
+							// Actualiza la tarea
+							$accion = 'update';
 						}
 					}
-					
-					if ($tipooperacionEnum[$operacion->tipooperacion] == 'Fin')
-					{
-						if (count($ordentrabajo_tarea_filtrada) == 0)
-							throw new ModelNotFoundException("La tarea no fue iniciada");
-
-						if ($ordentrabajo_tarea_filtrada[0]->empleado_id != $data['empleado_id'])
-							throw new ModelNotFoundException("No puede grabar tarea iniciada por otro empleado");
-						
-						// Actualiza la tarea
+					else
 						$accion = 'update';
-					}
 
 					if ($accion != '')
 					{
@@ -174,6 +178,9 @@ class MovimientoOrdentrabajoService
 							{
 								$dataTarea['desdefecha'] = $dataTarea['fecha'];
 								$dataTarea['hastafecha'] = null;
+								
+								if ($data['tarea_id'] == Config::get("consprod.TAREA_TERMINADA"))
+									$dataTarea['hastafecha'] = $dataTarea['fecha'];
 
 								$item_tarea = $this->ordentrabajo_tareaRepository->create($dataTarea);
 
@@ -192,8 +199,15 @@ class MovimientoOrdentrabajoService
 									$dataTarea['desdefecha'] = $ordentrabajo_tarea_filtrada[0]->desdefecha;
 									$dataTarea['hastafecha'] = $dataTarea['fecha'];
 								}
+								if ($data['tarea_id'] == Config::get("consprod.TAREA_TERMINADA"))
+									$dataTarea['hastafecha'] = $dataTarea['desdefecha'];
 
-								$item_tarea = $this->ordentrabajo_tareaRepository->update($dataTarea, $ordentrabajo_tarea_filtrada[0]->id);
+								foreach($ordentrabajo_tarea_filtrada as $otTarea)
+								{
+									$item_tarea = $this->ordentrabajo_tareaRepository->update(['desdefecha' => $dataTarea['desdefecha'],
+																								'hastafecha' => $dataTarea['hastafecha']], 
+																								$otTarea->id);
+								}
 
 								if ($item_tarea)
 									$dataTarea['ordentrabajo_tarea_id'] = $ordentrabajo_tarea_filtrada[0]->id;
@@ -213,12 +227,18 @@ class MovimientoOrdentrabajoService
 							}
 							else // Actualiza la tarea
 							{
-								$dataTarea['hastafecha'] = $dataTarea['fecha'];
-								
+								if ($data['operacion_id'] == Config::get("consprod.OPERACION_INICIO"))
+									$dataTarea['desdefecha'] = $dataTarea['fecha'];
+								else
+									$dataTarea['hastafecha'] = $dataTarea['fecha'];
 							}
+
+							if ($data['tarea_id'] == Config::get("consprod.TAREA_TERMINADA"))
+								$dataTarea['hastafecha'] = $dataTarea['desdefecha'];
+
 							$item_tarea = $this->ordentrabajo_tareaRepository->update($dataTarea, $ordentrabajo_tarea_filtrada[0]->id);
 
-							// Crea el movimiento de OT
+							// Actualiza el movimiento de OT
 							$movimientoordentrabajo = $this->movimientoordentrabajoRepository->update($dataTarea, $id);
 						}
 					}
@@ -257,18 +277,25 @@ class MovimientoOrdentrabajoService
 
 				if ($ordentrabajo_tarea)
 				{
-					// Si el movimiento es de finalizacion borra la fecha en la tarea si no borra la tarea
-					if ($movimientoordentrabajo->operaciones->tipooperacion == 'F')
-						$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository
-													->update(['hastafecha' => null], $movimientoordentrabajo->ordentrabajo_tarea_id);
-					else
+					// Filtra tarea_id
+					$ordentrabajo_tarea_filtrada = $this->ordentrabajo_tareaRepository
+												->findPorOrdentrabajoId($ordentrabajo_tarea->ordentrabajo_id, 
+												$ordentrabajo_tarea->tarea_id);
+					foreach($ordentrabajo_tarea_filtrada as $otTarea)
 					{
-						// Si no tiene fin borra la tarea, si tiene fecha de fin actualiza desde fecha
-						if ($ordentrabajo_tarea->hastafecha == null)
-							$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository->delete($ordentrabajo_tarea->id);
-						else
+						// Si el movimiento es de finalizacion borra la fecha en la tarea si no borra la tarea
+						if ($movimientoordentrabajo->operaciones->tipooperacion == 'F')
 							$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository
-													->update(['desdefecha' => null], $movimientoordentrabajo->ordentrabajo_tarea_id);
+														->update(['hastafecha' => null], $otTarea->id);
+						else
+						{
+							// Si no tiene fin borra la tarea, si tiene fecha de fin actualiza desde fecha
+							if ($ordentrabajo_tarea->hastafecha == null)
+								$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository->delete($otTarea->id);
+							else
+								$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository
+														->update(['desdefecha' => null], $otTarea->id);
+						}
 					}
 				}
 
@@ -287,21 +314,63 @@ class MovimientoOrdentrabajoService
 
 	public function empacaTarea($request)
 	{
+		$estadoEnum = self::estadoEnum();
 		DB::beginTransaction();
 		try
 		{
+			// Graba fin de armado
+			$tareaArmado = Config::get("consprod.TAREA_ARMADO");
+			$armado = $this->ordentrabajo_tareaRepository
+								->findPorOrdentrabajoId($request['ordentrabajo_id'], $tareaArmado);
+
+			if ($armado && count($armado) > 0)
+			{
+				$this->ordentrabajo_tareaRepository->update(
+														['hastafecha'=>Carbon::now()], 
+														$armado[0]->id);
+
+				// Guarda movimiento de orden de trabajo
+				$dataTarea = array(
+					'ordentrabajo_id' => $request['ordentrabajo_id'],
+					'ordentrabajo_tarea_id' => $armado[0]->id,
+					'tarea_id' => Config::get("consprod.TAREA_ARMADO"),
+					'operacion_id' => Config::get("consprod.OPERACION_FIN"),
+					'empleado_id' => $armado[0]->empleado_id,
+					'pedido_combinacion_id' => $request['pedido_combinacion_id'],
+					'fecha' => Carbon::now(),
+					'estado' => $estadoEnum['A'], // activa
+					'usuario_id' => Auth::user()->id,
+					'costo' => 0
+					);
+				$movimientoordentrabajo = $this->movimientoordentrabajoRepository->create($dataTarea);														
+			}
 			// Graba tarea 
 			$data['ordentrabajo_id'] = $request['ordentrabajo_id'];
 			$data['tarea_id'] = Config::get("consprod.TAREA_EMPAQUE"); // Tarea Empaque
 			$data['desdefecha'] = Carbon::now();
-			$data['hastafecha'] = Carbon::now();
-			$data['empleado_id'] = null;
+			$data['hastafecha'] = null;
+			$data['empleado_id'] = Config::get("consprod.EMPLEADO_FERLI");
 			$data['pedido_combinacion_id'] = $request['pedido_combinacion_id'];
-			$data['estado'] = Config::get("consprod.TAREA_ESTADO_TERMINADA");
+			$data['estado'] = Config::get("consprod.TAREA_ESTADO_PRODUCCION");
 			$data['costo'] = 0;
 			$data['usuario_id'] = Auth::user()->id;
 
 			$ordentrabajo = $this->ordentrabajo_tareaRepository->create($data);
+
+			// Guarda movimiento de orden de trabajo
+			$dataTarea = array(
+				'ordentrabajo_id' => $request['ordentrabajo_id'],
+				'ordentrabajo_tarea_id' => $ordentrabajo->id,
+				'tarea_id' => Config::get("consprod.TAREA_EMPAQUE"),
+				'operacion_id' => Config::get("consprod.OPERACION_INICIO"),
+				'empleado_id' => Config::get("consprod.EMPLEADO_FERLI"),
+				'pedido_combinacion_id' => $request['pedido_combinacion_id'],
+				'fecha' => Carbon::now(),
+				'estado' => $estadoEnum['A'],
+				'usuario_id' => Auth::user()->id,
+				'costo' => 0
+				);
+			$movimientoordentrabajo = $this->movimientoordentrabajoRepository->create($dataTarea);
 
 			DB::commit();
 		} catch (\Exception $e) 
@@ -340,7 +409,7 @@ class MovimientoOrdentrabajoService
 
 	// Control de secuencia de fabricacion
 
-	public function controlSecuencia($ordenestrabajo, $operacion_id, $tarea_id)
+	public function controlSecuencia($ordenestrabajo, $operacion_id, $tarea_id, $movimiento_id = null)
 	{
 		$arrayOrdenesTrabajo = explode(',', $ordenestrabajo);
 		$secuenciaTareas = Config::get("consprod.SECUENCIA_TAREAS");
@@ -349,40 +418,53 @@ class MovimientoOrdentrabajoService
 		foreach($arrayOrdenesTrabajo as $ordentrabajo)
 		{
 			$ot = $this->ordentrabajoRepository->findPorCodigo($ordentrabajo);
-
 			$tareas = self::leeTareas($ot->id);
-			foreach($tareas as $tarea)
+			$flExiste = false;
+			$flExisteEnSecuencia = false;
+			// Verifica si tiene validacion de secuencia cargada
+			if (array_key_exists($tarea_id, $secuenciaTareas))		
 			{
-				// Verifica si tiene validacion de secuencia cargada
-				if (array_key_exists($tarea_id, $secuenciaTareas))		
+				$flExisteEnSecuencia = true;
+				// Busca la tarea en la secuencia
+				foreach($secuenciaTareas[$tarea_id] as $secuencia)
 				{
-					// Busca la tarea en la secuencia
-					$flExiste = false;
-					foreach($secuenciaTareas[$tarea_id] as $secuencia)
+					foreach ($tareas as $tarea)
 					{
-					//	echo($secuencia.' '.$tarea->tarea_id.' '.$tarea_id.' ');
 						if ($secuencia == $tarea->tarea_id)
 						{
-							// Si no termino la tarea es error igual
-							if ($tarea->hastafecha != null)
+							// Si no termino la tarea es error igual salvo que sea empaque
+							if ($tarea->hastafecha != null || $tarea_id == Config::get("consprod.TAREA_EMPAQUE"))
 								$flExiste = true;
-						}
-						// Si la tarea ya esta cargada verifica si le falta el fin
-						if ($tarea_id == $tarea->tarea_id)
-						{
-							if ($tarea->hastafecha == null)
-								$flExiste = true;
+
+							// Si tiene mas tareas sin terminar da error salvo en empaque
+							if ($flExiste && $tarea->hastafecha == null && 
+								$tarea_id != Config::get("consprod.TAREA_EMPAQUE"))
+								$flExiste = false;
 						}
 					}
 				}
+				// Si la tarea ya fue cargada la toma con problemas
+				if (!$flExiste && !in_array($ordentrabajo, $otConProblema))
+					$otConProblema[] = $ordentrabajo;
 			}
-			// Si la tarea ya fue cargada la toma con problemas
-			if ($flExiste && !in_array($ordentrabajo, $otConProblema))
-				$otConProblema[] = $ordentrabajo;
+			$flTareaYaCargada = false;
+			if ($movimiento_id == null)
+			{
+				foreach ($tareas as $tarea)
+				{
+					// Si la tarea ya esta cargada verifica si le falta el fin
+					if ($tarea_id == $tarea->tarea_id)
+					{
+						if ($tarea->hastafecha != null)
+							$flTareaYaCargada = true;
+					}
+				}
+				// Si la tarea ya fue cargada la toma con problemas
+				if ($flTareaYaCargada && !in_array($ordentrabajo, $otConProblema))
+					$otConProblema[] = $ordentrabajo;
+			}
 		}
-		
 		$resultado = count($otConProblema) > 0 ? 0 : 1;
-
 		return(['resultado' => $resultado, 'ordenestrabajo' => $otConProblema]);
 	}
 

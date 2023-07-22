@@ -29,6 +29,12 @@
 	</div>
 </div>
 <div class="form-group row">
+	<label for="cantidadcontratos" class="col-lg-3 col-form-label requerido">Cantidad de contratos:</label>
+	<div class="col-lg-4">
+		<input type="number" name="cantidadcontratos" class="form-control" value="1">
+	</div>
+</div>
+<div class="form-group row">
 	<label for="compresion" class="col-lg-3 col-form-label requerido">Compresi&oacute;n:</label>
 	
 	<select name="compresion" class="col-lg-3 form-control" required>

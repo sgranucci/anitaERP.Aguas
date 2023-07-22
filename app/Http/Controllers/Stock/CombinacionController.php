@@ -142,7 +142,16 @@ class CombinacionController extends Controller
 		}
 		else
 		{
-        	$plarmado_id = $fondo_id = $horma_id = $serigrafia_id = null;
+			$articulo = Articulo::where("id",$id)->first();
+
+        	$plarmado_id = null;
+
+			if ($articulo)
+			{
+				$fondo_id = $articulo->fondo_id;
+				$horma_id = $articulo->horma_id;
+				$serigrafia_id = $articuo->serigrafia_id;
+			}
 		}
 		if (!array_key_exists('plvista_16_26', $data))
 		{
@@ -177,7 +186,7 @@ class CombinacionController extends Controller
             			'articulo_id' => $data['articulo_id'],
                 		'combinacion_id' => $combinacion->id,
                 		'material_id' => 563, 
-                		'color_id' => 1629,
+                		'color_id' => null,
                 		'piezas' => $capeart->piezas,
                 		'consumo1' => $capeart->consumo1,
                 		'consumo2' => $capeart->consumo2,
@@ -194,7 +203,7 @@ class CombinacionController extends Controller
                 		'articulo_id' => $data['articulo_id'],
                 		'combinacion_id' => $combinacion->id,
                 		'material_id' => $avioart->material_id,
-                		'color_id' => 1629,
+                		'color_id' => null,
                 		'consumo1' => $avioart->consumo1,
                 		'consumo2' => $avioart->consumo2,
                 		'consumo3' => $avioart->consumo3,
@@ -263,7 +272,9 @@ class CombinacionController extends Controller
            	['id' => 'E', 'nombre'  => 'Empaque'],
 					];
  
-            return view('stock.combinacion.tecnica.edit',compact('combinacion','id','plvista','plarmado','fondo','color','horma','serigrafia','capelladas','avios','articulo','tipos','tipos_avios', 'totControlConsumo'));
+            return view('stock.combinacion.tecnica.edit',compact('combinacion','id','plvista','plarmado',
+							'fondo','color','horma','serigrafia','capelladas','avios','articulo',
+							'tipos','tipos_avios', 'totControlConsumo'));
         }else{
             return view('stock.combinacion.diseno.edit',compact('combinacion','id','articulo'));
         }

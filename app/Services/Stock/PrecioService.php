@@ -62,14 +62,19 @@ class PrecioService
 			foreach($talle as $value)
 			{
 				$lista = $this->asignaListaPrecio($value->nombre, $tiponumeracion_id);
+
+				if (gettype($fechavigencia) == "string")
+					$fecha = $fechavigencia;
+				else
+					$fecha = date('Y-m-d', strtotime($fechavigencia));
 			
 				$precio = Precio::with('listaprecios')
 								->where('articulo_id',$articulo_id)
 								->where('listaprecio_id',$lista)
-								->whereDate('fechavigencia', '<=', date('Y-m-d', strtotime($fechavigencia)))
+								->where('fechavigencia', '<=', $fecha)
 								->orderBy('fechavigencia', 'desc')
 								->first();
-	
+
 				if ($precio)
 				{
 					$precio_talle = $precio->precio;

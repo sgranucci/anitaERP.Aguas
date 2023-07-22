@@ -137,10 +137,11 @@
     	<table class="table table-hover" id="tareasordentrabajo-table">
     		<thead>
     			<tr>
-					<th style="width: 15%;">Id</th>
+					<th style="width: 10%;">Id</th>
     				<th style="width: 30%;">Tarea</th>
-    				<th style="width: 20%;">Inicio</th>
-    				<th style="width: 20%;">Fin</th>
+					<th style="width: 20%;">Empleado</th>
+    				<th style="width: 12%;">Inicio</th>
+    				<th style="width: 12%;">Fin</th>
     			</tr>
     		</thead>
     		<tbody id="tbody-tareas">
@@ -154,6 +155,10 @@
 								<input type="hidden" class="tarea_id" value="{{old('tarea_id', $ordentrabajotarea->tareas->id ?? '')}}">
 								<input style="width: 100%;" type="text" class="tarea" value="{{old('tarea', $ordentrabajotarea->tareas->nombre ?? '')}}" readonly>
         					</td>
+							<td>
+								<input style="width: 100%;" type="text" class="empleado" value="{{old('empleado', $ordentrabajotarea->empleados->nombre ?? '')}}" readonly>
+        					</td>
+
                 			<td>
         						<input style="width: 100%;" type="date" class="desdefecha" value="{{old('desdefecha', $ordentrabajotarea->desdefecha ?? '')}}" readonly>
 							</td>

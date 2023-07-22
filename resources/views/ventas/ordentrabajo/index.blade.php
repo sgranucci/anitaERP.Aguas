@@ -75,6 +75,7 @@
             					{{ $pares ?? '' }}
         					</td>
                             <td>
+                                @php $ultimaTarea = ""; @endphp
                                 @foreach ($data->ordentrabajo_tareas as $tarea)
 									@php
 										$ultimaTarea = $tarea->tareas->nombre;

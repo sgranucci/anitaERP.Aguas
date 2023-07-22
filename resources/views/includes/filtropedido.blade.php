@@ -34,7 +34,8 @@
                         					<option value="">-- Selecciona estado --</option>
                                 			<option value="P">Pendientes</option>    
                                 			<option value="F">Facturados</option>    
-                                			<option value="E">En produccion</option>    
+                                			<option value="E">En produccion</option>  
+                                            <option value="A">Anulados</option>  
                     					</select>
 										<!-- 
  										<input type='text' class='filter-value form-control' style="display:none"

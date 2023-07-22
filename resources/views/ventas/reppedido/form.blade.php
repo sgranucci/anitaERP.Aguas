@@ -11,11 +11,24 @@
 	</div>
 </div>
 <div class="form-group row">
-	<label for="vendedor" class="col-lg-3 col-form-label requerido">Vendedor</label>
-   	<select name="vendedor_id" id="vendedor_id" data-placeholder="Vendedor" class="col-lg-4 form-control required" data-fouc>
+	<label for="desdevendedor" class="col-lg-3 col-form-label requerido">Desde Vendedor</label>
+   	<select name="desdevendedor_id" id="desdevendedor_id" data-placeholder="Vendedor" class="col-lg-4 form-control required" data-fouc>
    		<option value="">-- Seleccionar vendedor --</option>
        	@foreach($vendedor_query as $key => $value)
-       		@if( (int) $value->id == (int) old('vendedor_id', $pedido->vendedor_id ?? ''))
+       		@if( (int) $value->id == '0')
+       			<option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
+       		@else
+       			<option value="{{ $value->id }}">{{ $value->nombre }}</option>    
+       		@endif
+       	@endforeach
+    </select>
+</div>
+<div class="form-group row">
+	<label for="hastavendedor" class="col-lg-3 col-form-label requerido">Hasta Vendedor</label>
+   	<select name="hastavendedor_id" id="hastavendedor_id" data-placeholder="Vendedor" class="col-lg-4 form-control required" data-fouc>
+   		<option value="">-- Seleccionar vendedor --</option>
+       	@foreach($vendedor_query as $key => $value)
+       		@if( (int) $value->id == '999999')
        			<option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
        		@else
        			<option value="{{ $value->id }}">{{ $value->nombre }}</option>    
@@ -33,6 +46,20 @@
        			<option value="{{ $value }}" selected="select">{{ $tipolistado }}</option>    
        		@else
        			<option value="{{ $value }}">{{ $tipolistado }}</option>    
+       		@endif
+       	@endforeach
+	</select>
+</div>
+
+<div class="form-group row">
+  	<label for="origen" class="col-lg-3 col-form-label requerido">Origen</label>
+	<select name="origen" class="col-lg-3 form-control" required>
+   		<option value="">-- Elija origen --</option>
+    	@foreach($origen_enum as $value => $origen)
+       		@if( $value == 'ANITA')
+       			<option value="{{ $value }}" selected="select">{{ $origen }}</option>    
+       		@else
+       			<option value="{{ $value }}">{{ $origen }}</option>    
        		@endif
        	@endforeach
 	</select>

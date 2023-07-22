@@ -21,7 +21,8 @@ class Articulo extends Model
             'detalle', 'empresa_id', 'unidadesxenvase', 'skualternativo', 'categoria_id', 'subcategoria_id', 'linea_id', 'mventa_id', 'peso',
             'nofactura', 'impuesto_id', 'formula', 'nomenclador', 'foto', 'unidadmedida_id', 'unidadmedidaalternativa_id', 'cuentacontableventa_id',
 			'cuentacontablecompra_id', 'cuentacontableimpinterno_id', 'ppp', 'usoarticulo_id', 'material_id', 'tipocorte_id', 'puntera_id',
-			'contrafuerte_id', 'tipocorteforro_id', 'forro_id', 'compfondo_id', 'claveorden', 'usuario_id', 'fechaultimacompra'];
+			'contrafuerte_id', 'tipocorteforro_id', 'forro_id', 'compfondo_id', 'fondo_id',
+			'horma_id', 'serigrafia_id', 'claveorden', 'usuario_id', 'fechaultimacompra'];
     protected $table = 'articulo';
     protected $tableAnita = 'stkmae';
     protected $keyField = 'sku';

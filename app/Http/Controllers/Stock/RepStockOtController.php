@@ -10,6 +10,7 @@ use App\Services\Stock\Articulo_MovimientoService;
 use App\Queries\Stock\ArticuloQueryInterface;
 use App\Models\Stock\Linea;
 use App\Models\Stock\Mventa;
+use App\Models\Stock\Categoria;
 use PDF;
 
 class RepStockOtController extends Controller
@@ -33,16 +34,24 @@ class RepStockOtController extends Controller
 			'INACTIVAS' => 'Combinaciones inactivas',
 			'TODAS' => 'Todas las combinaciones'
         ];
+        $foto_enum = [
+			'CON_FOTO' => 'Con fotos',
+			'SIN_FOTO' => 'Sin fotos',
+        ];
         $articulo_query = $this->articuloQuery->allQueryConCombinacion(['id','sku','descripcion'], 'descripcion');
         $articulo_query->prepend((object) ['id'=>'0','descripcion'=>'Primero']);
         $articulo_query->push((object) ['id'=>'99999999','descripcion'=>'Ultimo']);
         $linea_query = Linea::all();
         $linea_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
         $linea_query->push((object) ['id'=>'99999999','nombre'=>'Ultimo']);
+        $categoria_query = Categoria::all();
+        $categoria_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
+        $categoria_query->push((object) ['id'=>'99999999','nombre'=>'Ultimo']);
         $mventa_query = Mventa::all();
         $mventa_query->prepend((object) ['id'=>'0','nombre'=>'Todas las marcas']);
 
-        return view('stock.repstockot.create', compact('estado_enum', 'articulo_query', 'linea_query', 'mventa_query'));
+        return view('stock.repstockot.create', compact('estado_enum', 'articulo_query', 'linea_query', 
+                                                        'mventa_query', 'categoria_query', 'foto_enum'));
     }
 
     public function crearReporteStockOt(Request $request)
@@ -63,7 +72,10 @@ class RepStockOtController extends Controller
                                     ->parametros($request->estado, 
                                                 $request->mventa_id,
                                                 $request->desdearticulo_id, $request->hastaarticulo_id,
-                                                $request->desdelinea_id, $request->hastalinea_id)
+                                                $request->desdelinea_id, $request->hastalinea_id,
+                                                $request->desdecategoria_id, $request->hastacategoria_id,
+                                                $request->desdelote, $request->hastalote,
+                                                $request->imprimefoto)
                                     ->download('stockot.'.$extension);
     }
 }

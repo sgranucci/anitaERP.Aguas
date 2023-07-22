@@ -83,7 +83,7 @@ class PadronarbaRepository implements PadronarbaRepositoryInterface
 		if (count($datas) > 0)
 			$tasa = ($tipo == "percepcion" ? $datas[0]->percepcion : $datas[0]->retencion);
 
-		return $tasa;
+        return $tasa;
 	}
 
 }

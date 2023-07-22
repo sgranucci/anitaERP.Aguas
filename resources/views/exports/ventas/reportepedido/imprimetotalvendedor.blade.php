@@ -1,6 +1,6 @@
 
 <tr>
- 	<td>TOTAL VENDEDOR {{$vendedor}}-{{$nombre_vendedor}}</td>
+ 	<td>TOTAL VENDEDOR {{$vendedor_actual}}-{{$nombrevendedor_actual}}</td>
 	<td></td>
 	<td></td>
 	<td></td>

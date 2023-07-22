@@ -5,6 +5,7 @@ namespace App\Exports\Stock;
 use App\Services\Stock\Articulo_MovimientoService;
 use App\Queries\Stock\ArticuloQueryInterface;
 use App\Models\Stock\Linea;
+use App\Models\Stock\Categoria;
 use App\Models\Stock\Mventa;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
@@ -28,7 +29,7 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 	use Exportable;
 	private $desdearticulo_id, $hastaarticulo_id,
 			$desdelinea_id, $hastalinea_id,
-			$estado, $mventa_id;
+			$estado, $mventa_id, $desdelote, $hastalote, $imprimefoto;
 
 	protected $dates = ['fecha'];
     private $articulo_movimientoService;
@@ -74,6 +75,28 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 				$hastaLinea = '--';
 		}
 
+		if ($this->desdecategoria_id == 0)
+			$desdeCategoria = 'Primera';
+		else
+		{
+			$categoria = Categoria::find($this->desdecategoria_id);
+			if ($categoria)
+				$desdeCategoria = $categoria->nombre;
+			else	
+				$desdeCategoria = '--';
+		}
+		
+		if ($this->hastacategoria_id == 99999999)
+			$hastaCategoria = 'Ultima';
+		else
+		{
+			$categoria = Categoria::find($this->hastacategoria_id);
+			if ($categoria)
+				$hastaCategoria = $categoria->nombre;
+			else	
+				$hastaCategoria = '--';
+		}
+
 		$nombremarca = 'Todas las marcas';
 		if ($this->mventa_id != 0)
 		{
@@ -87,7 +110,9 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 		// Lee informacion del listado
 		$data = $this->articulo_movimientoService->generaDatosRepStockOt($this->estado, $this->mventa_id,
 				$desdeArticuloRango, $hastaArticuloRango,
-				$this->desdelinea_id, $this->hastalinea_id);
+				$this->desdelinea_id, $this->hastalinea_id,
+				$this->desdecategoria_id, $this->hastacategoria_id,
+				$this->desdelote, $this->hastalote);
 				
 		return view('exports.stock.reportestockot.reportestockot', 
 					['data' => $data, 
@@ -95,6 +120,9 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 					'nombremarca' => $nombremarca,
 					'desdearticulo' => $desdeArticulo, 'hastaarticulo' => $hastaArticulo, 
 					'desdelinea' => $desdeLinea, 'hastalinea' => $hastaLinea, 
+					'desdecategoria' => $desdeCategoria, 'hastacategoria' => $hastaCategoria,
+					'desdelote' => $this->desdelote, 'hastalote' => $this->hastalote,
+					'imprimefoto' => $this->imprimefoto
 					]);
 	}
 
@@ -132,7 +160,19 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 						'name'  => 'Arial'
 						],
 					],
-            5   => ['font' => ['bold' => true,
+			5   => ['font' => ['bold' => true,
+					'color' => array('rgb' => '17202A'),
+					'size'  => 12,
+					'name'  => 'Arial'
+					],
+				],
+			6   => ['font' => ['bold' => true,
+				'color' => array('rgb' => '17202A'),
+				'size'  => 12,
+				'name'  => 'Arial'
+				],
+			],
+            7   => ['font' => ['bold' => true,
         						'color' => array('rgb' => '17202A'),
         						'size'  => 12,
         						'name'  => 'Arial'
@@ -187,7 +227,7 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
         return [
             AfterSheet::class    => function(AfterSheet $event) {
 
-                $event->sheet->getDelegate()->freezePane('A6');
+                $event->sheet->getDelegate()->freezePane('A8');
 				$event->sheet->getDelegate()->getStyle('A:AP')->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
             },
         ];
@@ -200,7 +240,10 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 
 	public function parametros($estado, $mventa_id,
 							$desdearticulo_id, $hastaarticulo_id,
-							$desdelinea_id, $hastalinea_id)
+							$desdelinea_id, $hastalinea_id,
+							$desdecategoria_id, $hastacategoria_id,
+							$desdelote, $hastalote,
+							$imprimefoto)
 	{
 		$this->estado = $estado;
 		$this->mventa_id = $mventa_id;
@@ -208,6 +251,11 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 		$this->hastaarticulo_id = $hastaarticulo_id;
 		$this->desdelinea_id = $desdelinea_id;
 		$this->hastalinea_id = $hastalinea_id;
+		$this->desdecategoria_id = $desdecategoria_id;
+		$this->hastacategoria_id = $hastacategoria_id;
+		$this->desdelote = $desdelote;
+		$this->hastalote = $hastalote;
+		$this->imprimefoto = $imprimefoto;
 		
 		return $this;
 	}

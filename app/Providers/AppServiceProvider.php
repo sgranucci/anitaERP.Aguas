@@ -190,6 +190,16 @@ class AppServiceProvider extends ServiceProvider
         	'App\Repositories\Produccion\MovimientoOrdentrabajoRepository',
     	);
 
+		$this->app->bind(
+        	'App\Repositories\Configuracion\SalidaRepositoryInterface',
+        	'App\Repositories\Configuracion\SalidaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Configuracion\SeteosalidaRepositoryInterface',
+        	'App\Repositories\Configuracion\SeteosalidaRepository',
+    	);
+
 	    $this->app->bind(
         	'App\Repositories\Configuracion\PadronarbaRepositoryInterface',
         	'App\Repositories\Configuracion\PadronarbaRepository',

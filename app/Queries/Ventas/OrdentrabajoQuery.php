@@ -254,6 +254,32 @@ class OrdentrabajoQuery implements OrdentrabajoQueryInterface
         return $dataAnita;
     }
 
+	public function traeOrdentrabajoPorIdERP($id)
+    {
+		$data = $this->model
+					->select('ordentrabajo.id as ordentrabajo_id',
+						'ordentrabajo.codigo as ordtm_nro_orden',
+						'ordentrabajo.fecha as fecha',
+						'pedido_combinacion.id as pedido_combinacion_id',
+						'pedido_combinacion_talle.cantidad as ordtv_cantidad',
+						'pedido_combinacion_talle.talle_id as talle_id',
+						'talle.nombre as ordtv_medida',
+						'articulo.sku as ordtv_articulo',
+						'combinacion.codigo as ordtm_capellada',
+						'combinacion.nombre as nombrecombinacion')
+					->join('ordentrabajo_combinacion_talle', 'ordentrabajo_combinacion_talle.ordentrabajo_id', 'ordentrabajo.id')
+					->join('pedido_combinacion_talle', 'pedido_combinacion_talle.id', 'ordentrabajo_combinacion_talle.pedido_combinacion_talle_id')
+					->join('talle', 'talle.id', '=', 'pedido_combinacion_talle.talle_id')
+					->join('pedido_combinacion', 'pedido_combinacion.id', 'pedido_combinacion_talle.pedido_combinacion_id')
+					->join('articulo', 'articulo.id', 'pedido_combinacion.articulo_id')
+					->join('combinacion', 'combinacion.id', 'pedido_combinacion.combinacion_id')
+					->where('ordentrabajo.codigo',$id);
+						
+		$data = $data->get();
+
+		return $data;
+    }
+
     public function allOrdentrabajoPorEstado($estado){
         $apiAnita = new ApiAnita();
         $data = array( 

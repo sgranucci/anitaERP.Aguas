@@ -9,20 +9,22 @@ use App\Services\Produccion\MovimientoOrdentrabajoService;
 class RuleMovimientoOrdentrabajo implements Rule
 {
  	private $campo, $operacion_id, $tarea_id;
-    private $movimientoOrdentrabajoService;
+  private $movimientoOrdentrabajoService;
 	private $ordenesConProblemas;
+  private $movimiento_id;
 
     /**
      * Create a new rule instance.
      *
      * @return void
      */
-    public function __construct($campo, $tarea_id, $operacion_id,
+    public function __construct($campo, $tarea_id, $operacion_id, $movimiento_id,
                                 MovimientoOrdentrabajoService $movimientoordentrabajoservice)
     {
       $this->movimientoOrdentrabajoService = $movimientoordentrabajoservice;
       $this->campo = $campo;	  
       $this->operacion_id = $operacion_id;
+      $this->movimiento_id = $movimiento_id;
       $this->tarea_id = $tarea_id;
     }
 
@@ -35,13 +37,16 @@ class RuleMovimientoOrdentrabajo implements Rule
      */
     public function passes($attribute, $value)
     {
+	    $retorno = 0;
       switch($this->campo)
       {
         case 'ordenestrabajo':
-			$cc = $this->movimientoOrdentrabajoService->controlSecuencia($value, $this->operacion_id, $this->tarea_id);
-			if ($cc['resultado'] == 0)
-				$this->ordenesConProblemas = $cc['ordenestrabajo'];
-            $retorno = $cc['resultado'];
+            $cc = $this->movimientoOrdentrabajoService->controlSecuencia($value, 
+                                                      $this->operacion_id, $this->tarea_id,
+                                                      $this->movimiento_id);
+            if ($cc['resultado'] == 0)
+              $this->ordenesConProblemas = $cc['ordenestrabajo'];
+                  $retorno = $cc['resultado'];
       }
       return($retorno);
     }
@@ -53,8 +58,8 @@ class RuleMovimientoOrdentrabajo implements Rule
      */
     public function message()
     {
-		$ots = implode(',', $this->ordenesConProblemas);
+		  $ots = implode(',', $this->ordenesConProblemas);
 
-        return 'Error en campo :attribute. OT: '.$ots;
+      return 'Error en campo :attribute. OT: '.$ots;
     }
 }

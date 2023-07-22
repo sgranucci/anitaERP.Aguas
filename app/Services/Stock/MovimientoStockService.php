@@ -56,7 +56,6 @@ class MovimientoStockService
 			$data['leyenda'] = ' ';
 
 		DB::beginTransaction();
-
 		try 
 		{
 			// Lee el tipo de transaccion
@@ -68,13 +67,22 @@ class MovimientoStockService
 			if ($funcion == 'create')
 			{
 				$movimientostock = $this->movimientostockRepository->latest('id');
+
+				// Numera desde 100000 para que no se junte con las OT
+				if ($data['lote'] == 'LOTE DE ALTA')
+				{
+					$lote = 500000;
+					if ($movimientostock)
+						$lote = $movimientostock->id+500000;
+					$data['lote'] = $lote + 1;
+				}
 				
 				$id = 0;
 				if ($movimientostock)
 					$id = $movimientostock->id;
 
 				$data['codigo'] = $id + 1;
-				
+
 				// Guarda maestro de movimientostocks 
 				$movimientostock = $this->movimientostockRepository->create($data);
 			}
@@ -94,7 +102,6 @@ class MovimientoStockService
 				{
 					$this->articulo_movimientoService->deletePorMovimientoStockId($movimientostock_id);
 				}
-
 				$articulos = $data['articulos_id'];
 				$combinaciones = $data['combinaciones_id'];
 				$modulos = $data['modulos_id'];
@@ -107,7 +114,6 @@ class MovimientoStockService
 				$descuentos = $data['descuentos'];
 				$loteids = $data['loteids'];
 				$medidas = $data['medidas'];
-				$observaciones = $data['observaciones'];
 				
 				// Graba items
 				$dataArticuloMovimiento = [];
@@ -165,7 +171,11 @@ class MovimientoStockService
 
 	public function borraMovimientoStock($id)
 	{
-		return $this->movimientostockRepository->deletePorId($id);
+		$movimientostock = $this->movimientostockRepository->deletePorId($id);
+
+		$this->articulo_movimientoService->deletePorMovimientoStockId($id);
+
+		return $movimientostock;
 	}
 
 

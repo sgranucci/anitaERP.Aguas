@@ -29,6 +29,7 @@ class IndicadoresExport implements FromView, WithColumnFormatting, WithMapping, 
     private $compresion, $compresiontxt, $factorCompresion;
     private $calculoBase, $mmCorta, $mmLarga, $calculoBase_enum;
     private $largoVMA, $largoCCI, $largoXTL, $umbralXTL;
+    private $cantidadContratos;
     private $calculoBaseTxt;
 	private $k1, $k2;
     private $dataAnterior = [];
@@ -41,7 +42,7 @@ class IndicadoresExport implements FromView, WithColumnFormatting, WithMapping, 
 
     public function __construct($desdefecha, $hastafecha, $desdehora, $hastahora, $especie, $compresion,
                                 $mmcorta, $mmlarga, $largovma, $largocci, $largoxtl,
-                                $umbralxtl, $swingSize, $filtroSetup, $datos, $calculoBaseTxt)
+                                $umbralxtl, $swingSize, $filtroSetup, $datos, $cantidadContratos, $calculoBaseTxt)
     {
         $this->desdeFecha = $desdefecha;
 		$this->hastaFecha = $hastafecha;
@@ -57,6 +58,7 @@ class IndicadoresExport implements FromView, WithColumnFormatting, WithMapping, 
         $this->umbralXTL = $umbralxtl;
         $this->swingSize = $swingSize;
         $this->datas = $datos;
+        $this->cantidadContratos = $cantidadContratos;
         $this->calculoBaseTxt = $calculoBaseTxt;
         $this->filtroSetup = $filtroSetup;
 
@@ -116,7 +118,8 @@ class IndicadoresExport implements FromView, WithColumnFormatting, WithMapping, 
                                                     'calculobasetxt' => $this->calculoBaseTxt,
                                                     'swingsize' => $this->swingSize,
                                                     'especie' => $this->especie,
-                                                    'filtroSetup' => $this->filtroSetup]);
+                                                    'filtroSetup' => $this->filtroSetup,
+                                                    'cantidadcontratos' => $this->cantidadContratos]);
     }
 
 	public function columnFormats(): array
@@ -161,7 +164,7 @@ class IndicadoresExport implements FromView, WithColumnFormatting, WithMapping, 
     {
         return [
             'A' => 40,
-            'BJ' => 80,
+            'BN' => 100,
         ];
     }
 

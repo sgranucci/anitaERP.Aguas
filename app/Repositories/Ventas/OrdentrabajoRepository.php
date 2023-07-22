@@ -27,10 +27,10 @@ class OrdentrabajoRepository implements OrdentrabajoRepositoryInterface
 
     public function all()
     {
-        $hay_ordentrabajo = Ordentrabajo::first();
+        //$hay_ordentrabajo = Ordentrabajo::first();
 
-		if (!$hay_ordentrabajo)
-			self::sincronizarConAnita();
+		//if (!$hay_ordentrabajo)
+			//self::sincronizarConAnita();
 
         return $this->model->get();
     }
@@ -68,6 +68,7 @@ class OrdentrabajoRepository implements OrdentrabajoRepositoryInterface
 
     public function find($id)
     {
+		dd('sdf');
         if (null == $ordentrabajo = $this->model->find($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
@@ -293,7 +294,7 @@ class OrdentrabajoRepository implements OrdentrabajoRepositoryInterface
 	// Devuelve ultimo codigo de orden de trabajo + 1 para agregar nuevos en Anita
 
 	public function ultimoCodigoAnita(&$nro) {
-		$ordentrabajo = $this->model->max('codigo');
+		$ordentrabajo = $this->model->max('id');
 		$nro = 0;
 		if ($ordentrabajo)
 			$nro = $ordentrabajo;

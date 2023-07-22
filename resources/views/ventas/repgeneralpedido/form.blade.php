@@ -142,7 +142,7 @@
 					@if( (int) $value->id == '0')
 						<option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
 					@else
-					<option value="{{ $value->id }}">{{$value->id}}-{{ $value->nombre }}</option>    
+						<option value="{{ $value->id }}">{{ $value->nombre }}-{{$value->id}}</option>    
 					@endif
 				@endforeach
 			</select>
@@ -155,7 +155,7 @@
 				@if( (int) $value->id == '99999999')
 						<option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
 					@else
-						<option value="{{ $value->id }}">{{$value->id}}-{{ $value->nombre }}</option>   
+						<option value="{{ $value->id }}">{{ $value->nombre }}-{{$value->id}}</option>   
 					@endif 
 				@endforeach
 			</select>

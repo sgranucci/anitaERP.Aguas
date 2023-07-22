@@ -42,15 +42,6 @@
         	<input type="text" style="text-align: right;" id="iprecio" name="precios[]" class="form-control precio" readonly value="" />
         </td>
         <td>
-        	<input type="text" name="ot_codigos[]" class="form-control otcodigo" 
-        		value="{{ old('ot_codigos[]') ?? '-1' }}" readonly> 
-            <input type="hidden" name="ot_ids[]" class="form-control ot" 
-        		value="{{ old('ot_ids[]') ?? '-1' }}"> 
-        </td>
-        <td>
-        	<input type="text" id="iobservacion" name="observaciones[]" class="form-control observacion" value="" />
-        </td>
-        <td>
 			<input name="checkssinfiltro[]" class="checkSinFiltro" title="Todos los art&iacute;culos" type="checkbox" autocomplete="off"> 
         </td>
         <td>

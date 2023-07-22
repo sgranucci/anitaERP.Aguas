@@ -651,6 +651,7 @@
 			var ordentrabajo_stock_codigo = $("#ordentrabajo_stock_codigo").val();
 			var articulo_id = $(pedido_combinacion).parents('tr').find('.articulo').val();
 			var combinacion_id = $(pedido_combinacion).parents('tr').find('.combinacion').val();
+			var cantidad = $(pedido_combinacion).parents('tr').find('.cantidad').val();
 			
 			if (ordentrabajo_stock_codigo == '')
 				ordentrabajo_stock_codigo = 0;
@@ -662,7 +663,13 @@
 				$.get(listarUri, function(data){
 					if (data.estado != -1)
 					{
-						alert("Saldo lote "+ordentrabajo_stock_codigo+" "+data.saldo);
+						alert("Saldo lote "+ordentrabajo_stock_codigo+" Saldo "+data.saldo+" Cantidad "+cantidad);
+
+						if (data.saldo < cantidad)
+						{
+							alert('No puede hacer la orden de trabajo porque no tiene saldo suficiente');
+							return;
+						}
 
 						$('#crearOrdenTrabajoModal').modal('hide');
 
@@ -739,7 +746,6 @@
 			var sel_articulos = JSON.parse(document.querySelector('#marca').dataset.articuloall);
 		else
 			var sel_articulos = JSON.parse(document.querySelector('#marca').dataset.articulo);
-
 		if (opdata == 2)
 		{
 			sel_articulos.sort(function(a, b) {
@@ -898,7 +904,10 @@
 		if (ot == 0 || ot == -1)
 			alert("No puede listar OT");
 		else
-			$.post(listarUri, {_token: $('input[name=_token]').val(), ordenestrabajo: ot, tipoemision: "COMPLETA"}, function(data){ alert(data); });
+			$.post(listarUri, {_token: $('input[name=_token]').val(), ordenestrabajo: ot, tipoemision: "COMPLETA"}, function(data)
+			{ 
+				alert("OT EMITIDA CORRECTAMENTE"); 
+			});
 	}
 
     function generaOt() {

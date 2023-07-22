@@ -381,11 +381,23 @@ function empacarPedido(item)
     var combinacion = $(item).parents("tr").find(".nombre_combinacion").val();
     var medidas = $(item).parents("tr").find(".medidas").val();
     var pares = $(item).parents("tr").find(".pares").val();
+    var operacion_id = 1; // Inicio de operacion
 
 	// Graba la tarea de armado
     var token = $('#csrf_token').val();
 
-    $.post("/anitaERP/public/produccion/empacarTarea",
+    // Controla secuencia
+    var listarUri = "/anitaERP/public/produccion/controlsecuencia/"+codigoordentrabajo+"/"+operacion_id+"/"+tareaEmpaque;
+
+    $.get(listarUri, function(data){
+        if (data.resultado == '0')
+        {
+            alert('No tiene el armado iniciado');
+            flError = true;
+        }
+        else
+        {
+            $.post("/anitaERP/public/produccion/empacarTarea",
             {
                 pedido_combinacion_id: pedido_combinacion_id,
                 ordentrabajo_id: ordentrabajo_id,
@@ -404,7 +416,8 @@ function empacarPedido(item)
                 $(item).parents("tr").find(".botonempacar").css( "color", "red");
                 completarTareas(ordentrabajo_id);
             });
-    
+        }
+    });
 }
 
 $(".modulo").on('change', function() {
@@ -753,7 +766,6 @@ function estadoOt()
 
 function tipoOt()
 {
-    var tareaTerminada = "{{ config('consprod.TAREA_TERMINADA') }}";
     var tipoOt = "CLIENTE";
 
     // Busca pedidos para ver si es boletas juntas

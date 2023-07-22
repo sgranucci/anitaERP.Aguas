@@ -67,6 +67,20 @@ Route::group(['prefix' => 'admin', 'namespace' => 'Admin', 'middleware' => ['aut
 /* Rutas de configuracion */
 
 /* 
+ * Salidas
+ */
+
+ Route::get('configuracion/salida', 'Configuracion\SalidaController@index')->name('salida');
+ Route::get('configuracion/salida/crear', 'Configuracion\SalidaController@crear')->name('crear_salida');
+ Route::post('configuracion/salida', 'Configuracion\SalidaController@guardar')->name('guardar_salida');
+ Route::get('configuracion/salida/{id}/editar', 'Configuracion\SalidaController@editar')->name('editar_salida');
+ Route::put('configuracion/salida/{id}', 'Configuracion\SalidaController@actualizar')->name('actualizar_salida');
+ Route::delete('configuracion/salida/{id}', 'Configuracion\SalidaController@eliminar')->name('eliminar_salida');
+ Route::get('configuracion/configurarsalida/{programa?}', 'Configuracion\SalidaController@configurarSalida')->name('configurar_salida');
+ Route::get('configuracion/setearsalida/{programa}/{salida}', 'Configuracion\SalidaController@setearSalida')->name('setear_salida');
+ Route::get('configuracion/buscarsalida/{programa?}', 'Configuracion\SalidaController@buscarSalida')->name('buscar_salida');
+ 
+/* 
  * Monedas
  */
 
@@ -587,10 +601,12 @@ Route::post('ventas/crearrepconsumomaterial', 'Ventas\PedidoController@crearRepo
 Route::get('ventas/repetiquetaot', 'Ventas\OrdentrabajoController@indexEtiqueta')->name('repetiquetaot');
 Route::post('ventas/crearetiquetaot', 'Ventas\OrdentrabajoController@crearEtiquetaOt')->name('crear_repetiquetaot');
 Route::get('ventas/generazpl', 'Ventas\OrdentrabajoController@generaZPL')->name('genera_zpl');
+Route::get('ventas/generaetiquetaprueba', 'Ventas\OrdentrabajoController@generaEtiquetaPruebaOt')->name('generaetiquetaprueba');
+Route::post('ventas/crearetiquetapruebaot', 'Ventas\OrdentrabajoController@crearEtiquetaPruebaOt')->name('crear_repetiquetapruebaot');
 
 // Emision de OT
 Route::get('ventas/repemisionot', 'Ventas\OrdentrabajoController@indexEmisionOT')->name('repemisionot');
-Route::post('ventas/crearemisionot', 'Ventas\OrdentrabajoController@crearEmisionOt')->name('crear_repemisionot');
+Route::post('ventas/crearemisionot', 'Ventas\OrdentrabajoController@crearEmisionOt')->name('crearemisionot');
 
 // Clientes
 Route::get('ventas/repcliente', 'Ventas\ClienteController@indexReporteCliente')->name('rep_cliente');
@@ -856,4 +872,6 @@ Route::post('graficos/crearreplecturas', 'Graficos\GraficosController@crearRepor
 Route::get('graficos/leerDatosLecturas/{fecha}/{dias}', 'Graficos\GraficosController@leerDatosLecturas')->name('leer_datos_lecturas');
 Route::get('graficos/reporteindicadores', 'Graficos\GraficosController@indexReporteIndicadores')->name('reporte_indicadores');
 Route::post('graficos/crearindicadores', 'Graficos\GraficosController@crearReporteIndicadores')->name('crear_repindicadores');
+Route::get('graficos/ordenes', 'Graficos\GraficosController@indexGeneraOrdenes')->name('ordenes');
+Route::post('graficos/generaordenes', 'Graficos\GraficosController@generaOrdenes')->name('genera_ordenes');
 

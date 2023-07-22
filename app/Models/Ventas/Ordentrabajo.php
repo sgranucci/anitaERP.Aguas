@@ -26,7 +26,7 @@ class Ordentrabajo extends Model
 
 	public function ordentrabajo_tareas()
 	{
-    	return $this->hasMany(Ordentrabajo_Tarea::class, 'ordentrabajo_id')->with('tareas');
+    	return $this->hasMany(Ordentrabajo_Tarea::class, 'ordentrabajo_id')->with('tareas')->with('empleados');
 	}
 
 }

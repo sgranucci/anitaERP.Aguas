@@ -24,6 +24,7 @@
             <form action="{{route('actualizar_movimientoordentrabajo', ['id' => $data->id])}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
                 @csrf @method("put")
                 <div class="card-body">
+        			<input type="hidden" id="movimiento_id" name="movimiento_id" value="{{$data->id}}" >
                     @include('produccion.movimientoordentrabajo.form')
                 </div>
                 <div class="card-footer">

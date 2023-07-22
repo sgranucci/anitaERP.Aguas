@@ -32,6 +32,7 @@
             <form action="{{route('guardar_movimientoordentrabajo')}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
                 @csrf
                 <div class="card-body">
+        			<input type="hidden" id="movimiento_id" name="movimiento_id" value="" >
                     @include('produccion.movimientoordentrabajo.form')
                 </div>
                 <div class="card-footer">

@@ -101,7 +101,6 @@ class MovimientoOrdentrabajoController extends Controller
     {
         can('editar-movimientos-orden-trabajo');
     	$data = $this->movimientoOrdentrabajoService->leeMovimientoOrdenTrabajo($id);
-
 		if ($data)
 			$data['ordenestrabajo'] = $data->ordenestrabajo->codigo;
 

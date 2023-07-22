@@ -106,6 +106,7 @@
                                 			<option value="A">Activas</option>    
                                 			<option value="I">Inactivas</option>    
                                 			<option value="S">Sin combinacion</option>    
+                                            <option value="T">Todos los artículos</option>   
                     					</select>
 										<!-- 
  										<input type='text' class='filter-value form-control' style="display:none"

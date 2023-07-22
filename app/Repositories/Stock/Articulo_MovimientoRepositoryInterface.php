@@ -14,6 +14,8 @@ interface Articulo_MovimientoRepositoryInterface
     public function findPorPedidoCombinacionId($pedido_combinacion_id);
     public function updatePorPedidoCombinacionId($pedido_combinacion_id, $data);
     public function deletePorMovimientoStockId($movimientostock_id);
+    public function deletePorOrdentrabajoId($ordentrabajo_id);
+    public function deletePorPedido_combinacionId($pedido_combinacion_id);
 
 }
 

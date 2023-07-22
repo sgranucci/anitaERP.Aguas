@@ -121,7 +121,15 @@ class Ordentrabajo_Combinacion_TalleRepository implements Ordentrabajo_Combinaci
 
     public function findPorOrdenTrabajoId($ordentrabajo_id)
     {
-		$ordentrabajo_combinacion_talle = $this->model->with('pedido_combinacion_talles')->where('ordentrabajo_id',$ordentrabajo_id)->get();
+		$ordentrabajo_combinacion_talle = $this->model->with('pedido_combinacion_talles')->
+												where('ordentrabajo_id',$ordentrabajo_id)->get();
+
+		return $ordentrabajo_combinacion_talle;
+    }
+
+	public function findPorPedidoCombinacionTalleId($pedido_combinacion_talle_id)
+    {
+		$ordentrabajo_combinacion_talle = $this->model->with('pedido_combinacion_talles')->where('pedido_combinacion_talle_id',$pedido_combinacion_talle_id)->get();
 
 		return $ordentrabajo_combinacion_talle;
     }

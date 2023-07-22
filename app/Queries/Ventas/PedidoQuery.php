@@ -29,7 +29,6 @@ class PedidoQuery implements PedidoQueryInterface
                                 ->orderBy('id','desc')
                                 ->with('pedido_combinaciones')
                                 ->get();
-
         return $pedidos;
     }
     
@@ -303,6 +302,55 @@ class PedidoQuery implements PedidoQueryInterface
                         ->orderBy('avioart.tipo')
                         ->orderBy('pedido_combinacion.id')->get();
 
+        return $pedido;
+    }
+
+    // Lee para reporte de pedidos
+    
+    public function findPorPedido($desdefecha, $hastafecha,
+                                    $desdevendedor_id, $hastavendedor_id)
+    {
+        $pedido = $this->model
+                        ->select('pedido.fecha as fecha',
+                                \DB::raw("SUBSTR(pedido.codigo, 1, 3) as tipo"),
+                                \DB::raw("SUBSTR(pedido.codigo, 5, 1) as letra"),
+                                'pedido.mventa_id as sucursal',
+                                \DB::raw("SUBSTR(pedido.codigo, 13, 8) as numero"),
+                                'cliente.nombre as nombre',
+                                'cliente.codigo as cliente',
+                                'articulo.sku as sku',
+                                'combinacion.codigo as combinacion',
+                                'combinacion.nombre as desc_combinacion',
+                                'pedido_combinacion_talle.cantidad as cantidad',
+                                'pedido.estado as estado',
+                                'mventa.nombre as marca',
+                                'linea.nombre as linea',
+                                'ordentrabajo.codigo as nro_orden',
+                                'vendedor.id as vendedor',
+                                'vendedor.nombre as nombre_vendedor',
+                                'talle.nombre as penv_medida',
+                                'ordentrabajo_tarea.tarea_id as cantfact')
+                        ->join('pedido_combinacion', 'pedido_combinacion.pedido_id', '=', 'pedido.id')
+                        ->join('pedido_combinacion_talle', 'pedido_combinacion_talle.pedido_combinacion_id', '=', 'pedido_combinacion.id')
+                        ->join('articulo', 'articulo.id', '=', 'pedido_combinacion.articulo_id')
+                        ->join('combinacion', 'combinacion.id', '=', 'pedido_combinacion.combinacion_id')
+                        ->join('linea', 'linea.id', '=', 'articulo.linea_id')
+                        ->join('talle', 'talle.id', '=', 'pedido_combinacion_talle.talle_id')
+                        ->join('cliente', 'cliente.id', '=', 'pedido.cliente_id')
+                        ->leftjoin('vendedor', 'vendedor.id', '=', 'pedido.vendedor_id')
+                        ->leftjoin('color', 'color.id', '=', 'combinacion.colorfondo_id')
+                        ->leftjoin('mventa', 'mventa.id', 'articulo.mventa_id')
+                        ->leftjoin('ordentrabajo', 'ordentrabajo.id', 'pedido_combinacion.ot_id')
+                        ->leftjoin('ordentrabajo_tarea', 'ordentrabajo_tarea.pedido_combinacion_id', 'pedido_combinacion.id')
+                        ->whereBetween('pedido.fecha', [$desdefecha, $hastafecha])
+                        ->whereBetween('pedido.vendedor_id', [$desdevendedor_id, $hastavendedor_id])
+                        ->orderBy('vendedor')
+                        ->orderBy('cliente')
+                        ->orderBy('fecha')
+                        ->orderBy('pedido.codigo')
+                        ->orderby('sku')
+                        ->orderBy('combinacion')
+                        ->get();
         return $pedido;
     }
 }

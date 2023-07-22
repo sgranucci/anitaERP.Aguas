@@ -26,7 +26,7 @@ class MovimientoStock extends Model
 
 	public function articulos_movimiento()
 	{
-		return $this->hasMany(Articulo_Movimiento::class, 'movimientostock_id')->with('articulo_movimiento_talles');
+		return $this->hasMany(Articulo_Movimiento::class, 'movimientostock_id')->with('articulo_movimiento_talles')->with('combinaciones');
 	}
 
 	public function tipostransaccion()

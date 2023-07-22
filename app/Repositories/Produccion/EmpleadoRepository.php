@@ -26,7 +26,7 @@ class EmpleadoRepository implements EmpleadoRepositoryInterface
 
     public function all()
     {
-        return $this->model->get();
+        return $this->model->orderBy('nombre')->get();
     }
 
     public function create(array $data)

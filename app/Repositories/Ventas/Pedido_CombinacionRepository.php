@@ -49,8 +49,8 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
     }
 
 	public function create(array $data, $pedido_id, $articulo_id, $combinacion_id, $numeroitem, $modulo_id, 
-	  $cantidad, $precio, $listaprecio_id, $incluyeimpuesto, $moneda_id, $descuento, 
-	  $categoria_id, $subcategoria_id, $linea_id, $ot_id, $observacion, $medidas, $lote_id, $funcion)
+					$cantidad, $precio, $listaprecio_id, $incluyeimpuesto, $moneda_id, $descuento, 
+					$categoria_id, $subcategoria_id, $linea_id, $ot_id, $observacion, $medidas, $lote_id, $funcion)
     {
 		$pedido_combinacion = $this->model->create([
 						'pedido_id' => $pedido_id,
@@ -73,27 +73,54 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 								]);
 
 		// Graba anita
-		self::guardarAnita($data, $articulo_id, $combinacion_id, $numeroitem, $modulo_id, $cantidad, $precio, $listaprecio_id, 
-		  	$incluyeimpuesto, $moneda_id, $descuento, $medidas, $observacion, $funcion);
+		//self::guardarAnita($data, $articulo_id, $combinacion_id, $numeroitem, $modulo_id, $cantidad, $precio, $listaprecio_id, 
+		  //	$incluyeimpuesto, $moneda_id, $descuento, $medidas, $observacion, $funcion);
 
 	  	return $pedido_combinacion;
 	}
 
-    public function update(array $data, $id)
+    public function update($pedido_id, $articulo_id, $combinacion_id, $numeroitem, $modulo_id, 
+					$cantidad, $precio, $listaprecio_id, $incluyeimpuesto, $moneda_id, $descuento, 
+					$categoria_id, $subcategoria_id, $linea_id, $ot_id, $observacion, $lote_id, $id)
     {
-	  	$pedido = $this->model->findOrFail($id)->update($data);
+		$pedido_combinacion = $this->model->findOrFail($id)->update([
+			'pedido_id' => $pedido_id,
+			'articulo_id' => $articulo_id,
+			'combinacion_id' => $combinacion_id,
+			'numeroitem' => $numeroitem,
+			'modulo_id' => $modulo_id,
+			'cantidad' => $cantidad,
+			'precio' => $precio,
+			'listaprecio_id' => $listaprecio_id,
+			'incluyeimpuesto' => $incluyeimpuesto,
+			'moneda_id' => $moneda_id,
+			'descuento' => ($descuento == '' ? 0 : $descuento),
+			'categoria_id' => $categoria_id,
+			'subcategoria_id' => $subcategoria_id,
+			'linea_id' => $linea_id,
+			'ot_id' => $ot_id,
+			'lote_id' => $lote_id,
+			'observacion' => $observacion
+					]);
 		//
 		// Actualiza anita
 		//self::actualizarAnita($data, $data['codigo']);
 
-		return $pedido;
+		return $pedido_combinacion;
     }
 
-	public function updatePorOtId($ot_id)
+	public function updatePorOtId($id)
     {
-    	$pedido = $this->model->select('ot_id',$ot_id)->update(['ot_id'=>0]);
+    	$pedido = $this->model->find($id)->update(['ot_id'=>0]);
 
         return $pedido;
+    }
+
+    public function updatePorId(array $data, $id)
+    {
+        $pedido = $this->model->findOrFail($id)->update($data);
+		//
+		return $pedido;
     }
 
     public function delete($id)
@@ -112,7 +139,9 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
     }
 
 	public function leePedidosSinOtPorFecha($hastafecha) {
-		return $this->model->join('pedido', 'pedido_combinacion.pedido_id', 'pedido.id')
+		return $this->model->select('pedido_combinacion.id as id',
+									'pedido_combinacion.pedido_id as pedido_id')
+			->join('pedido', 'pedido_combinacion.pedido_id', 'pedido.id')
 			->where('pedido.fecha','<=',$hastafecha)
 			->where('pedido_combinacion.ot_id',0)
 			->get();
@@ -146,10 +175,19 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 									'pedido_combinacion_talle.pedido_combinacion_id as pedido_combinacion_id',
 									'ordentrabajo.id as ordentrabajo_id',
 									'ordentrabajo.codigo as codigo')
-										->join('pedido_combinacion_talle', 'pedido_combinacion_talle.pedido_combinacion_id', 'pedido_combinacion.id')
-										->join('ordentrabajo_combinacion_talle', 'ordentrabajo_combinacion_talle.pedido_combinacion_talle_id', 'pedido_combinacion_talle.id')
-										->join('ordentrabajo', 'ordentrabajo.id', 'ordentrabajo_combinacion_talle.ordentrabajo_id')
-										->where('pedido_combinacion.id', $pedido_combinacion_id)
+							->join('pedido_combinacion_talle', 'pedido_combinacion_talle.pedido_combinacion_id', 'pedido_combinacion.id')
+							->join('ordentrabajo_combinacion_talle', 'ordentrabajo_combinacion_talle.pedido_combinacion_talle_id', 'pedido_combinacion_talle.id')
+							->join('ordentrabajo', 'ordentrabajo.id', 'ordentrabajo_combinacion_talle.ordentrabajo_id')
+							->where('pedido_combinacion.id', $pedido_combinacion_id)
+							->get();
+
+		return $pedido_combinacion;
+    }
+
+	public function findPorPedidoId($pedido_id)
+    {
+    	$pedido_combinacion = $this->model->select('pedido_combinacion.id as id')
+										->where('pedido_combinacion.pedido_id', $pedido_id)
 										->get();
 
 		return $pedido_combinacion;
@@ -162,7 +200,7 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 
 						'campos' => "penm_sucursal, penm_nro", 
-            			'whereArmado' => " WHERE penm_tipo='PED' and penm_estado<'3' and penm_fecha>20220100 ",
+            			'whereArmado' => " WHERE penm_tipo='PED' and penm_fecha>20230624 ",
 						'tabla' => "pendmae" );
         $dataAnita = json_decode($apiAnita->apiCall($data));
 

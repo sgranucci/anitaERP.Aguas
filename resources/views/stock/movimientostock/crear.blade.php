@@ -9,6 +9,23 @@
 <script>
     function sub()
 	{
+        var tipotransaccion_id = $("#tipotransaccion_id").val();
+
+        if (tipotransaccion_id == '')
+        {
+            alert('No puede grabar sin un tipo de transacción');
+            return;
+        }
+
+        // Controla datos correctos
+		$("#tbody-tabla .articulo").each(function(index) {
+			var articulo = $(this);
+			var combinacion = $(this).parents("tr").find(".combinacion").val();
+			var combinacion_id = $(this).parents("tr").find(".combinacion_id_previa").val();
+			var modulo_id = $(this).parents("tr").find(".modulo_id_previa").val();
+
+		});
+
 		$('#formgeneral').submit();
 	}
 </script>
@@ -37,7 +54,7 @@
                 <div class="card-footer">
                     <div class="row">
                         <div class="col-lg-6">
-							<button type="submit" onclick="sub()" class="btn btn-success">Guardar</button>
+							<button type="submit" onclick="subm()" class="btn btn-success">Guardar</button>
                         </div>
                     </div>
                 </div>

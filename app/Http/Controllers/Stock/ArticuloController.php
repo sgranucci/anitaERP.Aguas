@@ -27,6 +27,8 @@ use App\Models\Stock\Capeart;
 use App\Models\Stock\Avioart;
 use App\Models\Stock\Precio;
 use App\Models\Stock\Caja;
+use App\Models\Stock\Serigrafia;
+use App\Models\Stock\Horma;
 use App\Models\Produccion\Tarea;
 use App\Models\Configuracion\Impuesto;
 use App\Services\Stock\PrecioService;
@@ -141,7 +143,8 @@ class ArticuloController extends Controller
           							->whereRaw("combinacion.articulo_id=articulo.id");
 							})->where('usoarticulo_id','=','1');
 					}
-					else
+					elseif ($filtros['filter_column'][$ii]['value'] == 'A' ||
+							$filtros['filter_column'][$ii]['value'] == 'I')
 					{
 						$estado = $filtros['filter_column'][$ii]['value'];
 						$query = $art_query->whereExists(function($query) use($estado)
@@ -396,8 +399,13 @@ class ArticuloController extends Controller
         $compfondo = Compfondo::orderBy('nombre')->get();
         $unidadmedida = Unidadmedida::orderBy('nombre')->get();
         $usosArticulos = Usoarticulo::all();
+		$fondo = Fondo::orderBy('nombre')->get();
+		$horma = Horma::orderBy('nombre')->get();
+		$serigrafia = Serigrafia::orderBy('nombre')->get();
 
-        return view("stock.product.diseno.create",compact('categoria','subcategoria','linea','marca','capellada','forro','compfondo','unidadmedida', 'usosArticulos'));
+        return view("stock.product.diseno.create",compact('categoria','subcategoria','linea','marca',
+											'capellada','forro','compfondo','unidadmedida', 'usosArticulos',
+											'serigrafia','horma','fondo'));
     }
 
     public function save(ValidacionArticulo $request)
@@ -466,7 +474,6 @@ class ArticuloController extends Controller
     						->with('articulos_caja')
 							->with('articulos_costo')
 							->where('id', $id)->get()->first();
-
 		$categoria = Categoria::orderBy('nombre')->get();
         $subcategoria = Subcategoria::orderBy('nombre')->get();
         $unidadmedida = Unidadmedida::orderBy('nombre')->get();
@@ -479,6 +486,9 @@ class ArticuloController extends Controller
         $tipoCorte = Tipocorte::orderBy('nombre')->get();
         $punteras = Puntera::orderBy('nombre')->get();
         $contrafuertes = Contrafuerte::orderBy('nombre')->get();
+		$fondo = Fondo::orderBy('nombre')->get();
+		$horma = Horma::orderBy('nombre')->get();
+		$serigrafia = Serigrafia::orderBy('nombre')->get();
 
         if( $type == "tecnica" )
 		{
@@ -487,7 +497,9 @@ class ArticuloController extends Controller
             	->leftjoin('articulo','articulo.id','caja.articulo_id')
 				->orderBy('caja.nombre')->get();
 
-            return view('stock.product.tecnica.edit',compact('producto','id', 'categoria', 'marca','linea','compfondo','forro','usosArticulos','tipoCorte','punteras','capellada','unidadmedida','contrafuertes','filtros','caja_query'));
+            return view('stock.product.tecnica.edit',compact('producto','id', 'categoria', 'marca','linea','compfondo','forro','usosArticulos','tipoCorte','punteras',
+												'capellada','unidadmedida','contrafuertes','filtros','caja_query',
+												'serigrafia','horma','fondo'));
         } elseif( $type == "contaduria" ){
                 
         		$ctamae = Cuentacontable::orderBy('codigo')->get();
@@ -533,6 +545,13 @@ class ArticuloController extends Controller
 		{
 			Articulo::findOrFail($request->id)->update($request->all());
 
+			// Actualiza fondo, horma y serigrafia en todas las combinaciones
+			$combinaciones = Combinacion::where("articulo_id", $request->id)->update([
+																'fondo_id' => $request->fondo_id,
+																'horma_id' => $request->horma_id,
+																'serigrafia_id' => $request->serigrafia_id
+																					]);
+
 			// Actualiza articulos caja
 			$cajas_id = $request->input('cajas_id', []);
 			$desdenros = $request->input('desdenros', []);
@@ -563,7 +582,6 @@ class ArticuloController extends Controller
     						->with('materiales')->with('tipocortes')->with('punteras')->with('contrafuertes') 
 							->with('tipocorteforros')->with('forros')->with('compfondos')->with('articulos_caja')->
 							where('id', $request->id)->get()->first();
-
 		// Actualiza anita
 		$Articulo = new Articulo();
         $Articulo->actualizarAnita($producto, $producto->sku);

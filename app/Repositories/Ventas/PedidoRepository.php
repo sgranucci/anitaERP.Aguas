@@ -101,7 +101,7 @@ class PedidoRepository implements PedidoRepositoryInterface
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 
 						'campos' => "penm_sucursal, penm_nro", 
-            			'whereArmado' => " WHERE penm_tipo='PED' AND penm_estado<'3' AND penm_fecha>20220100 ",
+            			'whereArmado' => " WHERE penm_tipo='PED' AND penm_fecha>20230624 ",
 						'tabla' => $this->tableAnita );
         $dataAnita = json_decode($apiAnita->apiCall($data));
 
@@ -170,11 +170,17 @@ class PedidoRepository implements PedidoRepositoryInterface
         if (count($dataAnita) > 0) {
             $data = $dataAnita[0];
 
+			if ($data->penm_fecha < 20230100)
+				return -1;
+
             if ($data->penm_cond_vta == 0)
 				$condicionventa_id = 1;
 			else
 				$condicionventa_id = $data->penm_cond_vta;
 
+			if ($condicionventa_id == 1)
+				$condicionventa_id = 3;
+				
 			if ($data->penm_vendedor == 0)
 				$vendedor_id = 1;
 			else
@@ -184,7 +190,7 @@ class PedidoRepository implements PedidoRepositoryInterface
 			if ($cliente)
 				$cliente_id = $cliente->id;
 			else
-				$cliente_id = NULL;
+				return -1;
 	
         	$transporte = Transporte::select('id', 'codigo')->where('codigo' , $data->penm_expreso)->first();
 			if ($transporte)

@@ -21,19 +21,20 @@ class ApiAnita {
         else
             $url = "http://".$this->servidorAnita."/api.php";
         //dd("url", $url);
+        $fl = false;
         $data = json_encode($data);
+
         curl_setopt_array($curl, array(
             CURLOPT_URL => $url, CURLOPT_RETURNTRANSFER => true, CURLOPT_HEADER => false, CURLOPT_CUSTOMREQUEST => "POST", CURLOPT_POSTFIELDS => $data
         ));
         curl_setopt($curl, CURLOPT_HTTPHEADER, array( 'Accept: application/json', 'Content-Type: application/json' )   );
-        //dd($curl);
         $response =  curl_exec($curl);
-        //if (curl_errno($curl)) {     
-        //    $error_msg = curl_error($curl); 
-        //    echo $error_msg; 
-        // } 
-        //dd($response);
+        if (curl_errno($curl)) {     
+            $error_msg = curl_error($curl); 
+            echo $error_msg; 
+         } 
         curl_close($curl);
+        //dd($response);
         return $response;
     }
 

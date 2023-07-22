@@ -108,7 +108,7 @@ class Pedido_Combinacion_TalleRepository implements Pedido_Combinacion_TalleRepo
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 
 						'campos' => "penm_sucursal, penm_nro", 
-            			'whereArmado' => " WHERE penm_tipo='PED' and penm_estado<'3' and penm_fecha>20220100 ",
+            			'whereArmado' => " WHERE penm_tipo='PED' and penm_fecha>20230624 ",
 						'tabla' => "pendmae" );
         $dataAnita = json_decode($apiAnita->apiCall($data));
 

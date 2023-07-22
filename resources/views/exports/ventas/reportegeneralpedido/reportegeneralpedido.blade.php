@@ -91,7 +91,7 @@
 
 		@foreach ($renglon as $data)
 			@if ($data[$campoIdData] != $idCorteActual ||
-				($campoIdData2 != '' ? $data[$campoIdData2] != $idCorteActual2 : true))
+				($campoIdData2 != '' ? $data[$campoIdData2] != $idCorteActual2 : false))
 				@if ($idCorteActual != '')
 					@include('exports.ventas.reportegeneralpedido.imprimetotalcorte')
 				@endif

@@ -18,6 +18,7 @@ use App\Models\Stock\Categoria;
 use App\Models\Stock\Talle;
 use LynX39\LaraPdfMerger\Facades\PdfMerger;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use App;
 use PDF;
 use Auth;
@@ -81,12 +82,11 @@ class PedidoService
 
 		//if (!$hay_pedidos)
 		//{
-			//$this->pedidoRepository->sincronizarConAnita();
-			//$this->pedido_combinacionRepository->sincronizarConAnita();
-			//$this->pedido_combinacion_talleRepository->sincronizarConAnita();
+		//	$this->pedidoRepository->sincronizarConAnita();
+		//	$this->pedido_combinacionRepository->sincronizarConAnita();
+		//	$this->pedido_combinacion_talleRepository->sincronizarConAnita();
 		//}
 		$pedidos = $this->pedidoQuery->allPedidoIndex($cliente_id, $estado);
-
 		$datas = [];
         foreach($pedidos as $pedido)
         {
@@ -94,13 +94,14 @@ class PedidoService
             $qPendiente = 0;
             $qProduccion = 0;
             $qFacturado = 0;
+			$qAnulado = 0;
             foreach($pedido->pedido_combinaciones as $item)
             {
                 $pares += $item->cantidad;
-                if ($item->ot_id == 0)
+                if ($item->ot_id == 0 || $item->ot_id == null)
                     $qPendiente++;
-                if ($item->ot_id != 0)
-                {
+				else
+				{
                     $qProduccion++;
 
 					if ($estado == 'F')
@@ -109,7 +110,15 @@ class PedidoService
 						if ($factura['numerofactura'] != -1 && $factura['numerofactura'] != -2)
 							$qFacturado++;
 					}
-                }
+				}
+				// Lee estado del pedido
+				$estadoPedido = $this->pedido_combinacion_estadoRepository->traeEstado($item->id);
+
+				if ($estadoPedido)
+				{
+					if($estadoPedido->estado == 'A')
+						$qAnulado++;
+				}
             }
 			// Determina el estado
 			$estadoPedido = "Pendiente";
@@ -117,24 +126,33 @@ class PedidoService
 				$estadoPedido = "Pendiente/parcial en produccion";
 			if ($qPendiente == 0 && $qProduccion > 0)
 				$estadoPedido = "En produccion";
-			if ($qFacturado == $qProduccion)
+			if ($qFacturado == $qProduccion && $qFacturado > 0)
 				$estadoPedido = "Facturado";
 			else
 			{
 				if ($qFacturado > 0)
 					$estadoPedido .= " y facturado parcial";
 			}
-            if ($estado == 'P' ? $qPendiente > 0: ($estado == 'E' ? $qProduccion > 0: ($estado == 'F' ? $qFacturado > 0 : false)))
-            {
-                $datas[] = ['id' => $pedido->id,
-                        'fecha' => $pedido->fecha,
-                        'nombrecliente' => $pedido->clientes->nombre,
-                        'codigo' => $pedido->codigo,
-                        'nombremarca' => $pedido->mventas->nombre,
-                        'pares' => $pares,
-                        'estado' => $estadoPedido
-                ];
-            }
+			if ($qAnulado > 0)
+			{
+				if ($estadoPedido != "Pendiente")
+					$estadoPedido .= "/Anulado";
+				else
+					$estadoPedido = "Anulado";
+			}
+			if ($estado == 'P' ? $qPendiente > 0 || ($qProduccion > 0 && $qFacturado < $qProduccion) : 
+				($estado == 'E' ? $qProduccion > 0: ($estado == 'F' ? $qFacturado > 0 : 
+				($estado == 'A' ? $qAnulado > 0 : false))))
+			{
+				$datas[] = ['id' => $pedido->id,
+						'fecha' => $pedido->fecha,
+						'nombrecliente' => $pedido->clientes->nombre,
+						'codigo' => $pedido->codigo,
+						'nombremarca' => $pedido->mventas->nombre,
+						'pares' => $pares,
+						'estado' => $estadoPedido
+				];
+			}
         }
 		return $datas;
 	}
@@ -167,6 +185,8 @@ class PedidoService
 												$desdelinea_id, $hastalinea_id,
 												$desdefondo_id, $hastafondo_id)
 	{
+		ini_set('memory_limit', '512M');
+
 		$data = $this->pedidoQuery->findPorRangoFecha($tipolistado, $mventa_id, $desdefecha, $hastafecha,
 									$desdevendedor_id, $hastavendedor_id,
 									$desdecliente_id, $hastacliente_id,
@@ -251,7 +271,7 @@ class PedidoService
 						$nombrecolorfondo = $pedido['nombrecolorfondo'];
 					}
 					
-					$medidas[] = ['medida' => $pedido['nombretalle'], 'cantidad' => $pedido['cantidad']];
+					$medidas[] = ['medida' => $pedido['nombretalle'], 'cantidad' => $pedido['cantidadportalle']];
 				}
 				if ($anterId != 0)
 				{
@@ -280,7 +300,6 @@ class PedidoService
 				}
 				break;
 		}
-
 		// Filtra por estado
 		$dataFiltrado = [];
 		foreach ($datas as $item)
@@ -310,10 +329,16 @@ class PedidoService
 			if ($cc)
 				$dataFiltrado[] = $item;
 		}
-		
 		return(['data' => $dataFiltrado]);
 	}
 
+	public function generaDatosRepPedido($desdeFecha, $hastaFecha, $desdeVendedor_id, $hastaVendedor_id)
+	{
+		$data = $this->pedidoQuery->findPorPedido($desdeFecha, $hastaFecha,
+								$desdeVendedor_id, $hastaVendedor_id);
+
+		return($data);
+	}
 	// Genera datos para reporte de consumo de materiales
 
 	public function generaDatosRepConsumoMateriales($tipolistado, $estado,
@@ -357,7 +382,8 @@ class PedidoService
 		$anterTipo = 'A';
 		foreach($data as $pedido)
 		{
-			if ($anterId != $pedido['pedido_combinacion_id'] || $anterMaterialId != $pedido['materialcapellada_id'] ||
+			if ($anterId != $pedido['pedido_combinacion_id'] || 
+				$anterMaterialId != $pedido['materialcapellada_id'] ||
 				ord($anterTipo) != ord($pedido['tipo']) ||
 				$anterColor != $pedido['nombrecolor'])
 			{
@@ -399,14 +425,20 @@ class PedidoService
 				$numeropedido = $pedido['codigo'];
 				$estadopedido = $pedido['codigoot'] != '' ? 'EN PRODUCCION' : 'PENDIENTE';
 
-				// Busca tareas para definir el estado real
-				if ($pedido['codigoot'] != '')
+				$factura = $this->ordentrabajoService->otFacturada(0, $pedido['ot_id']);
+				if ($factura['numerofactura'] != -1 && $factura['numerofactura'] != -2)
+					$estadopedido = "FACTURADA";
+				else
 				{
-					$this->ordentrabajoService->traeEstadoOt($pedido['ordentrabajo_id'], $pedido['pedido_combinacion_id'], 
-															$nombretarea);
+					// Busca tareas para definir el estado real
+					if ($pedido['codigoot'] != '')
+					{
+						$this->ordentrabajoService->traeEstadoOt($pedido['ordentrabajo_id'], $pedido['pedido_combinacion_id'], 
+																$nombretarea);
 
-					if ($nombretarea != '')
-						$estadopedido = $nombretarea;
+						if ($nombretarea != '')
+							$estadopedido = $nombretarea;
+					}
 				}
 
 				$numeroot = $pedido['codigoot'];
@@ -492,7 +524,7 @@ class PedidoService
 						$cc = true;
 					break;
 				case 'EN PRODUCCION':
-					if ($item['numeroot'] != '' && $item['numeroot'] != '0' && $item['numeroot'] == '-1')
+					if ($item['numeroot'] != '' && $item['numeroot'] != '0' && $item['numeroot'] != '-1')
 						$cc = true;
 					break;
 				case 'TERMINADOS':
@@ -609,15 +641,15 @@ class PedidoService
 	// Anula item del pedido 
 	public function anularItemPedido($id, $codigoot, $motivocierrepedido_id, $cliente_id = null)
 	{
-	  	$pedido = $this->pedido_combinacionRepository->findOrFail($id);
+	  	$pedido_combinacion = $this->pedido_combinacionRepository->findOrFail($id);
 		$orden = 0;
-		if ($pedido)
+		if ($pedido_combinacion)
 		{
 		  	// Trae numero de item para grabar en Anita
-		  	$orden = $pedido->numeroitem;
+		  	$orden = $pedido_combinacion->numeroitem;
 
 		  	$data = [];
-		  	if ($pedido->estado == 'A')
+		  	if ($pedido_combinacion->estado == 'A')
 			{
 			  	$nuevoestado = ' ';
 			  	$estado = 'recuperado';
@@ -631,7 +663,7 @@ class PedidoService
 
 			DB::beginTransaction();
 			try {
-				$pedido = $this->pedido_combinacionRepository->update($data, $id);
+				$pedido = $this->pedido_combinacionRepository->updatePorId($data, $id);
 			
 				if ($pedido)
 				{
@@ -650,11 +682,21 @@ class PedidoService
 								$this->ordentrabajo_combinacion_talleRepository->update(
 															['cliente_id' => $cliente_id], $item->id);
 							}
+							if ($cliente_id == config("consprod.CLIENTE_STOCK"))
+							{
+								$articulo = Articulo::where('id', $pedido_combinacion->articulo_id)->first();
+								
+								// Lee la combinacion
+								$combinacion = Combinacion::find($pedido_combinacion->combinacion_id);
+								if ($articulo && $combinacion)
+									$this->generaMovimientoStock(Carbon::now(), $pedido_combinacion, $ot, 
+										$articulo, $combinacion, 0);
+							}
 						}
 					}
 					// Graba estado
 					$pedido_combinacion_estado = $this->pedido_combinacion_estadoRepository->create([
-						'pedido_combinacion_id' => $id,
+						'pedido_combinacion_id' => $pedido_combinacion->id,
 						'motivocierrepedido_id' => $motivocierrepedido_id,
 						'cliente_id' => $cliente_id,
 						'estado' => $nuevoestado,
@@ -711,14 +753,11 @@ class PedidoService
 				// Actualiza maestro de pedidos
 				$pedido = $this->pedidoRepository->update($data, $id);
 			}
-
 			// Guarda items
 			if ($pedido)
 			{
 				$data['pedido_id'] = ($funcion == 'update' ? $id : $pedido->id);
-
 				// Borra los registros de movimientos antes de grabar nuevamente
-				$ot = [];
 				$ot_stock_id = [];
 				if ($funcion == 'update')
 				{
@@ -726,26 +765,33 @@ class PedidoService
 					{
 						// Si no tiene referencia verifica si existe igual
 						$ped = $this->pedido_combinacionRepository->findPorPedidoCombinacionId($pedido_combinacion_id);
-
 						if (count($ped) > 0)
 						{
-							$ot[] = $ped[0]->ordentrabajo_id;
-
 							if ($ped[0]->ordentrabajo_stock_id != '')
 								$ot_stock_id[] = $ped[0]->ordentrabajo_stock_id;
 							else
 								$ot_stock_id[] = 0;
 						}
 						else
-						{
-							$ot[] = '';
 							$ot_stock_id[] = 0;
-						}
 					}
-					
-					$this->pedido_combinacionRepository->deleteporpedido($data['pedido_id']);
-				}
+					//$this->pedido_combinacionRepository->deleteporpedido($data['pedido_id']);
+					// si es update busca si hay registros borrados
+					$pedido_combinacion = $this->pedido_combinacionRepository->findPorPedidoId($id);
 
+					foreach($pedido_combinacion as $idPedidoCombinacion)
+					{
+						// Busca si no existe el id en el array que devuelve el blade
+						$flEncontro = false;
+						foreach ($data['ids'] as $idActual)
+						{
+							if ($idActual == $idPedidoCombinacion->id)
+								$flEncontro = true;
+						}
+						if (!$flEncontro)
+							$this->pedido_combinacionRepository->delete($idPedidoCombinacion->id);
+					}
+				}
 				$articulos = $data['articulos_id'];
 				$combinaciones = $data['combinaciones_id'];
 				$modulos = $data['modulos_id'];
@@ -759,17 +805,16 @@ class PedidoService
 				$loteids = $data['loteids'];
 				$medidas = $data['medidas'];
 				$observaciones = $data['observaciones'];
-				$ot_ids = $ot;
+				$ids = $data['ids'];
+				$ot_ids = $data['ot_ids'];
 				$ot_stock_ids = $ot_stock_id;
-				
 				for ($i_comb = 0; $i_comb < count($articulos); $i_comb++) 
 				{
 					if ($articulos[$i_comb] != '') 
 					{
 						// Lee el articulo
-						$articulo = Articulo::select('categoria_id','subcategoria_id','linea_id')->
+						$articulo = Articulo::select('id','categoria_id','subcategoria_id','linea_id')->
 									where('id',$articulos[$i_comb])->first();
-
 						$categoria_id = $subcategoria_id = $linea_id = NULL;
 						$categoria_codigo = ' ';
 						if ($articulo)
@@ -782,12 +827,36 @@ class PedidoService
 							if ($categoria)
 								$categoria_codigo = $categoria->codigo;
 						}
-
 						$ordentrabajo = '';
-						if ($funcion == 'create')
+						if ($funcion == 'create' || $ids[$i_comb] < 1 || $ids[$i_comb] == null)
 						{
 							$ot_ids[$i_comb] = -1;
 							$data['nro_orden'] = -1;
+							// Guarda item
+							$pedido_combinacion = $this->pedido_combinacionRepository->create(
+								$data,
+								$data['pedido_id'],
+								$articulos[$i_comb],
+								$combinaciones[$i_comb],
+								$numeroitems[$i_comb],
+								$modulos[$i_comb],
+								str_replace(',','',$cantidades[$i_comb]),
+								str_replace(',','',$precios[$i_comb]),
+								($listaprecios[$i_comb] == 0 ? 1 : $listaprecios[$i_comb]),
+								($incluyeimpuestos[$i_comb] == null || $incluyeimpuestos[$i_comb] == 'NaN' ? 'N' : $incluyeimpuestos[$i_comb]),
+								($monedas[$i_comb] == null || $monedas[$i_comb] == 'NaN' ? '1' : $monedas[$i_comb]),
+								$descuentos[$i_comb],
+								$categoria_id,
+								$subcategoria_id,
+								$linea_id,
+								$ot_ids[$i_comb],
+								$observaciones[$i_comb],
+								$medidas[$i_comb],
+								$loteids[$i_comb] == 0 ? null : $loteids[$i_comb],
+								$funcion
+								);
+							if ($ids[$i_comb] < 1 || $ids[$i_comb] == null)
+								$ids[$i_comb] = $pedido_combinacion->id;
 						}
 						else
 						{
@@ -804,11 +873,9 @@ class PedidoService
 							}
 							else
 								$data['nro_orden'] = -1;
-						}
 
-						// Guarda item
-						$pedido_combinacion = $this->pedido_combinacionRepository->create(
-								$data,
+							// Actualiza el item
+							$pedido_combinacion = $this->pedido_combinacionRepository->update(
 								$data['pedido_id'],
 								$articulos[$i_comb],
 								$combinaciones[$i_comb],
@@ -817,86 +884,112 @@ class PedidoService
 								str_replace(',','',$cantidades[$i_comb]),
 								str_replace(',','',$precios[$i_comb]),
 								($listaprecios[$i_comb] == 0 ? 1 : $listaprecios[$i_comb]),
-								$incluyeimpuestos[$i_comb],
-								$monedas[$i_comb],
+								($incluyeimpuestos[$i_comb] == null ? 'N' : $incluyeimpuestos[$i_comb]),
+								($monedas[$i_comb] == null ? '1' : $monedas[$i_comb]),
 								$descuentos[$i_comb],
 								$categoria_id,
 								$subcategoria_id,
 								$linea_id,
 								$ot_ids[$i_comb],
 								$observaciones[$i_comb],
-								$medidas[$i_comb],
 								$loteids[$i_comb] == 0 ? null : $loteids[$i_comb],
-								$funcion
-								);
+								$ids[$i_comb]);
 
-						// Borra los items de la OT asociada para volver a generarla
+							// si devolvio true lee nuevamente el registro
+							if ($pedido_combinacion)
+							{
+								$pedido_combinacion = $this->pedido_combinacionRepository->find($ids[$i_comb]);
+							}
+						}
 						$clienteot_id = $data['cliente_id'];
-						
 						if ($funcion == 'update' && $ot_ids[$i_comb] > 0)
 						{
+							// Busca el pedido
+							$pedido_combinacion_talle = $this->pedido_combinacion_talleRepository
+															->findporpedido_combinacion($ids[$i_comb]);
+															
 							// Antes de borrar debe traer si tiene otro cliente la OT por reasignacion
-							$ordentrabajo_combinacion_talle = $this->ordentrabajo_combinacion_talleRepository->findPorOrdenTrabajoId($ot_ids[$i_comb]);
-							
-							if (count($ordentrabajo_combinacion_talle) > 0)
-								$clienteot_id = $ordentrabajo_combinacion_talle[0]->cliente_id;
-
-							$this->ordentrabajo_combinacion_talleRepository->deleteporordentrabajo($ot_ids[$i_comb]);
+							if (count($pedido_combinacion_talle) > 0)
+							{
+								$ordentrabajo_combinacion_talle = $this
+															->ordentrabajo_combinacion_talleRepository
+															->findPorPedidoCombinacionTalleId($pedido_combinacion_talle[0]->id);
+								
+								if (count($ordentrabajo_combinacion_talle) > 0)
+									$clienteot_id = $ordentrabajo_combinacion_talle[0]->cliente_id;
+							}
 						}
+						// Lee la OT
+						$ordentrabajo = $this->ordentrabajoQuery->leeOrdenTrabajo($ot_ids[$i_comb]);
 
+						// Lee la combinacion
+						$combinacion = Combinacion::find($combinaciones[$i_comb]);
+
+						// Si actualiza borra los items
+						if ($funcion == 'update' )
+							$this->pedido_combinacion_talleRepository->
+									deleteporpedido_combinacion($ids[$i_comb]);
 						// Abre medidas de cada item
 						$jtalles = json_decode($medidas[$i_comb]);
-						foreach ($jtalles as $value)
+						if ($jtalles != null)
 						{
-							// Guarda apertura de talles
-							if ($value->cantidad > 0)
+							foreach ($jtalles as $value)
 							{
-								$pedido_combinacion_talle = $this->pedido_combinacion_talleRepository->create(
-																			$pedido_combinacion->id, 
-																			$value->talle_id, 
-																			$value->cantidad, 
-																			$value->precio
-																			);
-
-								// Guarda ot
-								if ($ot_ids[$i_comb] > 0 && $funcion == 'update') 
+								// Guarda apertura de talles
+								if ($value->cantidad > 0)
 								{
-									$combinacion = Combinacion::find($combinaciones[$i_comb]);
+									$pedido_combinacion_talle = $this->pedido_combinacion_talleRepository
+																	->create(
+																				$ids[$i_comb], 
+																				$value->talle_id, 
+																				$value->cantidad, 
+																				$value->precio
+																				);
+									// Guarda ot
+									if ($ot_ids[$i_comb] > 0 && $funcion == 'update') 
+									{
+										$talle = Talle::find($value->talle_id);
+										if ($talle)
+											$medida = $talle->nombre;
+										else
+											$medida = '';
 
-									$talle = Talle::find($value->talle_id);
-									if ($talle)
-										$medida = $talle->nombre;
-									else
-										$medida = '';
-
-									// Lee la OT
-									$ordentrabajo = $this->ordentrabajoQuery->leeOrdenTrabajo($ot_ids[$i_comb]);
-
-									$dataErp = array(
-												'ordentrabajo_id' => $ordentrabajo->id,
-												'pedido_combinacion_talle_id' => $pedido_combinacion_talle->id,
-												'cliente_id' => $clienteot_id,
-												'estado' => $data['estado'],
-												'usuario_id' => $data['usuario_id'],
-												'nro_orden' => $ordentrabajo->codigo ?? -1,
-												'articulo' => str_pad($articulo->sku, 13, "0", STR_PAD_LEFT),
-												'nro_renglon' => $numeroitems[$i_comb],
-												'color' => $combinacion->codigo,
-												'medida' => $medida,
-												'cantidad' => $value->cantidad,
-												'forro' => ' ',
-												'cliente' => str_pad($cliente->codigo, 6, "0", STR_PAD_LEFT),
-												'fecha' => $ordentrabajo->fecha ?? 0,
-												'agrupacion' => str_pad($categoria_codigo, 4, "0", STR_PAD_LEFT),
-												'estado' => $ordentrabajo->estado ?? '',
-												'cantfact' => 0,
-												'aplique' => 0,
-												'ordentrabajo_stock_id' => $ot_stock_ids[$i_comb]
-         										);
-
-									$this->ordentrabajo_combinacion_talleRepository->create($dataErp);
+										$dataErp = array(
+													'ordentrabajo_id' => $ordentrabajo->id,
+													'pedido_combinacion_talle_id' => $pedido_combinacion_talle->id,
+													'cliente_id' => $clienteot_id,
+													'estado' => $data['estado'],
+													'usuario_id' => $data['usuario_id'],
+													'nro_orden' => $ordentrabajo->codigo ?? -1,
+													'articulo' => str_pad($articulo->sku, 13, "0", STR_PAD_LEFT),
+													'nro_renglon' => $numeroitems[$i_comb],
+													'color' => $combinacion->codigo,
+													'medida' => $medida,
+													'cantidad' => $value->cantidad,
+													'forro' => ' ',
+													'cliente' => str_pad($cliente->codigo, 6, "0", STR_PAD_LEFT),
+													'fecha' => $ordentrabajo->fecha ?? 0,
+													'agrupacion' => str_pad($categoria_codigo, 4, "0", STR_PAD_LEFT),
+													'estado' => $ordentrabajo->estado ?? '',
+													'cantfact' => 0,
+													'aplique' => 0,
+													'ordentrabajo_stock_id' => $ot_stock_ids[$i_comb]
+													);
+										$this->ordentrabajo_combinacion_talleRepository->create($dataErp);
+									}
 								}
 							}
+						}
+						// Graba stock si el cliente es el correspondiente
+						if ((count($ot_stock_ids) > 0 ? $ot_stock_ids[$i_comb] > 0 : false))
+						{
+							if (count($ot_stock_ids) > 0)
+								$this->generaMovimientoStock($data['fecha'], $pedido_combinacion, 
+														$ordentrabajo, $articulo, $combinacion,
+														$ot_stock_ids[$i_comb]);
+							else
+								$this->generaMovimientoStock($data['fecha'], $pedido_combinacion, 
+														$ordentrabajo, $articulo, $combinacion, 0);
 						}
 					}
 				}
@@ -1038,8 +1131,7 @@ class PedidoService
 		{
 			// Trae estado
 			$estado = $this->pedido_combinacion_estadoRepository->traeEstado($pedido->id);
-
-			if ($estado != 'A')
+			if ($estado ? $estado->estado != 'A' : true)
 			{
 			  	$nuevoestado = 'A';
 			  	$estado = 'anulado';
@@ -1048,7 +1140,7 @@ class PedidoService
 
 				DB::beginTransaction();
 				try {
-					$this->pedido_combinacionRepository->update($data, $pedido->id);
+					$this->pedido_combinacionRepository->updatePorId($data, $pedido->id);
 					
 					// Graba estado
 					$pedido_combinacion_estado = $this->pedido_combinacion_estadoRepository->create([
@@ -1067,5 +1159,39 @@ class PedidoService
 		}
 
 		return 'correcto';
+	}
+
+	private function generaMovimientoStock($fecha, $pedido_combinacion, $ordentrabajo, $articulo, $combinacion,
+											$ordentrabajo_stock_id)
+	{
+		$dataArticuloMovimiento = [
+			'fecha' => $fecha,
+			'fechajornada' => $fecha,
+			'tipotransaccion_id' => $ordentrabajo_stock_id > 0? 
+									config("consprod.TIPOTRANSACCION_CONSUME_OT") :
+									config("consprod.TIPOTRANSACCION_ALTA_PRODUCCION"),
+			'pedido_combinacion_id' => $pedido_combinacion->id,
+			'ordentrabajo_id' => $ordentrabajo ? $ordentrabajo->id : 0,
+			'lote' => $ordentrabajo_stock_id > 0 ? $ordentrabajo_stock_id : $ordentrabajo->codigo,
+			'articulo_id' => $articulo->id,
+			'combinacion_id' => $combinacion->id,
+			'modulo_id' => $pedido_combinacion->modulo_id,
+			'concepto' => $ordentrabajo_stock_id > 0 ? 'Consumo de OT' : 'Alta de produccion',
+			'cantidad' => $pedido_combinacion->cantidad,
+			'precio' => $pedido_combinacion->precio,
+			'costo' => 0,
+			'descuento' => $pedido_combinacion->descuento,
+			'descuentointegrado' => $pedido_combinacion->descuentointegrado,
+			'moneda_id' => $pedido_combinacion->moneda_id,
+			'incluyeimpuesto' => $pedido_combinacion->incluyeimpuesto,
+			'listaprecio_id' => $pedido_combinacion->listaprecio_id,
+		];
+		$pedido_combinacion_talle = $this->pedido_combinacion_talleRepository->findporpedido_combinacion($pedido_combinacion->id);
+
+		$this->articulo_movimientoService->deletePorPedido_combinacionId($pedido_combinacion->id);
+
+		$articulo_movimiento = $this->articulo_movimientoService->
+								guardaArticuloMovimiento("create", 
+								$dataArticuloMovimiento, $pedido_combinacion_talle);
 	}
 }

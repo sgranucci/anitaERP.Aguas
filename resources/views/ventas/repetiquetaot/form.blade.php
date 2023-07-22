@@ -9,7 +9,7 @@
 	
 		<div class="form-group row">
     		<label for="tipoetiqueta" class="col-lg-3 col-form-label requerido">Tipo de etiqueta</label>
-			<select name="tipoetiqueta" class="col-lg-3 form-control" required>
+			<select name="tipoetiqueta" id="tipoetiqueta" class="col-lg-3 form-control" required>
     			<option value="">-- Elija tipo de etiqueta --</option>
        			@foreach($tipoetiqueta_enum as $value => $tipoetiqueta)
        				@if($value == 'CAJA FOTO')
@@ -21,5 +21,18 @@
 			</select>
 		</div>
 
+		<div class="form-group row">
+			<label for="origen" class="col-lg-3 col-form-label requerido">Origen</label>
+			<select name="origen" class="col-lg-3 form-control" required>
+				<option value="">-- Elija origen --</option>
+				@foreach($origen_enum as $value => $origen)
+					@if( $value == 'ANITA')
+						<option value="{{ $value }}" selected="select">{{ $origen }}</option>    
+					@else
+						<option value="{{ $value }}">{{ $origen }}</option>    
+					@endif
+				@endforeach
+			</select>
+		</div>
 	</div>
 </div>

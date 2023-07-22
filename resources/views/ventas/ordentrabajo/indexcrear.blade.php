@@ -26,7 +26,13 @@
 			if (ordentrabajo_stock_codigo == '')
 				ordentrabajo_stock_codigo = 0;
 
-			if (ordentrabajo_stock_codigo > 0)
+			if (checkotstock == 'on' && ordentrabajo_stock_codigo == 0)
+			{
+				akert("Lote inexistente");
+				return;
+			}
+
+			if (checkotstock == 'on')
 			{
 				var listarUri = "/anitaERP/public/ventas/controlaordentrabajostock/"+ordentrabajo_stock_codigo+"/"+articulo_id+"/"+combinacion_id;
 
@@ -36,7 +42,7 @@
 						alert("Saldo lote "+ordentrabajo_stock_codigo+" "+data.saldo);
 
 						$('#crearOrdenTrabajoModal').modal('hide');
-	
+
 						if (checkotstock == 'on')
 							var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/ordentrabajo/"+ids+"/on/"+ordentrabajo_stock_codigo+'/'+leyenda;
 						else
@@ -50,6 +56,14 @@
 						return;
 					}
 				});
+			}
+			else
+			{
+				$('#crearOrdenTrabajoModal').modal('hide');
+
+				var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/ordentrabajo/"+ids+"/off/"+ordentrabajo_stock_codigo+'/'+leyenda;
+
+				window.location.href = listarUri;
 			}
 		});
 	});

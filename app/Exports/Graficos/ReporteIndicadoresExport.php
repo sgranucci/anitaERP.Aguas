@@ -14,6 +14,7 @@ class ReporteIndicadoresExport implements WithMultipleSheets
     private $compresion, $compresiontxt, $factorCompresion;
     private $calculoBase, $mmCorta, $mmLarga, $calculoBase_enum;
     private $largoVMA, $largoCCI, $largoXTL, $umbralXTL;
+    private $cantidadContratos;
 	private $k1, $k2;
     private $dataAnterior = [];
     private $fechaUltimaLectura;
@@ -52,6 +53,7 @@ class ReporteIndicadoresExport implements WithMultipleSheets
                                                     $this->swingSize,
                                                     $this->filtroSetup,
                                                     $this->indicadores,
+                                                    $this->cantidadContratos,
                                                     $calculoBaseTxt),
             'Worksheet 2' => new OperacionesExport($this->operaciones)
         ];
@@ -59,7 +61,8 @@ class ReporteIndicadoresExport implements WithMultipleSheets
 
     public function parametros($desdefecha, $hastafecha, $desdehora, $hastahora, $especie, $calculobase, 
                                 $mmcorta, $mmlarga, $compresion, $largovma, $largocci, $largoxtl,
-                                $umbralxtl, $calculobase_enum, $swingSize, $filtroSetup, $indicadores, $operaciones)
+                                $umbralxtl, $calculobase_enum, $swingSize, $filtroSetup, 
+                                $cantidadContratos, $indicadores, $operaciones)
     {
         $this->desdeFecha = $desdefecha;
         $this->hastaFecha = $hastafecha;
@@ -77,6 +80,7 @@ class ReporteIndicadoresExport implements WithMultipleSheets
         $this->umbralXTL = $umbralxtl;
         $this->swingSize = $swingSize;
         $this->filtroSetup = $filtroSetup;
+        $this->cantidadContratos = $cantidadContratos;
         $this->indicadores = $indicadores;
         $this->operaciones = $operaciones;
         

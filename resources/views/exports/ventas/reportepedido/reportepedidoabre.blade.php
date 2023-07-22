@@ -27,6 +27,8 @@
 	@php
 		$cliente_actual = '';
 		$nombre_actual = '';
+		$vendedor_actual = '';
+		$nombrevendedor_actual = '';
 		$sku_actual = '';
 		$totv_pedido = $tot_pedido = $tota_pedido = 0;
 		$totv_produccion = $tot_produccion = $tota_produccion = 0;
@@ -52,7 +54,11 @@
            		<td>{{$tipo}}</td>
            		<td>{{$nro_orden}}</td>
            		<td>{{$estado}}</td>
-           		<td>{{$fecha}}</td>
+			   	@if (strpos($fecha, '-') !== false)
+				    <td>{{date("d/m/Y", strtotime($data['fecha']))}}</td>
+				@else
+					<td>{{$fecha}}</td>
+				@endif
            		<td>{{$marca}}</td>
            		<td>{{$articulo}}</td>
            		<td>{{$desc_combinacion}}</td>
@@ -88,7 +94,11 @@
            			<td align="right">{{number_format(floatval($tot_produccion), 0)}}</td>
            			<td align="right">{{number_format(floatval($tot_facturado), 0)}}</td>
            			<td align="right">{{number_format(floatval($tot_pendiente), 0)}}</td>
-           			<td align="right">{{number_format(floatval($tot_facturado/$tot_pedido*100.), 0)}}%</td>
+					@if ($tot_pedido != 0)
+           				<td align="right">{{number_format(floatval($tot_facturado/$tot_pedido*100.), 0)}}%</td>
+					@else
+						<td align="right">0 %</td>
+					@endif
 				</tr>
 			@endif
 			@php 
@@ -98,6 +108,40 @@
 				$tot_produccion = 0;
 				$tot_facturado = 0;
 				$tot_pendiente = 0;
+				$fl_primer_mov = true;
+			@endphp
+		@endif
+		@if ($data->vendedor != $vendedor_actual)
+			@if ($vendedor_actual != '')
+				<tr>
+           			<td>TOTAL VENDEDOR {{$vendedor_actual}}-{{$nombrevendedor_actual}}</td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+           			<td align="right">{{number_format(floatval($totv_pedido), 0)}}</td>
+           			<td align="right">{{number_format(floatval($totv_produccion), 0)}}</td>
+           			<td align="right">{{number_format(floatval($totv_facturado), 0)}}</td>
+           			<td align="right">{{number_format(floatval($totv_pendiente), 0)}}</td>
+					@if ($totv_pedido != 0)
+           				<td align="right">{{number_format(floatval($totv_facturado/$totv_pedido*100.), 0)}}%</td>
+					@else
+						<td align="right">0 %</td>
+					@endif
+				</tr>
+			@endif
+			@php 
+				$vendedor_actual = $data->vendedor; 
+				$nombrevendedor_actual = $data->nombre_vendedor; 
+				$totv_pedido = 0;
+				$totv_produccion = 0;
+				$totv_facturado = 0;
+				$totv_pendiente = 0;
 				$fl_primer_mov = true;
 			@endphp
 		@endif
@@ -171,11 +215,15 @@
        		<td align="right">{{number_format(floatval($tot_produccion), 0)}}</td>
        		<td align="right">{{number_format(floatval($tot_facturado), 0)}}</td>
        		<td align="right">{{number_format(floatval($tot_pendiente), 0)}}</td>
-           	<td align="right">{{number_format(floatval($tot_facturado/$tot_pedido*100.), 0)}}%</td>
+			@if ($tot_pedido != 0)
+				<td align="right">{{number_format(floatval($tot_facturado/$tot_pedido*100.), 0)}}%</td>
+			@else
+				<td align="right">0 %</td>
+			@endif
 		</tr>
 	@endif
 	<tr>
-      	<td>TOTAL VENDEDOR {{$vendedor}}-{{$nombre_vendedor}}</td>
+      	<td>TOTAL VENDEDOR {{$vendedor_actual}}-{{$nombrevendedor_actual}}</td>
 		<td></td>
 		<td></td>
 		<td></td>
@@ -189,7 +237,13 @@
        	<td align="right">{{number_format(floatval($totv_produccion), 0)}}</td>
        	<td align="right">{{number_format(floatval($totv_facturado), 0)}}</td>
        	<td align="right">{{number_format(floatval($totv_pendiente), 0)}}</td>
-      	<td align="right">{{number_format(floatval($totv_facturado/$totv_pedido*100.), 0)}}%</td>
+		@if ($totv_pedido != 0)
+			<td align="right">{{number_format(floatval($totv_facturado/$totv_pedido*100.), 0)}}%</td>
+		@else
+			<td align="right">0 %</td>
+		@endif
+           	
+
 	</tr>
 	</tbody>
 </table>

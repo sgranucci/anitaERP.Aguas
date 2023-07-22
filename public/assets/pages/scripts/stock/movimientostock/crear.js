@@ -48,6 +48,43 @@
 	var offFactura;
 	var modalActivo;
 
+	// Realiza submit
+	function subm()
+	{
+        var tipotransaccion_id = $("#tipotransaccion_id").val();
+
+        if (tipotransaccion_id == '')
+        {
+            alert('No puede grabar sin un tipo de transacción');
+            return;
+        }
+        // Controla datos correctos
+		var item = 0;
+		var flError = false;
+		
+		$("#tbody-tabla .articulo").each(function(index) {
+			var articulo = $(this).val();
+			item = item + 1;
+
+			if (articulo == '')
+			{
+				alert("Codigo de articulo nulo en item "+item);
+				flError = true;
+			}
+
+			var cantidad = $(this).parents("tr").find(".cantidad").val();
+
+			if (cantidad == null)
+			{
+				alert("Cantidad nula en item "+item);
+				return;
+			}
+		});
+
+		if (!flError)
+			$('#formgeneral').submit();
+	}
+
     function completarCombinaciones(articulo, combinacion_id, flsinfiltro){
         var comb_id;
 		var articulo_id = $(articulo).val();
@@ -966,7 +1003,10 @@
     function borraRenglon() {
         event.preventDefault();
 		ordentrabajo = $(this).parents('tr').find('.otcodigo').val();
-		
+		loteStock = $(this).parents('tr').find('.loteids').val();
+		articulo_id = $(this).parents("tr").find(".articulo").val();
+		combinacion_id = $(this).parents("tr").find(".combinacion").val();
+
 		// Busca si tiene factura asociada
 		var listarUri = "/anitaERP/public/ventas/estadoot/"+ordentrabajo;
 		var flError = false;
@@ -979,6 +1019,20 @@
 				flError = true;
 			}
 		});
+
+		// Busca si tiene una OT asociada al lote
+		if (!flError && loteStock >= 1)
+		{
+			var listarUri = "/anitaERP/public/ventas/controlaordentrabajostock/"+loteStock+"/"+articulo_id+"/"+combinacion_id;
+
+			$.get(listarUri, function(data){
+				if (data.estado != -1 && data.estado != 1)
+				{
+					alert("No puede borrar lote de stock "+loteStock+" porque tiene movimientos asociados");
+					flError = true;
+				}
+			});
+		}
 
 		setTimeout(() => {
 			if (!flError)

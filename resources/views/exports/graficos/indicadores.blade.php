@@ -1,6 +1,6 @@
 <h2> EWO - Pivot Fibonacci - VMA - CCI - XTL {{$especie}} </h2>
 <h3> Desde: {{date('d-m-Y', ceil($desdefecha/1000))}} {{$desdehora}} hasta: {{date('d-m-Y', ceil($hastafecha/1000))}} {{$hastahora}} </h3>
-<h3> Compresi&oacute;n: {{$compresiontxt}} MM Corta: {{$mmcorta}} MM Larga: {{$mmlarga}} Calculo Base: {{$calculobasetxt}} Largo Periodo VMA {{$largovma}} Largo Periodo CCI: {{$largocci}} Largo Periodo XTL: {{$largoxtl}} Umbral XTL: {{$umbralxtl}} SwingSize: {{$swingsize}}</h3>
+<h3> Compresi&oacute;n: {{$compresiontxt}} MM Corta: {{$mmcorta}} MM Larga: {{$mmlarga}} Calculo Base: {{$calculobasetxt}} Largo Periodo VMA {{$largovma}} Largo Periodo CCI: {{$largocci}} Largo Periodo XTL: {{$largoxtl}} Umbral XTL: {{$umbralxtl}} SwingSize: {{$swingsize}} Cantidad Contratos: {{$cantidadcontratos}}</h3>
 <table> 
 	<thead>
     <tr>
@@ -15,6 +15,10 @@
 		<th>EWO</th>
 		<th>Banda Sup</th>
 		<th>Banda Inf</th>
+		<th>W4up1</th>
+		<th>W4up2</th>
+		<th>W4dw1</th>
+		<th>W4dw2</th>
 		<th>RF Lim</th>
 		<th>RFE (Ext)</th>
 		<th>RFE (Int)</th>
@@ -87,7 +91,11 @@
            	<td align="right">{{number_format(floatval($data['volume']), 2, ",", ".")}}</td>
 			<td align="right">{{number_format(floatval($data['ewo']), 4, ",", ".")}}</td>
 			<td align="right">{{number_format(floatval($data['bandaSup']), 4, ",", ".")}}</td>
-			<td align="right">{{number_format(floatval($data['bandaInf']), 4, ",", ".")}}</td>			
+			<td align="right">{{number_format(floatval($data['bandaInf']), 4, ",", ".")}}</td>	
+			<td align="right">{{number_format(floatval($data['w4Up1']), 5, ",", ".")}}</td>	
+			<td align="right">{{number_format(floatval($data['w4Up2']), 5, ",", ".")}}</td>	
+			<td align="right">{{number_format(floatval($data['w4Dw1']), 5, ",", ".")}}</td>	
+			<td align="right">{{number_format(floatval($data['w4Dw2']), 5, ",", ".")}}</td>	
 			<td align="right">{{number_format(floatval($data['rfLim']), 2, ",", ".")}}</td>
 			<td align="right">{{number_format(floatval($data['rfeExt']), 2, ",", ".")}}</td>
 			<td align="right">{{number_format(floatval($data['rfeInt']), 2, ",", ".")}}</td>
@@ -119,8 +127,13 @@
 			<td align="right">{{number_format(floatval($data['max']), 2, ",", ".")}}</td>
 			<td align="right">{{number_format(floatval($data['tendencia']), 0, ",", ".")}}</td>
 			<td align="right">{{number_format(floatval($data['trendBars']), 0, ",", ".")}}</td>
-			<td align="right">{{number_format(floatval($data['swingBars']), 0, ",", ".")}}</td>
-			<td align="right">{{number_format(floatval($data['swingBarsPrev']), 0, ",", ".")}}</td>
+			@if ($data['min'] != 0 || $data['max'] != 0)
+				<td align="right">{{number_format(floatval($data['swingBars']), 0, ",", ".")}}</td>
+				<td align="right">{{number_format(floatval($data['swingBarsPrev']), 0, ",", ".")}}</td>
+			@else
+				<td align="right">0</td>
+				<td align="right">0</td>
+			@endif
 			<td align="right">{{number_format(floatval($data['pivot0']), 2, ",", ".")}}</td>
 			<td align="right">{{number_format(floatval($data['pivot1']), 2, ",", ".")}}</td>
 			<td align="right">{{number_format(floatval($data['pivot2']), 2, ",", ".")}}</td>

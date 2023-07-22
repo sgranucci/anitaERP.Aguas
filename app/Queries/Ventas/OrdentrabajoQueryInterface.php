@@ -12,5 +12,6 @@ interface OrdentrabajoQueryInterface
     public function allOrdentrabajo();
     public function leeOrdenTrabajoPorCodigo($codigo);
     public function traeOrdentrabajoPorId($id);
+    public function traeOrdentrabajoPorIdERP($id);
 }
 

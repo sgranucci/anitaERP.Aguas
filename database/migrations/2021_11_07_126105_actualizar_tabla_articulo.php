@@ -61,7 +61,13 @@ class ActualizarTablaArticulo extends Migration
             $table->foreign('forro_id', 'fk_articulo_forro')->references('id')->on('forro')->onDelete('set null')->onUpdate('set null');
 			$table->unsignedBigInteger('compfondo_id')->nullable()->after('forro_id');
             $table->foreign('compfondo_id', 'fk_articulo_compfondo')->references('id')->on('compfondo')->onDelete('set null')->onUpdate('set null');
-            $table->char('claveorden', 13)->nullable()->after('compfondo_id');
+            $table->unsignedBigInteger('fondo_id')->nullable()->after('compfondo_id');
+            $table->foreign('fondo_id', 'fk_articulo_fondo')->references('id')->on('fondo')->onDelete('set null')->onUpdate('set null');
+            $table->unsignedBigInteger('horma_id')->nullable()->after('fondo_id');
+            $table->foreign('horma_id', 'fk_articulo_horma')->references('id')->on('horma')->onDelete('set null')->onUpdate('set null');
+            $table->unsignedBigInteger('serigrafia_id')->nullable()->after('horma_id');
+            $table->foreign('serigrafia_id', 'fk_articulo_serigrafia')->references('id')->on('serigrafia')->onDelete('set null')->onUpdate('set null');
+            $table->char('claveorden', 13)->nullable()->after('serigrafia_id');
 			$table->unsignedBigInteger('usuario_id')->nullable()->after('claveorden');
             $table->foreign('usuario_id', 'fk_articulo_usuario')->references('id')->on('usuario')->onDelete('set null')->onUpdate('set null');
             $table->date('fechaultimacompra')->nullable()->after('usuario_id');

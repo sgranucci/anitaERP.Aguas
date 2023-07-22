@@ -56,8 +56,8 @@ class FacturaElectronicaService
 		{
 			$tipo = $resp->detalle->tipo;
 			$pventa = $resp->detalle->pventa;
-		
-			if ($tipo == $tipotransaccion && $pventa == $puntoventa)
+
+			if ($tipo == $tipotransaccion && $pventa == $puntoventa->codigo)
 				$ultimoNumero = strval($resp->detalle->numero);
 		}
 		

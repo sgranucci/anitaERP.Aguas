@@ -5,8 +5,17 @@
 
 @section("scripts")
 
+<script src="{{asset("assets/pages/scripts/configuracion/salida.js")}}" type="text/javascript"></script>
+<script src="{{asset("assets/pages/scripts/configuracion/configurar_salida.js")}}" type="text/javascript"></script>
+
 <script>
-$("#ordenestrabajo").focus();
+
+    var url = "{{ route('configurar_salida', ['programa' => ':programa']) }}";
+
+    $(function () {
+		$("#ordenestrabajo").focus();
+    });
+
 </script>
 
 @endsection
@@ -19,8 +28,9 @@ $("#ordenestrabajo").focus();
         <div class="card card-danger">
             <div class="card-header">
                 <h3 class="card-title">Datos Emisi&oacute;n de OT</h3>
+				@include('includes.configurar-salida')
             </div>
-            <form action="{{route('crear_repemisionot')}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
+            <form action="{{route('crearemisionot')}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
                 @csrf @method("post")
                 <div class="card-body">
                     @include('ventas.repemisionot.form')

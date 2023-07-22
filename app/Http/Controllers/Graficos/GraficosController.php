@@ -10,6 +10,7 @@ use App\Exports\Graficos\IndicadoresExport;
 use App\Exports\Graficos\OperacionesExport;
 use App\Exports\Graficos\ReporteIndicadoresExport;
 use App\Services\Graficos\IndicadoresService;
+use App\Jobs\GeneraOrdenes;
 use PDF;
 use DB;
 
@@ -149,7 +150,8 @@ class GraficosController extends Controller
                         $request->umbralxtl,
                         $calculoBase_enum,
                         $request->swingsize,
-						$request->filtroSetup);
+						$request->filtroSetup,
+						$request->cantidadcontratos);
 
 		return (new ReporteIndicadoresExport)
 				->parametros($request->desdefecha, 
@@ -168,9 +170,41 @@ class GraficosController extends Controller
 							$calculoBase_enum,
 							$request->swingsize,
 							$request->filtroSetup,
+							$request->cantidadcontratos,
 							$indicadores['indicadores'],
 							$indicadores['operaciones'])
 				->download('reporteIndicadores.'.$extension);
     }
 	
+	public function indexGeneraOrdenes()
+	{
+		$compresion_enum = [
+			'1' => '1 minuto',
+			'2' => '5 minutos',
+			'3' => '15 minutos',
+			'4' => '1 hora',
+			'5' => '1 día'
+			];
+
+		$filtroSetup_enum = [
+			'A' => 'Solo alcistas',
+			'B' => 'Solo bajistas',
+			'T' => 'Alcistas y Bajistas',
+			];
+		$calculoBase_enum = $this->calculoBase_enum;
+
+		return view('graficos.generaordenes.create', compact('calculoBase_enum', 'compresion_enum',
+																'filtroSetup_enum'));
+	}
+
+	// Genera ordenes
+	public function generaOrdenes()
+	{
+		GeneraOrdenes::dispatchNow(request()->especie, request()->calculobase, 
+								request()->mmcorta, request()->mmlarga, request()->compresion, 
+								request()->largovma, request()->largocci, request()->largoxtl,
+								request()->umbralxtl, request()->swingsize, request()->filtrosetup);
+
+		return redirect('graficos/ordenes')->with('mensaje', 'Proceso iniciado con éxito');
+	}
 }

@@ -3,15 +3,15 @@
         <input type="hidden" id="codigomovimientostock" class="form-control" value="{{old('codigomovimientostock', $movimientostock->codigo ?? '')}}" />
 		<div class="form-group row" id="tipotransaccion">
 			<label for="recipient-name" class="col-lg-3 col-form-label requerido">Tipo de transacci&oacute;n</label>
-			<select name="tipotransaccion_id" id="tipotransaccion_id" data-placeholder="Tipo de transacci&oacute;n" class="col-lg-6 form-control required" data-fouc>
+			<select name="tipotransaccion_id" id="tipotransaccion_id" data-placeholder="Tipo de transacci&oacute;n" class="col-lg-6 form-control" data-fouc required>
 				<option value="">-- Seleccionar transacción  --</option>
-					@foreach($tipotransaccion_query as $key => $value)
-						@if( (int) $value->id == (int) old('tipotransaccion_id', $movimientostock->tipotransaccion_id ?? ''))
-							<option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
-						@else
-							<option value="{{ $value->id }}">{{ $value->nombre }}</option>    
-						@endif
-					@endforeach	
+				@foreach($tipotransaccion_query as $key => $value)
+					@if( (int) $value->id == (int) old('tipotransaccion_id', $movimientostock->tipotransaccion_id ?? ''))
+						<option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
+					@else
+						<option value="{{ $value->id }}">{{ $value->nombre }}</option>    
+					@endif
+				@endforeach	
 			</select>
 		</div>
 		<div class="form-group row">
@@ -21,9 +21,9 @@
     		</div>
 		</div>
 		<div class="form-group row">
-			<label for="lote" class="col-lg-3 col-form-label">Lote de stock</label>
+			<label for="lote" class="col-lg-3 col-form-label requerido">Lote de stock</label>
 			<div class="col-lg-3">
-				<input type="text" name="lote" id="lote" class="form-control" value="{{old('lote', $movimientostock->articulos_movimiento[0]->lote ?? '')}}" required>		
+				<input type="text" name="lote" id="lote" class="form-control" value="{{old('lote', $movimientostock->articulos_movimiento[0]->lote ?? 'LOTE DE ALTA')}}" required>
 			</div>				
 		</div>
 		<div class="form-group row">
@@ -86,13 +86,13 @@
                 				<input type="hidden" name="incluyeimpuestos[]" class="form-control incluyeimpuesto" readonly value="{{old('incluyeimpuestos', $pedidoitem->incluyeimpuesto??'')}}" />
                 				<input type="hidden" name="descuentos[]" class="form-control descuento" readonly value="{{old('descuentos', $pedidoitem->descuento??'')}}" />
                 				<input type="hidden" name="ids[]" class="form-control ids" value="{{$pedidoitem->id??''}}" />
-								<input type="hidden" name="loteids[]" class="form-control loteids" value="{{$pedidoitem->lotes->id ?? 0}}" />
+								<input type="hidden" name="loteids[]" class="form-control loteids" value="{{$pedidoitem->lote ?? 0}}" />
                 			</td>
                 			<td>
 								<div class="form-group row" id="articulo">
                 					<select name="articulos_id[]" class="col-lg-11 form-control articulo">
                 						<option value="">-- Elija art&iacute;culo --</option>
-                						@foreach ($articulo_query as $articulo)
+                						@foreach ($articuloall_query as $articulo)
                 							<option value="{{ $articulo['id'] }}"
                 							@if (old('articulos_id.' . $loop->parent->index, optional($pedidoitem)->articulo_id) == $articulo['id']) selected @endif
                 							>{{$articulo['descripcion']}}-{{$articulo['sku']}}</option>
@@ -107,7 +107,7 @@
                 			<td>
         						<select name="combinaciones_id[]" data-placeholder="Combinaciones" class="form-control combinacion" data-fouc>
         						</select>
-        						<input type="hidden" class="combinacion_id_previa" name="combinacion_id_previa[]" value="{{old('combinacion_id', $pedidoitem->combinacion_id ?? '')}}" >
+        						<input type="hidden" class="combinacion_id_previa" name="combinacion_id_previa[]" value="{{old('combinaciones_id', $pedidoitem->combinacion_id ?? '')}}" >
         						<input type="hidden" class="desc_combinacion" name="desc_combinacion[]" value="{{old('desc_combinacion', $pedidoitem->combinaciones->nombre ?? '')}}" >
                 			</td>
                 			<td>
@@ -121,15 +121,6 @@
                 			</td>
                 			<td>
                 				<input type="text" style="text-align: right;" id="iprecio" name="precios[]" class="form-control precio" readonly value="{{number_format(old('precios.'.$loop->index, optional($pedidoitem)->precio),2)}}" />
-                			</td>
-                			<td>
-                				<input type="text" name="ot_codigos[]" class="form-control otcodigo" 
-                					value="{{ (old('ot_ids.' . $loop->index) ?? optional($pedidoitem)->ordenestrabajo)->codigo ?? '-1' }}" readonly> 
-                				<input type="hidden" name="ot_ids[]" class="form-control ot" 
-                					value="{{ (old('ot_ids.' . $loop->index) ?? optional($pedidoitem)->ordenestrabajo)->id ?? '-1' }}"> 
-                			</td>
-                			<td>
-                				<input type="text" id="iobservacion" name="observaciones[]" class="form-control observacion" value="{{old('observaciones.'.$loop->index, optional($pedidoitem)->observacion)}}" />
                 			</td>
                 			<td>
 								<input name="checkssinfiltro[]" class="checkSinFiltro" title="Todas los art&iacute;culos" type="checkbox" autocomplete="off"> 

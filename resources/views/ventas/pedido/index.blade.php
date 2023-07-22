@@ -82,7 +82,7 @@ function limpiaFiltros(){
             						{{ $pedido['id'] ?? '' }}
         						</td>
         						<td>
-            						{{date("d/m/Y", strtotime($pedido['fecha'] ?? ''))}} 
+            						{{date("Y/m/d", strtotime($pedido['fecha'] ?? ''))}} 
         						</td>
         						<td>
             						<b>{{ $pedido['nombrecliente'] ?? '' }}</b>
@@ -105,7 +105,7 @@ function limpiaFiltros(){
                                    	<i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('borrar-pedidos', false))
+                       			@if (can('borrar-pedidos', false) && $pedido['estado'] == 'Pendiente')
                                 	<form action="{{route('eliminar_pedido', ['id' => $pedido['id']])}}" class="d-inline form-eliminar" method="POST">
                                    		@csrf @method("delete")
                                    		<button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">

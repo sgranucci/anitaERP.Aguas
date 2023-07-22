@@ -31,7 +31,7 @@ class TareaRepository implements TareaRepositoryInterface
 		if (!$hay_tareas)
 			self::sincronizarConAnita();
 
-        return $this->model->get();
+        return $this->model->orderBy('nombre')->get();
     }
 
     public function create(array $data)

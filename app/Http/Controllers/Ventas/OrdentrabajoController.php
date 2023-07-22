@@ -69,7 +69,12 @@ class OrdentrabajoController extends Controller
 			'CAJA' => 'Etiqueta CAJA',
 		];
 
-        return view('ventas.repetiquetaot.create', compact('tipoetiqueta_enum'));
+		$origen_enum = [
+			'ANITA' => 'Lee datos en ANITA',
+			'ERP' => 'Lee datos en ANITA ERP'
+		];
+
+        return view('ventas.repetiquetaot.create', compact('tipoetiqueta_enum', 'origen_enum'));
     }
 
     public function crearEtiquetaOt(Request $request)
@@ -86,6 +91,18 @@ class OrdentrabajoController extends Controller
     public function generaZPL()
     {
         return view('ventas.repetiquetaot.createzpl');
+    }
+
+	public function generaEtiquetaPruebaOt()
+    {
+		$articulo_query = $this->articuloQuery->allQueryConCombinacion(['id', 'sku', 'descripcion', 'mventa_id'], 'descripcion');
+
+        return view('ventas.repetiquetaot.createetiquetaprueba', compact('articulo_query'));
+    }
+
+	public function crearEtiquetaPruebaOt(Request $request)
+    {
+		return $this->ordentrabajoService->listaEtiquetaPruebaCajaZPL($request->all());
     }
 
     public function indexEmisionOt()
@@ -223,8 +240,8 @@ class OrdentrabajoController extends Controller
 		$puntoventadefault_id = cache()->get(generaKey('puntoventa'));
 		$puntoventaremitodefault_id = cache()->get(generaKey('puntoventaremito'));
 		$tipotransacciondefault_id = cache()->get(generaKey('tipotransaccion'));
-			 
-        return view('ventas.ordentrabajo.editar', compact('ordentrabajo', 'cliente_query', 'articulo_query', 
+
+		return view('ventas.ordentrabajo.editar', compact('ordentrabajo', 'cliente_query', 'articulo_query', 
 														'combinacion_query', 'mventa_query', 'talle_query', 
 														'tarea_query', 'mventa_id', 'articulo_id', 'combinacion_id', 
 														'puntoventa_query', 'puntoventadefault_id', 

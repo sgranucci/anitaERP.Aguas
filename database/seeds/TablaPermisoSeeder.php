@@ -15,11 +15,11 @@ class TablaPermisoSeeder extends Seeder
     {
         $now = Carbon::now()->toDateTimeString();
         $permisos = [
-            array('id' => '311', 'nombre' => 'Crear movimientos de stock', 'slug' => 'crear-movimientos-de-stock', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '312', 'nombre' => 'Listar movimientos de stock', 'slug' => 'listar-movimientos-de-stock', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '313', 'nombre' => 'Editar movimientos de stock', 'slug' => 'editar-movimientos-de-stock', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '314', 'nombre' => 'Actualizar movimientos de stock', 'slug' => 'editar-movimientos-de-stock', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '315', 'nombre' => 'Borrar movimientos de stock', 'slug' => 'borrar-movimientos-de-stock', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '316', 'nombre' => 'Crear salidas', 'slug' => 'crear-salidas', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '317', 'nombre' => 'Listar salidas', 'slug' => 'listar-salidas', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '318', 'nombre' => 'Editar salidas', 'slug' => 'editar-salidas', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '319', 'nombre' => 'Actualizar salidas', 'slug' => 'editar-salidas', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '320', 'nombre' => 'Borrar salidas', 'slug' => 'borrar-salidas', 'created_at' => $now, 'updated_at' => $now),
 
         ];
         DB::table('permiso')->insert($permisos);

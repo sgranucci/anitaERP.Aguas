@@ -41,7 +41,6 @@ class Articulo_MovimientoService
 	{
 		// Lee tipo de transaccion
 		$tipotransaccion = $this->tipotransaccionRepository->find($dataMovimiento['tipotransaccion_id']);
-
 		// No usa transacciones porque se llama desde otro servicio con transaccion activa
 		if ($tipotransaccion)
 		{
@@ -52,11 +51,15 @@ class Articulo_MovimientoService
 				$dataMovimiento['deposito_id'] = 1;
 			if ($dataMovimiento['listaprecio_id'] == 'NaN')
 				$dataMovimiento['listaprecio_id'] = null;
+			if ($dataMovimiento['listaprecio_id'] == 0)
+				$dataMovimiento['listaprecio_id'] = 1;
 			if ($dataMovimiento['moneda_id'] == 'NaN')
 				$dataMovimiento['moneda_id'] = null;
 			if ($dataMovimiento['incluyeimpuesto'] == 'NaN')
-				$dataMovimiento['incluyeimpuesto'] = null;				
+				$dataMovimiento['incluyeimpuesto'] = null;	
+				
 			$articulo_movimiento = $this->articulo_movimientoRepository->create($dataMovimiento);
+
 			if ($articulo_movimiento)
 			{
 				foreach($dataTalle as $talle)
@@ -113,8 +116,7 @@ class Articulo_MovimientoService
 				$data['articulo_movimiento_id'] = $articulo_movimiento->id;
 
 				$tipotransaccion = $this->tipotransaccionRepository->find($articulo_movimiento->tipotransaccion_id);
-
-				if (array_key_exists('cantidad', $data))
+				if (array_key_exists('cantidad', $data) && $data['cantidad'] > 0)
 					$data['cantidad'] = $data['cantidad']*($tipotransaccion->signo == 'S' ? 1 : -1);	
 				 
 				$articulo_movimiento_talle = $this->articulo_movimiento_talleRepository->create($data);
@@ -123,20 +125,39 @@ class Articulo_MovimientoService
 				throw new Exception('No encontro movimiento en articulo_movimiento.');
 		}
 		else
+		{
+			$articulo_movimiento = $this->articulo_movimientoRepository->find($data['articulo_movimiento_id']);
+
+			$tipotransaccion = $this->tipotransaccionRepository->find($articulo_movimiento->tipotransaccion_id);
+
+			if (array_key_exists('cantidad', $data))
+			{
+				if ($data['cantidad'] > 0)
+				{
+					if ($tipotransaccion->signo == 'S')
+						$data['cantidad'] = abs($data['cantidad']);
+					else
+						$data['cantidad'] = -$data['cantidad'];
+				}
+			}
 			$articulo_movimiento_talle = $this->articulo_movimiento_talleRepository->create($data);
+		}
 
 		return $articulo_movimiento_talle;
 	}
 
 	// Genera datos reporte stock de OT
 	public function generaDatosRepStockOt($estado, $mventa_id, $desdearticulo, $hastaarticulo,
-										$desdelinea_id, $hastalinea_id)
+										$desdelinea_id, $hastalinea_id,
+										$desdecategoria_id, $hastacategoria_id,
+										$desdelote, $hastalote)
 	{
 		// Lee informacion del listado
 		$data = $this->articulo_movimientoQuery->generaDatosRepStockOt($estado, $mventa_id,
 				$desdearticulo, $hastaarticulo,
-				$desdelinea_id, $hastalinea_id);
-
+				$desdelinea_id, $hastalinea_id,
+				$desdecategoria_id, $hastacategoria_id,
+				$desdelote, $hastalote);
 		// Arma el reporte
 		$datas = [];
 		$medidas = [];
@@ -144,7 +165,7 @@ class Articulo_MovimientoService
 		$anterSku = '';
 		$anterCodigoCombinacion = '';
 		$anterModulo_Id = 0;
-
+		$totalPares = 0;
 		foreach ($data as $movimiento)
 		{
 			// Realiza corte
@@ -153,7 +174,7 @@ class Articulo_MovimientoService
 				$anterLote != $movimiento['lote'] ||
 				$anterModulo_Id != $movimiento['modulo_id'])
 			{
-				if ($anterSku != '')
+				if ($anterSku != '' && $totalPares != 0)
 				{
 					$datas[] = [
 								'foto' => $foto,
@@ -186,7 +207,8 @@ class Articulo_MovimientoService
 				// Lee tareas de la OT para ver situacion
 				$situacion = 'Pendiente de producción';
 				$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository->findPorOrdentrabajoId($movimiento['ordentrabajo_id']);
-				if ($ordentrabajo_tarea)
+				
+				if (count($ordentrabajo_tarea) > 0)
 				{
 					$situacion = 'En producción';
 
@@ -196,10 +218,12 @@ class Articulo_MovimientoService
 							$situacion = 'ENTREGA INMEDIATA';
 					}
 				}
-				
+				else	
+					$situacion = 'ENTREGA INMEDIATA';
+
 				$modulo_id = $movimiento['modulo_id'];
 				$medidas = [];
-
+				$totalPares = 0;
 				// Lee el modulo correspondiente
 				$modulo_talle = Modulo::where('id', $movimiento['modulo_id'])->with('talles')->get();
 				$modulo = [];
@@ -223,12 +247,17 @@ class Articulo_MovimientoService
 				{
 					$flEncontro = true;
 					$medidas[$ii]['cantidad'] += $movimiento['cantidad'];
+
+					$totalPares += $movimiento['cantidad'];
 				}
 			}
 			if (!$flEncontro)
+			{
 				$medidas[] = ['medida' => $movimiento['nombretalle'], 'cantidad' => $movimiento['cantidad']];
+				$totalPares += $movimiento['cantidad'];
+			}
 		}
-		if ($anterSku != '')
+		if ($anterSku != '' && $totalPares != 0)
 		{
 			$datas[] = [
 						'foto' => $foto,
@@ -245,6 +274,7 @@ class Articulo_MovimientoService
 						'medidas' => $medidas
 			];
 		}
+		//dd($datas);
 		return $datas;
 	}
 
@@ -259,5 +289,17 @@ class Articulo_MovimientoService
     {
 		return $this->articulo_movimientoRepository->deletePorMovimientoStockId($movimientostock_id);
     }
+
+	// Borra un registro por ID de orden de trabajo 
+	public function deletePorOrdentrabajoId($ordentrabajo_id)
+    {
+		return $this->articulo_movimientoRepository->deletePorOrdentrabajoId($ordentrabajo_id);
+    }
+
+	// Borra un registro por ID de orden de trabajo 
+	public function deletePorPedido_combinacionId($pedido_combinacion_id)
+	{
+		return $this->articulo_movimientoRepository->deletePorPedido_combinacionId($pedido_combinacion_id);
+	}
 }
 

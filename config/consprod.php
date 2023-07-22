@@ -7,8 +7,12 @@ return [
 	"TAREA_PENDIENTE_FABRICACION" => "31",
 	"TAREA_TERMINADA" => "32",
 	"TAREA_FACTURADA" => "33",
+	"TAREA_ESTADO_PRODUCCION" => "P",
 	"TAREA_ESTADO_TERMINADA" => "T",
 	"TAREA_ESTADO_FACTURADA" => "F",
+	"EMPLEADO_FERLI" => "33",
+	"OPERACION_INICIO" => "1",
+	"OPERACION_FIN" => "2",
 	"DESDE_MEDIDA" => "21",
 	"HASTA_MEDIDA" => "47",
 	"DESDE_INTERVALO1" => "16",
@@ -24,9 +28,10 @@ return [
 	"TIPOTRANSACCION_CONSUME_OT" => "4",
 	"TIPOTRANSACCION_ALTA_PRODUCCION" => "3",
 	"SECUENCIA_TAREAS" => [
-							'30' => ['1'],
+							'30' => ['1', '6'],
 							'34' => ['30'],
-							'33' => ['34', '32']
+							'33' => ['34', '32'],
+							'32' => ['34']
 						]
 	];
 

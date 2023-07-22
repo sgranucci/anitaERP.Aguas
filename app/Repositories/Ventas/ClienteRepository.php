@@ -378,6 +378,10 @@ class ClienteRepository implements ClienteRepositoryInterface
         $fecha = Carbon::now();
 		$fecha = $fecha->format('Ymd');
 
+		$nombre = preg_replace('([^A-Za-z0-9 ])', '', $request['nombre']);
+		$contacto = preg_replace('([^A-Za-z0-9 ])', '', $request['contacto']);
+		$domicilio = preg_replace('([^A-Za-z0-9 ])', '', $request['domicilio']);
+
         $data = array( 'tabla' => $this->tableAnita[0], 'acc' => 'insert',
             'campos' => ' 
 				clim_cliente,
@@ -443,9 +447,9 @@ class ClienteRepository implements ClienteRepositoryInterface
 				',
             'valores' => " 
 				'".str_pad($request['codigo'], 6, "0", STR_PAD_LEFT)."', 
-				'".$request['nombre']."',
-				'".$request['contacto']."',
-				'".$request['domicilio']."',
+				'".$nombre."',
+				'".$contacto."',
+				'".$domicilio."',
 				'".$request['desc_localidad']."',
 				'".$request['codigopostal']."',
 				'".$request['desc_provincia']."',
@@ -560,12 +564,16 @@ class ClienteRepository implements ClienteRepositoryInterface
 		else
 			$localidad_id = 0;
 
+		$nombre = preg_replace('([^A-Za-z0-9 ])', '', $request['nombre']);
+		$contacto = preg_replace('([^A-Za-z0-9 ])', '', $request['contacto']);
+		$domicilio = preg_replace('([^A-Za-z0-9 ])', '', $request['domicilio']);
+
 		$data = array( 'acc' => 'update', 'tabla' => $this->tableAnita[0], 
 				'valores' => " 
                 clim_cliente 	                = '".str_pad($request['codigo'], 6, "0", STR_PAD_LEFT)."',
-                clim_nombre 	                = '".$request['nombre']."',
-                clim_contacto 	                = '".$request['contacto']."',
-                clim_direccion 	                = '".$request['domicilio']."',
+                clim_nombre 	                = '".$nombre."',
+                clim_contacto 	                = '".$contacto."',
+                clim_direccion 	                = '".$domicilio."',
                 clim_localidad 	                = '".$request['desc_localidad']."',
                 clim_cod_postal 	            = '".$request['codigopostal']."',
                 clim_provincia 	                = '".$request['desc_provincia']."',

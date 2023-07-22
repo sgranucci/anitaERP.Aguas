@@ -35,7 +35,7 @@ class MovimientoStockController extends Controller
      */
     public function index()
     {
-        can('listar-movimientos-stock');
+        can('listar-movimientos-de-stock');
         
 		$datas = $this->movimientoStockService->all();
 		$estado_enum = $this->movimientoStockService->estadoEnum();
@@ -106,7 +106,6 @@ class MovimientoStockController extends Controller
                             $tipotransaccion_query, $movimientostock);
 
 		$tipotransacciondefault_id = cache()->get(generaKey('tipotransaccion'));
-
         return view('stock.movimientostock.editar', compact('movimientostock', 
 			'mventa_query', 'articulo_query', 'modulo_query', 
 			'listaprecio_query', 'articuloall_query', 'articuloxsku_query', 

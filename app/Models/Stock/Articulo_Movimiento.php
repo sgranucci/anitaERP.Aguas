@@ -10,7 +10,7 @@ use App\Models\Ventas\Ordentrabajo;
 
 class Articulo_Movimiento extends Model
 {
-    use SoftDeletes;
+    //use SoftDeletes;
     protected $fillable = ['fecha','fechajornada', 'tipotransaccion_id', 'venta_id', 'movimientostock_id',
                         'pedido_combinacion_id', 'ordentrabajo_id', 'lote', 'articulo_id', 'combinacion_id', 
                         'concepto', 'modulo_id', 'cantidad', 'precio', 'costo', 'listaprecio_id', 'incluyeimpuesto', 

@@ -125,9 +125,11 @@ class Ordentrabajo_TareaRepository implements Ordentrabajo_TareaRepositoryInterf
 					'ordentrabajo_tarea.tarea_id as tarea_id',
 					'tarea.nombre as nombre',
 					'ordentrabajo_tarea.hastafecha as periodo',
-					DB::raw('sum(pedido_combinacion.cantidad) as pares'))
+					'ordentrabajo_combinacion_talle.pedido_combinacion_talle_id as pedido_combinacion_talle_id',
+					DB::raw('sum(pedido_combinacion_talle.cantidad) as pares'))
 					->leftJoin('tarea', 'tarea.id', 'ordentrabajo_tarea.tarea_id')
-					->leftJoin('pedido_combinacion', 'pedido_combinacion.id', 'ordentrabajo_tarea.pedido_combinacion_id')
+					->leftJoin('ordentrabajo_combinacion_talle', 'ordentrabajo_combinacion_talle.ordentrabajo_id', 'ordentrabajo_tarea.ordentrabajo_id')
+					->leftJoin('pedido_combinacion_talle', 'pedido_combinacion_talle.id', 'ordentrabajo_combinacion_talle.pedido_combinacion_talle_id')
 					->whereBetween('ordentrabajo_tarea.hastafecha', [$desdefecha, $hastafecha])
 					->groupBy('ordentrabajo_tarea.hastafecha', 'ordentrabajo_tarea.tarea_id')
 					->orderBy('periodo');
@@ -138,9 +140,10 @@ class Ordentrabajo_TareaRepository implements Ordentrabajo_TareaRepositoryInterf
 					'tarea.nombre as nombre',
 					DB::raw("DATE_FORMAT(ordentrabajo_tarea.hastafecha,'%Y') as year"),
 					DB::raw("Week(ordentrabajo_tarea.hastafecha,'%M %Y') as periodo"),
-					DB::raw('sum(pedido_combinacion.cantidad) as pares'))
+					DB::raw('sum(pedido_combinacion_talle.cantidad) as pares'))
 					->leftJoin('tarea', 'tarea.id', 'ordentrabajo_tarea.tarea_id')
-					->leftJoin('pedido_combinacion', 'pedido_combinacion.id', 'ordentrabajo_tarea.pedido_combinacion_id')
+					->leftJoin('ordentrabajo_combinacion_talle', 'ordentrabajo_combinacion_talle.ordentrabajo_id', 'ordentrabajo_tarea.ordentrabajo_id')
+					->leftJoin('pedido_combinacion_talle', 'pedido_combinacion_talle.id', 'ordentrabajo_combinacion_talle.pedido_combinacion_talle_id')
 					->whereBetween('ordentrabajo_tarea.hastafecha', [$desdefecha, $hastafecha])
 					->groupBy('periodo', 'ordentrabajo_tarea.tarea_id')
 					->orderBy('periodo');
@@ -150,9 +153,10 @@ class Ordentrabajo_TareaRepository implements Ordentrabajo_TareaRepositoryInterf
 					'ordentrabajo_tarea.tarea_id as tarea_id',
 					'tarea.nombre as nombre',
 					DB::raw("DATE_FORMAT(ordentrabajo_tarea.hastafecha,'%M %Y') as periodo"),
-					DB::raw('sum(pedido_combinacion.cantidad) as pares'))
+					DB::raw('sum(pedido_combinacion_talle.cantidad) as pares'))
 					->leftJoin('tarea', 'tarea.id', 'ordentrabajo_tarea.tarea_id')
-					->leftJoin('pedido_combinacion', 'pedido_combinacion.id', 'ordentrabajo_tarea.pedido_combinacion_id')
+					->leftJoin('ordentrabajo_combinacion_talle', 'ordentrabajo_combinacion_talle.ordentrabajo_id', 'ordentrabajo_tarea.ordentrabajo_id')
+					->leftJoin('pedido_combinacion_talle', 'pedido_combinacion_talle.id', 'ordentrabajo_combinacion_talle.pedido_combinacion_talle_id')
 					->whereBetween('ordentrabajo_tarea.hastafecha', [$desdefecha, $hastafecha])
 					->groupBy('periodo', 'ordentrabajo_tarea.tarea_id')
 					->orderBy('periodo');

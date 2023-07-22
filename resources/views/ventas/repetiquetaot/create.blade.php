@@ -12,15 +12,45 @@
 @section("scripts")
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+<script src="{{asset("assets/pages/scripts/configuracion/salida.js")}}" type="text/javascript"></script>
 
 <script>
-jQuery(document).ready(function($){
-    $(document).ready(function() {
-        $('.mi-selector').select2();
-    });
-});
-$("#ordenestrabajo").focus();
+    $(function () {
+        imprimirSalida();
 
+        $('#tipoetiqueta').on('change', function (event) {
+			event.preventDefault();
+            imprimirSalida();
+        });
+    });
+
+    jQuery(document).ready(function($){
+        $(document).ready(function() {
+            $('.mi-selector').select2();
+        });
+    });
+    $("#ordenestrabajo").focus();
+
+    function configurarSalida()
+    {
+        var programa = $("#tipoetiqueta").val();
+        var url = "{{ route('configurar_salida', ['programa' => ':programa']) }}";
+
+        url = url.replace(':programa', programa);
+        location.href = url;
+    }
+
+    function imprimirSalida()
+    {
+        // manejo de configuracion del listado
+        var programa = $("#tipoetiqueta").val();
+
+        buscarSalida(programa);
+
+        setTimeout(() => {
+            $("#nombresalida").text(" - Imprime en: "+nombreSalida);
+        }, 300);
+    }
 </script>
 
 @endsection
@@ -33,9 +63,16 @@ $("#ordenestrabajo").focus();
         <div class="card card-danger">
             <div class="card-header">
                 <h3 class="card-title">Datos Emisi&oacuten de etiquetas OT</h3>
+                <h3 class="card-title" id="nombresalida" style="color:black;"></h3>
                 <div class="card-tools">
+                    <a href="#" onclick="configurarSalida()" class="btn btn-outline-info btn-sm">
+                        <i class="fa fa-fw fa-cog"></i> Configura salida
+                    </a>
                     <a href="{{route('genera_zpl')}}" class="btn btn-outline-info btn-sm">
                         <i class="fa fa-fw fa-reply-all"></i> Genera Foto para Etiqueta
+                    </a>
+                    <a href="{{route('generaetiquetaprueba')}}" class="btn btn-outline-info btn-sm">
+                        <i class="fa fa-fw fa-reply-all"></i> Genera Etiqueta Prueba
                     </a>
             	</div>
             </div>

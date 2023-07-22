@@ -116,6 +116,9 @@ class PedidoController extends Controller
 					case 'E':
 						$datas = $this->pedidoService->leePedidosPorEstado($cliente_id, 'E');
 						break;
+					case 'A':
+						$datas = $this->pedidoService->leePedidosPorEstado($cliente_id, 'A');
+						break;
 					}
 				}
 				else
@@ -168,13 +171,20 @@ class PedidoController extends Controller
     public function indexReportePedido()
     {
 		$vendedor_query = Vendedor::all();
+		$vendedor_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
+		$vendedor_query->push((object) ['id'=>'999999','nombre'=>'Ultimo']);
 
 		$tipolistado_enum = [
 			'ABRE' => 'Abre items de pedidos',
 			'TOTAL' => 'Totales de pedidos'
 		];
 
-        return view('ventas.reppedido.crear', compact('vendedor_query', 'tipolistado_enum'));
+		$origen_enum = [
+			'ANITA' => 'Lee datos en ANITA',
+			'ERP' => 'Lee datos en ANITA ERP'
+		];
+
+        return view('ventas.reppedido.crear', compact('vendedor_query', 'tipolistado_enum', 'origen_enum'));
     }
 
     public function crearReportePedido(Request $request)
@@ -191,7 +201,10 @@ class PedidoController extends Controller
 			$extension = "csv";
 			break;
 		}
-		return (new PedidoExport)->rangoFecha($request->desdefecha, $request->hastafecha)->asignaVendedor($request->vendedor_id)->asignaTipoListado($request->tipolistado)->download('pedido.'.$extension);
+		return (new PedidoExport($this->pedidoService))->rangoFecha($request->desdefecha, $request->hastafecha)
+								->asignaRangoVendedor($request->desdevendedor_id, $request->hastavendedor_id)
+								->asignaTipoListado($request->tipolistado, $request->origen)
+								->download('pedido.'.$extension);
     }
 
 	// Reporte total de pedidos por vendedor
@@ -201,7 +214,12 @@ class PedidoController extends Controller
 		$vendedor_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
 		$vendedor_query->push((object) ['id'=>'999999','nombre'=>'Ultimo']);
 
-        return view('ventas.reptotalpedido.crear', compact('vendedor_query'));
+		$origen_enum = [
+			'ANITA' => 'Lee datos en ANITA',
+			'ERP' => 'Lee datos en ANITA ERP'
+		];
+		
+        return view('ventas.reptotalpedido.crear', compact('vendedor_query', 'origen_enum'));
     }
 
     public function crearReporteTotalPedido(Request $request)
@@ -258,7 +276,7 @@ class PedidoController extends Controller
 								->get();
 		$articulo_query->prepend((object) ['id'=>'0','descripcion'=>'Primero']);
 		$articulo_query->push((object) ['id'=>'99999999','descripcion'=>'Ultimo']);
-		$linea_query = Linea::all();
+		$linea_query = Linea::orderBy('nombre')->get();
 		$linea_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
 		$linea_query->push((object) ['id'=>'99999999','nombre'=>'Ultimo']);
 		$fondo_query = Fondo::select('id', 'nombre')->get();

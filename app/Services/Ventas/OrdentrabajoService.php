@@ -131,7 +131,7 @@ class OrdentrabajoService
 		else 
 			$ids = $id_items;
 
-		$flBoletasJuntas = true;
+		$flBoletasJuntas = false;
 		if (count($ids) > 1)
 			$flBoletasJuntas = true;
 
@@ -163,7 +163,6 @@ class OrdentrabajoService
 			{
 				// Lee el articulo para sacar todos los datos para Anita
 				$pedido_combinacion = $this->pedido_combinacionRepository->find($ids[$i]);
-				
 				if ($pedido_combinacion)
 				{
 					// Agrega info para Anita
@@ -171,9 +170,6 @@ class OrdentrabajoService
 					$nro_item = $pedido_combinacion->numeroitem;
 					if ($funcion == 'create')
 					{
-						if ($i == 0)
-							$this->ordentrabajoRepository->ultimoCodigoAnita($nro_orden);
-
 						if ($checkOtStock == 'on') 
 							$estado = array_search('Terminada', OrdenTrabajo::$enumEstado);
 						else
@@ -277,12 +273,25 @@ class OrdentrabajoService
 					if ($i == 0) 
 					{
 						if ($funcion == 'create')
+						{
 							// Guarda maestro de orden de trabajo 
 							$ordentrabajo = $this->ordentrabajoRepository->create($data);
+
+							// Actualiza el codigo con el id
+							$id_ot = $ordentrabajo->id;
+							$ordentrabajo = $this->ordentrabajoRepository->update(['codigo' => $id_ot], $id_ot);
+						}
 						else
+						{
 							$ordentrabajo = $this->ordentrabajoRepository->update($data, $id);
 
-						$id_ot = $ordentrabajo->id;
+							$id_ot = $id;
+						}
+						$ordentrabajo = $this->ordentrabajoRepository->find($id_ot);
+
+						if($ordentrabajo)
+							$nro_orden = $ordentrabajo->codigo;
+						
 						$fl_graba_ot = true;
 					}
 					else
@@ -378,6 +387,7 @@ class OrdentrabajoService
 								$pedido_combinacion = $this->pedido_combinacionRepository->find($ids[$i]);
 
 								// Graba tarea inicial
+								$data['ordentrabajo_id'] = $ordentrabajo_id;
 								$data['tarea_id'] = config("consprod.TAREA_PENDIENTE_FABRICACION"); 
 								$data['desdefecha'] = Carbon::now();
 								$data['hastafecha'] = Carbon::now();
@@ -432,7 +442,7 @@ class OrdentrabajoService
 			return $e->getMessage();
 		}
 		
-		return ['id'=>$ordentrabajo_id, 'nro_orden'=>$data['nro_orden']];
+		return ['id'=>$ordentrabajo_id, 'nro_orden'=>$ordentrabajo_id];
 	}
 
 	public function borraOrdenTrabajo($id)
@@ -525,117 +535,121 @@ class OrdentrabajoService
 	    		$ot = $this->ordentrabajoQuery->traeOrdentrabajoPorId($id);
 			else
 				$ot = $this->ordentrabajoQuery->traeOrdentrabajoPorIdERP($id);
-			$buff = [];
-			$buff[] = " ";
-			$buff[] = " ";
-			$buff[] = "Nro. O.T.: ".$ot[0]->ordtm_nro_orden;
 
-			if ($etiqueta == "")
-				$etiqueta = "\nN\n";
-
-			for ($i = 0; $i < count($buff); $i++)
+			if (isset($ot[0]))
 			{
-		  		$salida = sprintf("%-43.43s%-43.43s", $buff[$i], " ");
-          		$etiqueta .= "A30,".$pos[$i].",0,1,1,2,N,\"".$salida."\"\n";
-		  	}
-	
-			$etiqueta .= "P1\n";
+				$buff = [];
+				$buff[] = " ";
+				$buff[] = " ";
+				$buff[] = "Nro. O.T.: ".$ot[0]->ordtm_nro_orden;
 
-			$buffpar = [];
-			$buffimpar = [];
-			$fl_par = true;
-			foreach($ot as $item)
-			{
-				// Gira por cada unidad en funcion de la cantidad del item
-			  	$fl_imprimio = false;
-				for ($unidad = 0; $unidad < $item->ordtv_cantidad; $unidad++)
+				if ($etiqueta == "")
+					$etiqueta = "\nN\n";
+
+				for ($i = 0; $i < count($buff); $i++)
 				{
-					// Lee articulo
-			 		$articulo = Articulo::where('sku', ltrim($item->ordtv_articulo, '0'))->first();
-
-					$buff = [];
-					if ($articulo)
-					{
-				  		$combinacion = Combinacion::where('articulo_id', $articulo->id)
-												->where('codigo', $item->ordtm_capellada)
-												->first();
-	
-						if ($combinacion)
-						{
-							$empresa = Empresa::where('codigo',1)->first();
-	
-							if ($empresa)
-							{
-						  		$buff[] = $empresa->nombre;
-								$buff[] = "C.U.I.T. ".$empresa->nroinscripcion;
-							}
-							else
-							{
-						  		$buff[] = "EMPRESA";
-						  		$buff[] = "CUIT";
-							}
-
-							if ($articulo->material_id)
-							{
-								$material = Material::findorFail($articulo->material_id);
-								if ($material)
-								{
-									$buff[] = "CAPELLADA ".$material->nombre;
-								}
-							}
-							
-							$linea = Linea::find($articulo->linea_id);
-							$forro = Forro::find($articulo->forro_id);
-							if ($linea && $forro)
-						  		$buff[] = "FONDO ".$linea->nombre." FORRO ".substr($forro->nombre,0,6);
-	
-							$buff[] = "ARTICULO ".$articulo->sku;
-							$buff[] = "FERLI (MR)-MADE IN ARGENTINA";
-						}
-					}
-
-					$fl_imprimo = false;
-					if ($fl_par)
-					{
-					  	for ($i = 0; $i < count($buff); $i++)
-					  		$buffpar[] = $buff[$i];
-
-						$fl_par = false;
-					}
-				  	else
-					{
-					  	for ($i = 0; $i < count($buff); $i++)
-					  		$buffimpar[] = $buff[$i];
-
-						if ($etiqueta == "")
-							$etiqueta = "\nN\n";
-	
-						for ($i = 0; $i < count($buffpar); $i++)
-						{
-				  			$salida = sprintf("%-43.43s%-43.43s", $buffpar[$i], $buffimpar[$i]);
-            				$etiqueta .= "A30,".$pos[$i].",0,1,1,2,N,\"".$salida."\"\n";
-				  		}
-	
-						$etiqueta .= "P1\n";
-						$fl_imprimo = true;
-						$fl_par = true;
-						$buffpar = [];
-						$buffimpar = [];
-					}
-					
-			  	}
-			}
-			if (!$fl_imprimio)
-			{
-				for ($i = 0; $i < count($buffpar); $i++)
-				{
-			  		$salida = sprintf("%-43.43s%-43.43s", $buffpar[$i], " ");
-            		$etiqueta .= "A30,".$pos[$i].",0,1,1,2,N,\"".$salida."\"\n";
-			  	}
+					$salida = sprintf("%-43.43s%-43.43s", $buff[$i], " ");
+					$etiqueta .= "A30,".$pos[$i].",0,1,1,2,N,\"".$salida."\"\n";
+				}
+		
 				$etiqueta .= "P1\n";
 
 				$buffpar = [];
 				$buffimpar = [];
+				$fl_par = true;
+				foreach($ot as $item)
+				{
+					// Gira por cada unidad en funcion de la cantidad del item
+					$fl_imprimio = false;
+					for ($unidad = 0; $unidad < $item->ordtv_cantidad; $unidad++)
+					{
+						// Lee articulo
+						$articulo = Articulo::where('sku', ltrim($item->ordtv_articulo, '0'))->first();
+
+						$buff = [];
+						if ($articulo)
+						{
+							$combinacion = Combinacion::where('articulo_id', $articulo->id)
+													->where('codigo', $item->ordtm_capellada)
+													->first();
+		
+							if ($combinacion)
+							{
+								$empresa = Empresa::where('codigo',1)->first();
+		
+								if ($empresa)
+								{
+									$buff[] = $empresa->nombre;
+									$buff[] = "C.U.I.T. ".$empresa->nroinscripcion;
+								}
+								else
+								{
+									$buff[] = "EMPRESA";
+									$buff[] = "CUIT";
+								}
+
+								if ($articulo->material_id)
+								{
+									$material = Material::findorFail($articulo->material_id);
+									if ($material)
+									{
+										$buff[] = "CAPELLADA ".$material->nombre;
+									}
+								}
+								
+								$linea = Linea::find($articulo->linea_id);
+								$forro = Forro::find($articulo->forro_id);
+								if ($linea && $forro)
+									$buff[] = "FONDO ".$linea->nombre." FORRO ".substr($forro->nombre,0,6);
+		
+								$buff[] = "ARTICULO ".$articulo->sku;
+								$buff[] = "FERLI (MR)-MADE IN ARGENTINA";
+							}
+						}
+
+						$fl_imprimo = false;
+						if ($fl_par)
+						{
+							for ($i = 0; $i < count($buff); $i++)
+								$buffpar[] = $buff[$i];
+
+							$fl_par = false;
+						}
+						else
+						{
+							for ($i = 0; $i < count($buff); $i++)
+								$buffimpar[] = $buff[$i];
+
+							if ($etiqueta == "")
+								$etiqueta = "\nN\n";
+		
+							for ($i = 0; $i < count($buffpar); $i++)
+							{
+								$salida = sprintf("%-43.43s%-43.43s", $buffpar[$i], $buffimpar[$i]);
+								$etiqueta .= "A30,".$pos[$i].",0,1,1,2,N,\"".$salida."\"\n";
+							}
+		
+							$etiqueta .= "P1\n";
+							$fl_imprimo = true;
+							$fl_par = true;
+							$buffpar = [];
+							$buffimpar = [];
+						}
+						
+					}
+				}
+				if (!$fl_imprimio)
+				{
+					for ($i = 0; $i < count($buffpar); $i++)
+					{
+						$salida = sprintf("%-43.43s%-43.43s", $buffpar[$i], " ");
+						$etiqueta .= "A30,".$pos[$i].",0,1,1,2,N,\"".$salida."\"\n";
+					}
+					$etiqueta .= "P1\n";
+
+					$buffpar = [];
+					$buffimpar = [];
+				}
 			}
 		}
 		Storage::disk('local')->put($nombreEtiqueta, $etiqueta);
@@ -1020,6 +1034,7 @@ class OrdentrabajoService
 
 		$reporte = "";
 		$nroPosicionOt = 0;
+		$nombreQR = '';
 		foreach($ordenes as $codigo)
 		{
     		$ot = $this->ordentrabajoQuery->leeOrdenTrabajoPorCodigo($codigo);
@@ -1027,6 +1042,7 @@ class OrdentrabajoService
 			$mventa = 0;
 			$observacion = '';
 			$leyendaPedido = '';
+			$leyenda = '';
 			if ($ot)
 			{
 				// Lee articulo
@@ -1040,7 +1056,6 @@ class OrdentrabajoService
 				$totPares = 0;
 				$medidas = [];
 				$pedidos = [];
-
 				foreach($ot->ordentrabajo_combinacion_talles as $item)
 				{
 					// lee el talle 
@@ -1064,13 +1079,11 @@ class OrdentrabajoService
 					}
 					$totPares += $item->pedido_combinacion_talles->cantidad;
 
-					if (!in_array($item->pedido_combinacion_talles->pedidos_combinacion->pedidos->id, $pedidos))
-						$pedidos[] = $item->pedido_combinacion_talles->pedidos_combinacion->pedidos->id;
-
+					if (!in_array($item->pedido_combinacion_talles->pedidos_combinacion->pedido_id, $pedidos))
+						$pedidos[] = $item->pedido_combinacion_talles->pedidos_combinacion->pedido_id;
 					$observacion = $item->pedido_combinacion_talles->pedidos_combinacion->observacion;
 					$leyendaPedido = $item->pedido_combinacion_talles->pedidos_combinacion->pedidos->leyenda;
 				}
-
 				// Lee combinacion 
 				$combinacion = Combinacion::find($ot->ordentrabajo_combinacion_talles[0]->pedido_combinacion_talles->pedido_combinaciones->combinacion_id);
 
@@ -1242,8 +1255,19 @@ class OrdentrabajoService
 			$leyenda .= " ".$observacion." ".$leyendaPedido;
 
 			// Genera QR
-			$nombreQR = 'ot-'.$ot->codigo.'.svg';
-			QrCode::size(400)->generate((string) $ot->codigo, $nombreQR);
+			if ($data['tipoemision'] != 'COMPLETA')
+			{
+				if ($nombreQR != '')
+					$nombreQR .= ';';
+
+				$nombreQR .= 'ot-'.$codigo.'.svg';
+				QrCode::size(400)->generate((string) $codigo, $nombreQR);
+			}
+			else
+			{
+				$nombreQR = 'ot-'.$codigo.'.svg';
+				QrCode::size(400)->generate((string) $codigo, $nombreQR);
+			}
 
 			$nroPosicionOt++;
 			for ($copia = 1; $copia <= $copias; $copia++)
@@ -1315,22 +1339,25 @@ class OrdentrabajoService
 				$cliStr = "";
 				$pos = 0;
 
-				for ($i = 0; $i < count($clientes); $i++)
+				if (isset($clientes))
 				{
-					if (strlen($cliStr.$clientes[$i]) > 60 && $pos < 3)
+					for ($i = 0; $i < count($clientes); $i++)
 					{
-						$reporte .= $d_cli[$pos].'{'.$cliStr.'}'."\n";
-						$cliStr = "";
-						$pos++;
+						if (strlen($cliStr.$clientes[$i]) > 60 && $pos < 3)
+						{
+							$reporte .= $d_cli[$pos].'{'.$cliStr.'}'."\n";
+							$cliStr = "";
+							$pos++;
+						}
+
+						if ($i > 0 && $cliStr != "")
+							$cliStr .= '/';
+
+						if (count($clientes) > 1)
+							$cliStr .= substr($clientes[$i], 0, 15);
+						else
+							$cliStr .= $clientes[$i];
 					}
-
-					if ($i > 0 && $cliStr != "")
-						$cliStr .= '/';
-
-					if (count($clientes) > 1)
-						$cliStr .= substr($clientes[$i], 0, 15);
-					else
-						$cliStr .= $clientes[$i];
 				}
 
 				// Imprime linea faltante
@@ -1368,22 +1395,25 @@ class OrdentrabajoService
 				$cliStr = "";
 				$pos = 0;
 
-				for ($i = 0; $i < count($clientes); $i++)
+				if (isset($clientes))
 				{
-					if (strlen($cliStr.$clientes[$i]) > 80 && $pos < 5)
+					for ($i = 0; $i < count($clientes); $i++)
 					{
-						$reporte .= $d_cli[$pos].'{'.$cliStr.'}'."\n";
-						$cliStr = "";
-						$pos++;
+						if (strlen($cliStr.$clientes[$i]) > 80 && $pos < 5)
+						{
+							$reporte .= $d_cli[$pos].'{'.$cliStr.'}'."\n";
+							$cliStr = "";
+							$pos++;
+						}
+
+						if ($i > 0 && $cliStr != "")
+							$cliStr .= '/';
+
+						if (count($clientes) > 1)
+							$cliStr .= substr($clientes[$i], 0, 15);
+						else
+							$cliStr .= $clientes[$i];
 					}
-
-					if ($i > 0 && $cliStr != "")
-						$cliStr .= '/';
-
-					if (count($clientes) > 1)
-						$cliStr .= substr($clientes[$i], 0, 15);
-					else
-						$cliStr .= $clientes[$i];
 				}
 
 				// Imprime linea faltante
@@ -1650,16 +1680,18 @@ class OrdentrabajoService
 						{
 							if ($numeracion == 'CHICO')
 							{
-								$d_med = "tag @".chr(97+$ii-config('consprod.HASTA_INTERVALO1')).sprintf("%01d", $posicion)."@ ";
-								$reporte .= $d_med.'{'.' '.'}'."\n";
-								$d_med = "tag @".sprintf("%02d", $ii).chr(97+$posicion-1)."@ ";
-								$reporte .= $d_med.'{'.' '.'}'."\n";
-								$d_med = "tag @".sprintf("%01d", $ii)."@ ";
-								$reporte .= $d_med.'{'.' '.'}'."\n";
-
 								if ($data['tipoemision'] != 'COMPLETA')
 								{
-									$d_med = "tag @".chr(97+$ii-config('consprod.HASTA_INTERVALO1')).$nroPosicionOt."@ ";
+									$d_med = "tag @".chr(97+$ii-config('consprod.DESDE_INTERVALO1')).$nroPosicionOt."@ ";
+									$reporte .= $d_med.'{'.' '.'}'."\n";
+								}
+								else
+								{
+									$d_med = "tag @".chr(97+$ii-config('consprod.HASTA_INTERVALO1')).sprintf("%01d", $posicion)."@ ";
+									$reporte .= $d_med.'{'.' '.'}'."\n";
+									$d_med = "tag @".sprintf("%02d", $ii).chr(97+$posicion-1)."@ ";
+									$reporte .= $d_med.'{'.' '.'}'."\n";
+									$d_med = "tag @".sprintf("%01d", $ii)."@ ";
 									$reporte .= $d_med.'{'.' '.'}'."\n";
 								}
 							}
@@ -1682,16 +1714,93 @@ class OrdentrabajoService
 					}
 				}
 			}
+			if ($data['tipoemision'] != 'COMPLETA')
+				$this->imprimeOtEnBlanco($reporte, $numeracion, $nroPosicionOt);
+
 			$reporte .= "printform\n";
+			if ($data['tipoemision'] != 'COMPLETA')
+			{
+				// $nombreQR .= $nombreQR . ';STOCK';
+			}
+			//dd($reporte);
 			$this->listaOt($reporte, $nombreQR);
 		}
 
         return redirect()->back()->with('status','Las ordenes seleccionadas no existen');
     }
 
-	private function imprimeOtEnBlanco($nroPosicionOt)
+	private function imprimeOtEnBlanco(&$reporte, $numeracion, $nroPosicionOt)
 	{
+		for ($copia = $nroPosicionOt+1; $copia <= 4; $copia++)
+		{
+			$d_copia = "tag @titulo_copia".'11'.$copia."---------------@";
+			$reporte .= $d_copia.' {'.' '.'}'."\n";
 
+			// Imprime clientes
+			$d_cli[0] = "tag @cliente".$copia."----------------------------------------------------@ ";
+			$d_cli[1] = "tag @cliente1".$copia."---------------------------------------------------@ ";
+			$d_cli[2] = "tag @cliente2".$copia."-------------------------------------------------------------------------@ ";
+			
+			$reporte .= $d_cli[0].'{'.' '.'}'."\n";
+			$reporte .= $d_cli[1].'{'.' '.'}'."\n";
+			$reporte .= $d_cli[2].'{'.' '.'}'."\n";
+
+			// Imprime localidad
+			$d_loc = "tag @localidad".$copia."----------@ ";
+			$reporte .= $d_loc.'{  }'."\n";
+
+			// Imprime pares
+			$d_pares = "tag @pares".$copia."@ ";
+			$reporte .= $d_pares.'{ }'."\n";
+
+			$d_vendedor = "tag @vendedor".$copia."---------------------@ ";
+			$reporte .= $d_vendedor.'{'.' '.'}'."\n";
+				
+			$d_obs[0] = "tag @obs1".$copia."-------------------------@ ";
+			$d_obs[1] = "tag @obs2".$copia."-------------------------@ ";
+			$d_obs[2] = "tag @obs3".$copia."-------------------------@ ";
+			$d_obs[3] = "tag @obs4".$copia."-------------------------@ ";
+
+			$reporte .= $d_obs[0].'{'.' '.'}'."\n";
+			$reporte .= $d_obs[1].'{'.' '.'}'."\n";
+			$reporte .= $d_obs[2].'{'.' '.'}'."\n";
+			$reporte .= $d_obs[3].'{'.' '.'}'."\n";
+
+			$d_cod_art = "tag @art".$copia."----@ ";
+			$reporte .= $d_cod_art.'{ }'."\n";
+
+			$d_cod_art = "tag @Cod.Art.:-cod_art".$copia."@ ";
+			$reporte .= $d_cod_art.'{ }'."\n";
+			$d_combinacion = "tag @combinacion".$copia."------------------------------------------------@ ";
+			$reporte .= $d_combinacion.'{ }'."\n";
+			$d_fondo = "tag @fondo".$copia."------------------------------------------------------@ ";
+			$reporte .= $d_fondo.'{ }'."\n";
+
+			$d_forradobase = "tag @forrado_base".$copia."-----------------------------------------------@ ";
+			$reporte .= $d_forradobase.'{'.' '.'}'."\n";			
+			
+			$d_pedido = "tag @pedido".$copia."---------------------------------@ ";
+			$reporte .= $d_pedido.'{'.' '.'}'."\n";
+			$d_nro_ot = "tag @nro_ot".$copia."-@ ";
+			$reporte .= $d_nro_ot.'{'.' '.'}'."\n";
+			$d_fecha = "tag @fecha".$copia."--@ ";
+			$reporte .= $d_fecha.'{'.' '.'}'."\n";
+
+			/* Busca si existe medida */
+			for ($ii = config('consprod.DESDE_INTERVALO1'); $ii <= config('consprod.HASTA_INTERVALO4'); $ii++)
+			{
+				if ($numeracion == 'CHICO')
+				{
+					$d_med = "tag @".chr(97+$ii-config('consprod.DESDE_INTERVALO1')).$copia."@ ";
+					$reporte .= $d_med.'{'.' '.'}'."\n";
+				}
+				else
+				{
+					$d_med = "tag @".chr(97+$ii-config('consprod.HASTA_MEDIDA_CHICO')).$copia."@ ";
+					$reporte .= $d_med.'{'.' '.'}'."\n";									
+				}
+			}
+		}
 	}
 
 	private function DefineFormulario($tipoemision, $copia, $flImpOtAsociadas, $marca, &$formulario)
@@ -1913,12 +2022,12 @@ class OrdentrabajoService
 		Storage::disk('local')->put($nombreReporte, $reporte);
 		$path = Storage::path($nombreReporte);
 
-		$cmd = "./bin/imp_otr ".$path." ".$nombreQR." hp-diego";
+		//$cmd = "./bin/imp_otr ".$path." ".$nombreQR." hp-diego";
 
-		//$usuario_id = Auth::user()->id;
-        //$seteosalida = $this->seteoSalidaRepository->buscaSeteo($usuario_id, "");
+		$usuario_id = Auth::user()->id;
+        $seteosalida = $this->seteoSalidaRepository->buscaSeteo($usuario_id, "");
 
-		//$cmd = sprintf($seteosalida->salidas->comando, $path, $nombreQR);
+		$cmd = sprintf($seteosalida->salidas->comando, $path, $nombreQR);
 		//system($comando);
 
 		$process = new Process($cmd);
@@ -1935,7 +2044,8 @@ class OrdentrabajoService
 
 	public function generaDatosRepEstadoOt($desdefecha, $hastafecha, $ordenestrabajo)
 	{
-		$data = $this->ordentrabajo_tareaRepository->findPorRangoFecha($desdefecha, $hastafecha, $ordenestrabajo);
+		//$data = $this->ordentrabajo_tareaRepository->findPorRangoFecha($desdefecha, $hastafecha, $ordenestrabajo);
+		$data = $this->ordentrabajo_tareaRepository->findReporteEstadoOt($desdefecha, $hastafecha, $ordenestrabajo);
 		$tareas = $this->tareaRepository->all();
 
 		return(['data' => $data, 'tareas' => $tareas]);
@@ -1947,7 +2057,6 @@ class OrdentrabajoService
 	{
 		$data = $this->ordentrabajo_tareaRepository->agrupaPorFechaTarea($desdefecha, $hastafecha, $apertura, $ordenestrabajo);
 		$tareas = $this->tareaRepository->all();
-		
 		return(['data' => $data, 'tareas' => $tareas]);
 	}
 
@@ -1960,11 +2069,12 @@ class OrdentrabajoService
 													$desdearticulo, $hastaarticulo,
 													$desdeempleado_id, $hastaempleado_id)
 	{
-		$data = $this->ordentrabajo_tareaRepository->findTareaPorRangos($desdefecha, $hastafecha,
+		$data = $this->ordentrabajo_tareaRepository->findTareaPorRangos($estadoot, $desdefecha, $hastafecha,
 																	$desdetarea_id, $hastatarea_id,
 																	$desdecliente_id, $hastacliente_id,
 																	$desdearticulo, $hastaarticulo,
 																	$desdeempleado_id, $hastaempleado_id);
+
 		return ($data);
 	}		
 
@@ -1972,6 +2082,9 @@ class OrdentrabajoService
 
 	public function generaDatosRepConsumoOt($desdefecha, $hastafecha, $ordenestrabajo)
 	{
+		ini_set('memory_limit', '512M');
+        ini_set('max_execution_time', '2400');
+		
 		$data = $this->ordentrabajoQuery->findConsumoOt($desdefecha, $hastafecha, $ordenestrabajo);
 
 		$dataCapellada = [];
@@ -2170,6 +2283,8 @@ class OrdentrabajoService
 				$reporte .= "Consumo: ".$caja[$i]['consumo']." Medidas: ".$caja[$i]['desdenumero']." ".$caja[$i]['hastanumero']."\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 			}
 		}
+		$reporte .= "- - - - - - - - - - - - - - - - - - - - - - - -\n";
+
 		Storage::disk('local')->put($nombreReporte, $reporte);
 		$path = Storage::path($nombreReporte);
 		system("lp -darmado ".$path." 1>&2 2>/dev/null");
@@ -2215,8 +2330,18 @@ class OrdentrabajoService
 	}
 
 	// Controla estado de la orden de trabajo
+	public function buscaTareaOt($id, $tarea_id)
+	{
+		$ret = 0;
+		$tarea = $this->ordentrabajo_tareaRepository->findPorOrdentrabajoId($id, $tarea_id);
 
-	public function otFacturada($codigoOt, $id)
+		if (count($tarea) > 0)
+			$ret = 1;
+
+		return $ret;
+	}
+
+	public function otFacturada($codigoOt, $id, $pedido_combinacion_id = null)
 	{
 		if ($id != null)
 			$ordentrabajo = $this->ordentrabajoQuery->leeOrdenTrabajo($id);
@@ -2226,37 +2351,47 @@ class OrdentrabajoService
 		$secuenciaTareas = config("consprod.SECUENCIA_TAREAS");
 
 		$numeroFactura = '-1';
+		$flTareaTerminada = false;
 		if ($ordentrabajo)
 		{
 			foreach ($ordentrabajo->ordentrabajo_tareas as $tareaOt)
 			{
-				if ($tareaOt->tarea_id == config("consprod.TAREA_FACTURADA"))
+				if ($pedido_combinacion_id ? $tareaOt->pedido_combinacion_id == $pedido_combinacion_id || $tareaOt->pedido_combinacion_id == null : true)
 				{
-					if ($tareaOt->venta_id != null)
-					{
-						$venta = $this->ventaRepository->find($tareaOt->venta_id);
+					if ($tareaOt->tarea_id == config("consprod.TAREA_TERMINADA") || $tareaOt->tarea_id == config("consprod.TAREA_EMPAQUE"))
+						$flTareaTerminada = true;
 
-						if ($venta)
-							$numeroFactura = $venta->codigo;
-					}
-				}
-				if ($numeroFactura == -1)
-				{
-					$flExiste = false;
-					foreach($secuenciaTareas[config("consprod.TAREA_FACTURADA")] as $secuencia)
+					if ($tareaOt->tarea_id == config("consprod.TAREA_FACTURADA"))
 					{
-						if ($secuencia == $tareaOt->tarea_id)
+						if ($tareaOt->venta_id != null)
 						{
-							// Si no termino la tarea es error igual
-							if ($tareaOt->hastafecha != null)
-								$flExiste = true;
+							$venta = $this->ventaRepository->find($tareaOt->venta_id);
+
+							if ($venta)
+								$numeroFactura = $venta->codigo;
 						}
 					}
-					if (!$flExiste)
-						$numeroFactura = -2;
+					if ($numeroFactura == -1)
+					{
+						$flExiste = false;
+						foreach($secuenciaTareas[config("consprod.TAREA_FACTURADA")] as $secuencia)
+						{
+							if ($secuencia == $tareaOt->tarea_id)
+							{
+								// Si no termino la tarea es error igual
+								if ($tareaOt->hastafecha != null)
+									$flExiste = true;
+							}
+						}
+						if (!$flExiste)
+							$numeroFactura = -2;
+					}
 				}
 			}
 		}
+		if (!$flTareaTerminada)
+			return ['numerofactura' => -3];
+
 		return ['numerofactura' => $numeroFactura];
 	}
 

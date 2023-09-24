@@ -1,5 +1,9 @@
 <h2> EWO - Pivot Fibonacci - VMA - CCI - XTL {{$especie}} </h2>
-<h3> Desde: {{date('d-m-Y', ceil($desdefecha/1000))}} {{$desdehora}} hasta: {{date('d-m-Y', ceil($hastafecha/1000))}} {{$hastahora}} </h3>
+@if ($administracionposicion == 'B')
+	<h3> Desde: {{date('d-m-Y', ceil($desdefecha/1000))}} {{$desdehora}} hasta: {{date('d-m-Y', ceil($hastafecha/1000))}} {{$hastahora}} Administración: Con filtro de tiempo de {{$tiempo}} minutos</h3>
+@else
+	<h3> Desde: {{date('d-m-Y', ceil($desdefecha/1000))}} {{$desdehora}} hasta: {{date('d-m-Y', ceil($hastafecha/1000))}} {{$hastahora}} Administración: Sin filtro de tiempo</h3>
+@endif
 <h3> Compresi&oacute;n: {{$compresiontxt}} MM Corta: {{$mmcorta}} MM Larga: {{$mmlarga}} Calculo Base: {{$calculobasetxt}} Largo Periodo VMA {{$largovma}} Largo Periodo CCI: {{$largocci}} Largo Periodo XTL: {{$largoxtl}} Umbral XTL: {{$umbralxtl}} SwingSize: {{$swingsize}} Cantidad Contratos: {{$cantidadcontratos}}</h3>
 <table> 
 	<thead>
@@ -32,8 +36,11 @@
 		<th>SFE (Int)</th>
 		<th>SFE (Ext)</th>
 		<th>SF Lim</th>
-		<th>VMA</th>
-		<th>CCI</th>
+		<th>CCIA TRadj</th>
+		<th>obb</th>
+		<th>osb</th>
+		<th>Reg.de volatilidad</th>
+		<th>INERTIA</th>
 		<th>Precio tipico</th>
 		<th>Estado</th>
 		<th>TQR Verde</th>
@@ -109,8 +116,11 @@
 			<td align="right">{{number_format(floatval($data['sfeInt']), 2, ",", ".")}}</td>
 			<td align="right">{{number_format(floatval($data['sfeExt']), 2, ",", ".")}}</td>
 			<td align="right">{{number_format(floatval($data['sfLim']), 2, ",", ".")}}</td>
-			<td align="right">{{number_format(floatval($data['VMA']), 4, ",", ".")}}</td>
-			<td align="right">{{number_format(floatval($data['CCI']), 4, ",", ".")}}</td>
+			<td align="right">{{number_format(floatval($data['cciaTRadj']), 3, ",", ".")}}</td>
+			<td align="right">{{number_format(floatval($data['obb']), 0, ",", ".")}}</td>
+			<td align="right">{{number_format(floatval($data['osb']), 0, ",", ".")}}</td>
+			<td align="right">{{number_format(floatval($data['regimenVolatilidad']), 0, ",", ".")}}</td>
+			<td align="right">{{number_format(floatval($data['inertia']), 9, ",", ".")}}</td>
 			<td align="right">{{number_format(floatval($data['precioTipico']), 4, ",", ".")}}</td>
 			<td align="right">{{$data['estado']}}</td>
 			<td align="right">{{number_format(floatval($data['TQRVerde']), 4, ",", ".")}}</td>

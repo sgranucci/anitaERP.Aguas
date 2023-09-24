@@ -1,5 +1,5 @@
-<h2> Reporte de Programaci&oacute;n de armado </h2>
-<h1><strong>Ordenes de trabajo: {{$ordenestrabajo ?? '- - -'}}</strong></h1>
+<h2> Reporte de Programaci&oacute;n de armado</h2>
+<h1><strong>Fecha {{ date("d/m/Y", strtotime($fecha)) }}</strong></h1>
 <table>
 	<thead>
     <tr>

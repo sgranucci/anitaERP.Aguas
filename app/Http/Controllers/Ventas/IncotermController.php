@@ -81,6 +81,7 @@ class IncotermController extends Controller
     public function actualizar(ValidacionIncoterm $request, $id)
     {
         can('actualizar-incoterms');
+
         $this->repository->update($request->all(), $id);
 
         return redirect('ventas/incoterm')->with('mensaje', 'Incoterm actualizado con éxito');

@@ -186,7 +186,8 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 
 	public function findPorPedidoId($pedido_id)
     {
-    	$pedido_combinacion = $this->model->select('pedido_combinacion.id as id')
+    	$pedido_combinacion = $this->model->select('pedido_combinacion.id as id', 
+										'pedido_combinacion.ot_id as ot_id')
 										->where('pedido_combinacion.pedido_id', $pedido_id)
 										->get();
 

@@ -84,7 +84,7 @@ class OperacionesExport implements FromView, WithColumnFormatting, WithMapping, 
         return [
             AfterSheet::class    => function(AfterSheet $event) {
 
-                $event->sheet->getDelegate()->freezePane('A2');
+                $event->sheet->getDelegate()->freezePane('A3');
 
             },
         ];

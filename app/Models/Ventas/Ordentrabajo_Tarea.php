@@ -30,6 +30,7 @@ class Ordentrabajo_Tarea extends Model
     public function pedidos_combinacion()
 	{
     	return $this->belongsTo(Pedido_Combinacion::class, 'pedido_combinacion_id', 'id')->with('articulos');
+		//return $this->belongsTo(Pedido_Combinacion::class, 'ordentrabajo_id', 'ot_id')->with('articulos');
 	}
 	public function empleados()
 	{

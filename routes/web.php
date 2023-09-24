@@ -484,6 +484,10 @@ Route::post('stock/crearrepcombinacion', 'Stock\RepCombinacionController@crearRe
 Route::get('stock/repstockot', 'Stock\RepStockOtController@index')->name('rep_stockot');
 Route::post('stock/crearrepstockot', 'Stock\RepStockOtController@crearReporteStockOt')->name('crear_repstockot');
 
+// Stock Listas de Precio
+Route::get('stock/replistaprecio', 'Stock\RepListaPrecioController@index')->name('rep_listaprecio');
+Route::post('stock/crearreplistaprecio', 'Stock\RepListaPrecioController@crearReporteListaPrecio')->name('crear_replistaprecio');
+
 /* 
  * Impuestos
  */
@@ -781,8 +785,9 @@ Route::post('ventas/pedido/consultapendientesot', 'Ventas\PedidoController@consu
 Route::post('ventas/ordenestrabajo/generar', 'Ventas\OrdentrabajoController@generar')->name('generar_ordentrabajo');
 Route::get('ventas/guardaordenestrabajo/{origen}/{ids}/{checkotstock}/{ordentrabajo_stock_codigo}/{leyenda?}', 'Ventas\OrdentrabajoController@guardar')->name('guardar_ordentrabajo');
 Route::get('ventas/listaordenestrabajo/{id}', 'Ventas\OrdentrabajoController@listar')->name('listar_ordentrabajo');
-Route::get('ventas/estadoot/{id}', 'Ventas\OrdentrabajoController@estadoOt')->name('estado_ot');
+Route::get('ventas/estadoot/{id}/{pedido_combinacion_id?}', 'Ventas\OrdentrabajoController@estadoOt')->name('estado_ot');
 Route::get('ventas/controlaordentrabajostock/{id}/{articulo_id}/{combinacion_id}', 'Ventas\OrdentrabajoController@controlaOtStock')->name('controla_ordetrabajo_stock');
+Route::post('ventas/ordenestrabajo/limpiafiltro', 'Ventas\OrdentrabajoController@limpiafiltro')->name('ordentrabajo.limpiafiltro');
 
 /* PRODUCCION */
 

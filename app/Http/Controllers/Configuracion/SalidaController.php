@@ -98,7 +98,7 @@ class SalidaController extends Controller
      */
     public function configurarSalida(Request $request, $opcion=null)
     {
-        can('configurar-salidas');
+        //can('configurar-salidas');
 
         // Agrega programa enviado a la url completa
         $urlRetorno = $request->server('HTTP_REFERER');

@@ -47,6 +47,8 @@ class CrearTablaArticuloMovimiento extends Migration
             $table->string('descuentointegrado',100)->nullable();
             $table->unsignedBigInteger('deposito_id');
             $table->foreign('deposito_id', 'fk_articulo_movimiento_depmae')->references('id')->on('depmae')->onDelete('restrict')->onUpdate('restrict');
+            $table->unsignedBigInteger('loteimportacion_id');
+            $table->foreign('loteimportacion_id', 'fk_articulo_movimiento_lote')->references('id')->on('lote')->onDelete('restrict')->onUpdate('restrict');
             $table->timestamps();
             $table->softDeletes();
             $table->charset = 'utf8mb4';

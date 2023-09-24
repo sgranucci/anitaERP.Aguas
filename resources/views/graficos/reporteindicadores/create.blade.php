@@ -4,7 +4,25 @@
 @endsection
 
 @section("scripts")
+<script>
+    $(function () {
+        $("#lavel-tiempo").css("display", "none");
+        $("#tiempo").css("display", "none");
 
+        $(document).on('change', '#administracionposicion', function(event) {
+            if ($("#administracionposicion").val() == 'B')
+            {
+                $("#lavel-tiempo").css("display", "block");
+                $("#tiempo").css("display", "block");
+            }
+            else
+            {
+                $("#lavel-tiempo").css("display", "none");
+                $("#tiempo").css("display", "none");
+            }
+        });
+    });
+</script>
 @endsection
 
 @section('contenido')
@@ -14,7 +32,7 @@
         @include('includes.mensaje')
         <div class="card card-danger">
             <div class="card-header">
-                <h3 class="card-title">Datos Reporte EWO - Pivot Fibonacci - VMA - CCI - XTL</h3>
+                <h3 class="card-title">Datos Reporte Indicadores</h3>
             </div>
             <form action="{{route('crear_repindicadores')}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
                 @csrf @method("post")

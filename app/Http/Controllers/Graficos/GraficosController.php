@@ -114,9 +114,15 @@ class GraficosController extends Controller
 			'B' => 'Solo bajistas',
 			'T' => 'Alcistas y Bajistas',
 			];
+
+		$administracionPosicion_enum = [
+			'A' => 'Administración sin filtro de tiempo',
+			'B' => 'Administración filtrando por tiempo',
+			];
+
 		$calculoBase_enum = $this->calculoBase_enum;
 		return view('graficos.reporteindicadores.create', compact('calculoBase_enum', 'compresion_enum',
-																'filtroSetup_enum'));
+																'filtroSetup_enum', 'administracionPosicion_enum'));
 	}
 
 	public function crearReporteIndicadores(Request $request)
@@ -151,7 +157,9 @@ class GraficosController extends Controller
                         $calculoBase_enum,
                         $request->swingsize,
 						$request->filtroSetup,
-						$request->cantidadcontratos);
+						$request->cantidadcontratos,
+						$request->administracionposicion,
+						$request->tiempo);
 
 		return (new ReporteIndicadoresExport)
 				->parametros($request->desdefecha, 
@@ -172,7 +180,9 @@ class GraficosController extends Controller
 							$request->filtroSetup,
 							$request->cantidadcontratos,
 							$indicadores['indicadores'],
-							$indicadores['operaciones'])
+							$indicadores['operaciones'],
+							$request->administracionposicion,
+							$request->tiempo)
 				->download('reporteIndicadores.'.$extension);
     }
 	
@@ -200,10 +210,11 @@ class GraficosController extends Controller
 	// Genera ordenes
 	public function generaOrdenes()
 	{
-		GeneraOrdenes::dispatchNow(request()->especie, request()->calculobase, 
+		GeneraOrdenes::dispatchNow
+		(request()->especie, request()->calculobase, 
 								request()->mmcorta, request()->mmlarga, request()->compresion, 
 								request()->largovma, request()->largocci, request()->largoxtl,
-								request()->umbralxtl, request()->swingsize, request()->filtrosetup);
+								request()->umbralxtl, request()->swingsize, request()->filtroSetup);
 
 		return redirect('graficos/ordenes')->with('mensaje', 'Proceso iniciado con éxito');
 	}

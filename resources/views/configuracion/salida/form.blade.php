@@ -5,9 +5,9 @@
     </div>
 </div>
 <div class="form-group row">
-    <label for="ubicacion" class="col-lg-3 col-form-label">Ubicación</label>
+    <label for="ubicacion" class="col-lg-3 col-form-label requerido">Ubicación</label>
     <div class="col-lg-8">
-    <input type="text" name="ubicacion" id="ubicacion" class="form-control" value="{{old('ubicacion', $data->ubicacion ?? '')}}"/>
+    <input type="text" name="ubicacion" id="ubicacion" class="form-control" value="{{old('ubicacion', $data->ubicacion ?? '')}}" required/>
     </div>
 </div>
 <div class="form-group row">

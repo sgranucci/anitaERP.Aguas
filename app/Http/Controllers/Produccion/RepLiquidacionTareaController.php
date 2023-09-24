@@ -41,7 +41,7 @@ class RepLiquidacionTareaController extends Controller
         $estadoOt_enum = [
 			'CUMPLIDA' => 'OT Cumplidas',
 			'PENDIENTE' => 'OT Pendientes',
-			'ANULADA' => 'OT Anuladas',
+            'TODAS' => 'Todas las OT',
 		];
 		$cliente_query = $this->clienteQuery->allQueryCargaPedido(['id','nombre','codigo']);
 		$cliente_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);

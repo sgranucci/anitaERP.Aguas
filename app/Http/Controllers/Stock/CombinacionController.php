@@ -308,6 +308,8 @@ class CombinacionController extends Controller
 
     public function updateTecnica(ValidacionCombinacionTecnica $request)
 	{
+		can('actualizar-combinaciones-tecnica');
+
 		$nombre_foto = $request->sku.'-'.$request->codigo;
         if ($foto = Combinacion::setFoto($request->foto_up, $nombre_foto))
             $request->request->add(['foto' => $foto]);

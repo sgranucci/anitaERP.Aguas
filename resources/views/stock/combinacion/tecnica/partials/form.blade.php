@@ -220,9 +220,11 @@
 							> 
                 		</td>
 						<td>
+						@if (can('actualizar-combinaciones-tecnica', false))
 							<button type="button" title="Elimina esta linea" style="padding:0;" class="btn-accion-tabla eliminarCapeart tooltipsC">
                            		<i class="fa fa-trash text-danger"></i>
 							</button>
+						@endif
                 		</td>
                 	</tr>
 					@endif
@@ -361,21 +363,25 @@
 			@endif
             </tbody>
             </table>
+			@if (can('actualizar-combinaciones-tecnica', false))
             <div class="row">
                 <div class="col-md-12">
                     <button id="add_row_avio" class="pull-right btn btn-danger">+ Agrega rengl&oacute;n</button>
                     <button id='delete_row_avio' class="pull-right btn btn-danger">- Borra rengl&oacute;n</button>
                 </div>
             </div>
+			@endif
         </div>
     </div>
 	<div class="card-footer">
 		<div class="row">
-		@isset($edit)
-			@include('includes.boton-form-editar')
-		@else
-			@include('includes.boton-form-crear')
-		@endisset
+		@if (can('actualizar-combinaciones-tecnica', false))
+			@isset($edit)
+				@include('includes.boton-form-editar')
+			@else
+				@include('includes.boton-form-crear')
+			@endisset
+		@endif
 		</div>
 	</div>
 </div>

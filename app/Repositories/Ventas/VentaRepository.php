@@ -97,7 +97,9 @@ class VentaRepository implements VentaRepositoryInterface
 		//if ($venta)
 		//	$nro = $venta;
 		//$nro = $nro + 1;
-
+        if (!isset($nro))
+            return 'error';
+        
         return $nro;
     }
 
@@ -148,5 +150,15 @@ class VentaRepository implements VentaRepositoryInterface
             return 'Error no tiene numerador';
 
         return $numero;
+    }
+
+    public function traeUltimoComprobanteVenta($tipotransaccion_id, $puntoventa_id)
+    {
+        $venta = $this->model->select('numerocomprobante')
+                                ->where('tipotransaccion_id', $tipotransaccion_id)
+                                ->where('puntoventa_id', $puntoventa_id)
+                                ->orderBy('numerocomprobante','desc')->first();
+
+        return $venta;
     }
 }

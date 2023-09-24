@@ -46,13 +46,13 @@ class PrecioController extends Controller
 					})
 					->get();
 
-		if ($datas->isEmpty())
-		{
-			$Precio = new Precio();
-        	$Precio->sincronizarConAnita();
+		//if ($datas->isEmpty())
+		//{
+			//$Precio = new Precio();
+        	//$Precio->sincronizarConAnita();
 	
-        	$datas = Precio::with('articulos')->with('listaprecios')->with('monedas')->with('usuarios')->get();
-		}
+        	//$datas = Precio::with('articulos')->with('listaprecios')->with('monedas')->with('usuarios')->get();
+		//}
         return view('stock.precio.index', compact('datas'));
     }
 

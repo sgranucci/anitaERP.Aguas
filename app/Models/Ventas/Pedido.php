@@ -86,9 +86,9 @@ class Pedido extends Model
 	public function scopeWithWhereHasOtArticuloCombinacion($query, $articulo_id, $combinacion_id)
 	{
 		return $query->with(['pedido_combinaciones' => function ($q) use($articulo_id, $combinacion_id) {
-				$q->where('ot_id',0)->where('articulo_id',$articulo_id)->where('combinacion_id',$combinacion_id);
+				$q->whereIn('ot_id',[-1,0])->where('articulo_id',$articulo_id)->where('combinacion_id',$combinacion_id);
 				}, 'pedido_combinaciones.combinaciones'])->whereHas('pedido_combinaciones', function ($q) use ($articulo_id, $combinacion_id) {
-					$q->where('ot_id',0)->where('articulo_id',$articulo_id)->where('combinacion_id',$combinacion_id);
+					$q->whereIn('ot_id',[-1,0])->where('articulo_id',$articulo_id)->where('combinacion_id',$combinacion_id);
 				});
 	}
 }

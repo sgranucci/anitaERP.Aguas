@@ -14,7 +14,7 @@ class Articulo_Movimiento extends Model
     protected $fillable = ['fecha','fechajornada', 'tipotransaccion_id', 'venta_id', 'movimientostock_id',
                         'pedido_combinacion_id', 'ordentrabajo_id', 'lote', 'articulo_id', 'combinacion_id', 
                         'concepto', 'modulo_id', 'cantidad', 'precio', 'costo', 'listaprecio_id', 'incluyeimpuesto', 
-                        'moneda_id', 'descuento', 'descuentointegrado', 'deposito_id'];
+                        'moneda_id', 'descuento', 'descuentointegrado', 'deposito_id', 'loteimportacion_id'];
     protected $table = 'articulo_movimiento';
 
     public function articulo_movimiento_talles()

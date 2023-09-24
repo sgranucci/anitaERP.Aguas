@@ -150,7 +150,7 @@ class Articulo_MovimientoService
 	public function generaDatosRepStockOt($estado, $mventa_id, $desdearticulo, $hastaarticulo,
 										$desdelinea_id, $hastalinea_id,
 										$desdecategoria_id, $hastacategoria_id,
-										$desdelote, $hastalote)
+										$desdelote, $hastalote, $estadoot, $apertura)
 	{
 		// Lee informacion del listado
 		$data = $this->articulo_movimientoQuery->generaDatosRepStockOt($estado, $mventa_id,
@@ -172,11 +172,28 @@ class Articulo_MovimientoService
 			if ($anterSku != $movimiento['sku'] ||
 				$anterCodigoCombinacion != $movimiento['codigocombinacion'] ||
 				$anterLote != $movimiento['lote'] ||
-				$anterModulo_Id != $movimiento['modulo_id'])
+				$anterModulo_Id != $movimiento['modulo_id'] ||
+				$apertura == 'MOVIMIENTOS')
 			{
 				if ($anterSku != '' && $totalPares != 0)
 				{
-					$datas[] = [
+					// Filtra estado de OT 
+					$cc = false;
+					switch($estadoot)
+					{
+						case 'ENTREGA':
+							if ($situacion == 'ENTREGA INMEDIATA')
+								$cc = true;
+							break;
+						case 'PRODUCCION':
+							if ($situacion == 'En producción')
+								$cc = true;
+							break;
+						default:
+							$cc = true;
+					}
+					if ($cc)
+						$datas[] = [
 								'foto' => $foto,
 								'nombrelinea' => $nombreLinea,
 								'sku' => $sku,
@@ -189,7 +206,7 @@ class Articulo_MovimientoService
 								'cantidadmodulo' => $cantidadModulo,
 								'modulo' => $modulo,
 								'medidas' => $medidas
-					];
+						];
 				}
 				$anterSku = $movimiento['sku']; 
 				$anterCodigoCombinacion = $movimiento['codigocombinacion'];
@@ -259,7 +276,23 @@ class Articulo_MovimientoService
 		}
 		if ($anterSku != '' && $totalPares != 0)
 		{
-			$datas[] = [
+			// Filtra estado de OT 
+			$cc = false;
+			switch($estadoot)
+			{
+				case 'ENTREGA':
+					if ($situacion == 'ENTREGA INMEDIATA')
+						$cc = true;
+					break;
+				case 'PRODUCCION':
+					if ($situacion == 'En producción')
+						$cc = true;
+					break;
+				default:
+					$cc = true;
+			}
+			if ($cc)
+				$datas[] = [
 						'foto' => $foto,
 						'nombrelinea' => $nombreLinea,
 						'sku' => $sku,
@@ -272,7 +305,7 @@ class Articulo_MovimientoService
 						'cantidadmodulo' => $cantidadModulo,
 						'modulo' => $modulo,
 						'medidas' => $medidas
-			];
+				];
 		}
 		//dd($datas);
 		return $datas;
@@ -300,6 +333,16 @@ class Articulo_MovimientoService
 	public function deletePorPedido_combinacionId($pedido_combinacion_id)
 	{
 		return $this->articulo_movimientoRepository->deletePorPedido_combinacionId($pedido_combinacion_id);
+	}
+
+	public function buscaLoteImportacion($lotestock_id)
+	{
+		$loteimportacion = $this->articulo_movimientoQuery->buscaLoteImportacion($lotestock_id);
+
+		if (count($loteimportacion) > 0)
+			return $loteimportacion[0]->loteimportacion_id;
+
+		return 0;
 	}
 }
 

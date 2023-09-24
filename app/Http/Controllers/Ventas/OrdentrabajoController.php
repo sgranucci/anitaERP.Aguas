@@ -52,14 +52,108 @@ class OrdentrabajoController extends Controller
 		$this->formapagoRepository = $formpagorepository;
 	}
 
-    public function index()
+    public function index(Request $request)
     {
 		can("listar-ordenes-de-trabajo");
-		
-		$ordentrabajo_query = $this->ordentrabajoService->leeOrdenestrabajoPendientes();
+
+		ini_set('memory_limit', '512M');
+		ini_set('max_execution_time', '2400');
+
+		$filtros = [];
+		if ($request->url() != $request->fullUrl())
+		{
+			$url = urldecode($request->fullUrl());
+			$components = parse_url($url);
+			parse_str($components['query'], $filtros);
+
+			session(['filtrosOrdentrabajo' => $filtros]);
+		}
+		else
+		{
+			$filtros = session('filtrosOrdentrabajo');
+		}
+		// Asume filtro default terminadas, pendientes y en fabricacion
+		if ($filtros == '')
+		{
+			$filtros['filter_column'][0]['type'] = '=';
+			$filtros['filter_column'][0]['column'] = 'estado';
+			$filtros['filter_column'][0]['value'] = 'Z';
+		}
+		// Aplica los filtros si es que hay definidos
+		if ($filtros != '' && $filtros['filter_column'] ?? '')
+		{
+			$query = [];
+			$ordentrabajo_query = $this->ordentrabajoService->leeOrdenestrabajoPendientes();
+
+			for ($ii = 0; $ii < count($filtros['filter_column']); $ii++)
+			{
+				if ($filtros['filter_column'][$ii]['type'] == '')
+					continue;
+
+				if ($filtros['filter_column'][$ii]['column'] == 'estado' &&
+					$filtros['filter_column'][$ii]['type'] == '=')
+				{
+					foreach($ordentrabajo_query as $ordentrabajo)
+					{
+						$cantidadTarea = 0;
+						$flPendiente = false;
+						$flTerminada = false;
+						$flFacturada = false;
+						foreach($ordentrabajo->ordentrabajo_tareas as $tarea)
+						{
+							if ($tarea->tarea_id == config('consprod.TAREA_PENDIENTE_FABRICACION'))
+								$flPendiente = true;
+							if ($tarea->tarea_id != config('consprod.TAREA_FACTURADA') &&
+								$tarea->tarea_id != config('consprod.TAREA_TERMINADA') &&
+								$tarea->tarea_id != config('consprod.TAREA_PENDIENTE_FABRICACION'))
+								$cantidadTarea++;
+							if ($tarea->tarea_id == config('consprod.TAREA_TERMINADA'))
+								$flTerminada = true;
+							if ($tarea->tarea_id == config('consprod.TAREA_FACTURADA'))
+								$flFacturada = true;
+						}
+						if ($filtros['filter_column'][$ii]['value'] == 'N' && $flPendiente && $cantidadTarea === 0 && !$flTerminada && !$flFacturada)
+							$query[] = $ordentrabajo;
+						else
+						{
+							if ($filtros['filter_column'][$ii]['value'] == 'P' && $cantidadTarea > 0)
+								$query[] = $ordentrabajo;
+							else
+							{
+								if ($filtros['filter_column'][$ii]['value'] == 'T' && $flTerminada)
+									$query[] = $ordentrabajo;
+								else
+								{
+									if ($filtros['filter_column'][$ii]['value'] == 'F' && $flFacturada)
+										$query[] = $ordentrabajo;
+									else
+									{
+										if ($filtros['filter_column'][$ii]['value'] == 'A')
+											$query[] = $ordentrabajo;
+										else
+											if ($filtros['filter_column'][$ii]['value'] == 'Z' && !$flFacturada)
+												$query[] = $ordentrabajo;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			$ordentrabajo_query = $query;
+		}
+		else
+			$ordentrabajo_query = $this->ordentrabajoService->leeOrdenestrabajoPendientes();
 
         return view('ventas.ordentrabajo.index', compact('ordentrabajo_query'));
     }
+
+	public function limpiafiltro(Request $request) 
+	{
+		session()->forget('filtrosOrdentrabajo');
+
+        return json_encode(["ok"]);
+	}
 
     public function indexEtiqueta()
     {
@@ -110,7 +204,6 @@ class OrdentrabajoController extends Controller
 		$tipoemision_enum = [
 			'COMPLETA' => 'OT Completa',
 			'STOCK' => 'OT Stock',
-			'CAJA' => 'OT Caja',
 		];
 
         return view('ventas.repemisionot.create', compact('tipoemision_enum'));
@@ -176,7 +269,6 @@ class OrdentrabajoController extends Controller
         can('editar-ordenes-de-trabajo');
 
     	$ordentrabajo = $this->ordentrabajoQuery->leeOrdenTrabajo($id);
-	
 		$mventa_id = $articulo_id = $combinacion_id = '';
 		$this->armarTablasVista($cliente_query, $mventa_query, $articulo_query, $combinacion_query, $talle_query, $tarea_query, $ordentrabajo, 
 								$mventa_id, $articulo_id, $combinacion_id, $puntoventa_query,
@@ -212,10 +304,10 @@ class OrdentrabajoController extends Controller
 			{
 				// Lee combinacion
 				$combinacion = Combinacion::find($item->combinacion_id);
-
 				$data[] = [	
 						'id'=>$item->id, 
-						'codigo'=>$item->pedidos->codigo, 
+						'codigo'=>$item->pedido_id, 
+						'descuentopie' => $item->pedidos->descuento,
 						'cliente'=>$ot->clientes->nombre, 
 						'cliente_id'=>$ot->clientes->id,
 						'estadocliente'=>$ot->clientes->estado,
@@ -237,6 +329,7 @@ class OrdentrabajoController extends Controller
 				$data[$ii]['medidas'][] = $medidas;
 			}
 		}
+
 		$puntoventadefault_id = cache()->get(generaKey('puntoventa'));
 		$puntoventaremitodefault_id = cache()->get(generaKey('puntoventaremito'));
 		$tipotransacciondefault_id = cache()->get(generaKey('tipotransaccion'));
@@ -344,9 +437,9 @@ class OrdentrabajoController extends Controller
 	}
 
 	// controla estado de orden de trabajo
-	public function estadoOt($codigoordentrabajo)
+	public function estadoOt($codigoordentrabajo, $pedido_combinacion_id = null)
 	{
-		return $this->ordentrabajoService->otFacturada($codigoordentrabajo, null);
+		return $this->ordentrabajoService->otFacturada($codigoordentrabajo, null, $pedido_combinacion_id);
 	}
 
 	// controla orden de trabajo de stock

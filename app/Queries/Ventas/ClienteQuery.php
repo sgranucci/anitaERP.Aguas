@@ -65,7 +65,8 @@ class ClienteQuery implements ClienteQueryInterface
 
     // Datos para informe maestro de clientes
 
-    public function generaDatosRepCliente($desdecliente_id, $hastacliente_id, $estado, $tiposuspensioncliente_id)
+    public function generaDatosRepCliente($desdecliente_id, $hastacliente_id, $estado, $tiposuspensioncliente_id,
+                                        $desdevendedor_id, $hastavendedor_id)
     {
         $data = $this->model->select('cliente.*')
             ->with('localidades')
@@ -77,25 +78,32 @@ class ClienteQuery implements ClienteQueryInterface
         {
             case 'TODOS':
                 $data = $data
-                    ->where([['nombre','!=',' ']])
-                    ->get();
+                    ->where([['nombre','!=',' ']]);
                 break;
             case 'ACTIVOS':
                 $data = $data
-                    ->where([['estado','0'],['nombre','!=',' ']])
-                    ->get();
+                    ->where([['estado','0'],['nombre','!=',' ']]);
                 break;
             case 'SUSPENDIDOS':
                 if ($tiposuspensioncliente_id != 0)
                     $data = $data
-                        ->where([['estado','!=','0'],['nombre','!=',' '],['tiposuspension_id',$tiposuspensioncliente_id]])
-                        ->get();
+                        ->where([['estado','!=','0'],['nombre','!=',' '],['tiposuspension_id',$tiposuspensioncliente_id]]);
                 else
                     $data = $data
-                        ->where([['estado','!=','0'],['nombre','!=',' ']])
-                        ->get();
+                        ->where([['estado','!=','0'],['nombre','!=',' ']]);
                 break;
         }
+        // Filtra por cliente 
+        if ($hastacliente_id != 99999999 || $desdecliente_id != 0)
+            $data = $data->where('cliente.id', '>=', $desdecliente_id)
+                        ->where('cliente.id', '<=', $hastacliente_id);
+
+        // Filtra por vendedor
+        if ($hastavendedor_id != 99999999 || $desdevendedor_id != 0)
+            $data = $data->where('cliente.vendedor_id', '>=', $desdevendedor_id)
+                        ->where('cliente.vendedor_id', '<=', $hastavendedor_id);
+
+        $data = $data->get();
         return $data;
     }
 

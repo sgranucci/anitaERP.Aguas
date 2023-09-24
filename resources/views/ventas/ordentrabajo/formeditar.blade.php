@@ -95,6 +95,7 @@
 							</td>
 							<td>
 								<input type="text" name="codigos[]" class="form-control codigo" value="{{ $ordentrabajoitem['codigo'] }}" readonly>
+								<input type="hidden" name="descuentopies[]" class="form-control descuentopie" value="{{ $ordentrabajoitem['descuentopie'] }}">
 							</td>
 							<td>
 								<input type="hidden" name="articulo_ids[]" class="form-control articulo_id" value="{{ $ordentrabajoitem['articulo_id'] }}">

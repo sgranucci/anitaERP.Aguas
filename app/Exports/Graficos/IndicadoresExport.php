@@ -39,10 +39,12 @@ class IndicadoresExport implements FromView, WithColumnFormatting, WithMapping, 
     public $operaciones = [];
 	protected $dates = ['fecha'];
     private $filtroSetup;
+    private $administracionPosicion, $tiempo;
 
     public function __construct($desdefecha, $hastafecha, $desdehora, $hastahora, $especie, $compresion,
                                 $mmcorta, $mmlarga, $largovma, $largocci, $largoxtl,
-                                $umbralxtl, $swingSize, $filtroSetup, $datos, $cantidadContratos, $calculoBaseTxt)
+                                $umbralxtl, $swingSize, $filtroSetup, $datos, $cantidadContratos, $calculoBaseTxt,
+                                $administracionPosicion, $tiempo)
     {
         $this->desdeFecha = $desdefecha;
 		$this->hastaFecha = $hastafecha;
@@ -61,6 +63,8 @@ class IndicadoresExport implements FromView, WithColumnFormatting, WithMapping, 
         $this->cantidadContratos = $cantidadContratos;
         $this->calculoBaseTxt = $calculoBaseTxt;
         $this->filtroSetup = $filtroSetup;
+        $this->administracionPosicion = $administracionPosicion;
+        $this->tiempo = $tiempo;
 
         switch($compresion)
         {
@@ -119,7 +123,9 @@ class IndicadoresExport implements FromView, WithColumnFormatting, WithMapping, 
                                                     'swingsize' => $this->swingSize,
                                                     'especie' => $this->especie,
                                                     'filtroSetup' => $this->filtroSetup,
-                                                    'cantidadcontratos' => $this->cantidadContratos]);
+                                                    'cantidadcontratos' => $this->cantidadContratos,
+                                                    'administracionposicion' => $this->administracionPosicion,
+                                                    'tiempo' => $this->tiempo]);
     }
 
 	public function columnFormats(): array
@@ -164,7 +170,7 @@ class IndicadoresExport implements FromView, WithColumnFormatting, WithMapping, 
     {
         return [
             'A' => 40,
-            'BN' => 100,
+            'BQ' => 100,
         ];
     }
 

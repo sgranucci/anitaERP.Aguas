@@ -50,18 +50,20 @@
 	
 </div>
 <div class="form-group row">
-	<label for="calculobase" class="col-lg-3 col-form-label requerido">C&aacute;lculo base:</label>
+	<label for="administracionposicion" class="col-lg-3 col-form-label requerido">Administración de posición:</label>
 	
-	<select name="calculobase" class="col-lg-3 form-control" required>
-    	<option value="">-- Elija el c&aacute;lculo base --</option>
-       	@foreach($calculoBase_enum as $value => $calculobase)
-			@if ($value == 1)
-       			<option value="{{ $value }}" selected>{{ $calculobase }}</option>    
+	<select name="administracionposicion" id="administracionposicion" class="col-lg-3 form-control" required>
+    	<option value="">-- Elija tipo de administración --</option>
+       	@foreach($administracionPosicion_enum as $value => $administracionposicion)
+			@if ($value == 'A')
+       			<option value="{{ $value }}" selected>{{ $administracionposicion }}</option>    
 			@else
-				<option value="{{ $value }}">{{ $calculobase }}</option>    
+				<option value="{{ $value }}">{{ $administracionposicion }}</option>    
 			@endif
     	@endforeach
 	</select>
+	<label for="tiempo" id="lavel-tiempo" class="col-lg-2 col-form-label requerido">Tiempo:</label>
+	<input type="number" id="tiempo" name="tiempo" class="col-lg-1 form-control" value="{{30}}">
 </div>
 <div class="form-group row">
 	<label for="filtroSetup" class="col-lg-3 col-form-label requerido">Filtro Setup:</label>
@@ -125,6 +127,19 @@
 				<input type="number" id="swingsize" name="swingsize" class="form-control" value="{{21}}">
 			</div>
 		</div>
-		
+		<div class="form-group row">
+			<label for="calculobase" class="col-lg-3 col-form-label requerido">C&aacute;lculo base:</label>
+			
+			<select name="calculobase" class="col-lg-3 form-control" required>
+				<option value="">-- Elija el c&aacute;lculo base --</option>
+				@foreach($calculoBase_enum as $value => $calculobase)
+					@if ($value == 1)
+						<option value="{{ $value }}" selected>{{ $calculobase }}</option>    
+					@else
+						<option value="{{ $value }}">{{ $calculobase }}</option>    
+					@endif
+				@endforeach
+			</select>
+		</div>
 	</div>
 </div>

@@ -11,6 +11,6 @@ interface VentaRepositoryInterface extends RepositoryInterface
     public function delete($id);
     public function update(array $data, $id);
     public function create(array $data);
-    
+    public function traeUltimoComprobanteVenta($tipotransaccion_id, $puntoventa_id);
 }
 

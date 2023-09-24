@@ -5,6 +5,8 @@ use App\Repositories\Stock\Articulo_CostoRepositoryInterface;
 use App\Repositories\Ventas\OrdentrabajoRepositoryInterface;
 use App\Repositories\Ventas\Ordentrabajo_Combinacion_TalleRepositoryInterface;
 use App\Repositories\Ventas\Ordentrabajo_TareaRepositoryInterface;
+use App\Repositories\Ventas\Pedido_CombinacionRepositoryInterface;
+use App\Repositories\Ventas\ClienteRepositoryInterface;
 use App\Repositories\Produccion\MovimientoOrdentrabajoRepositoryInterface;
 use App\Repositories\Produccion\OperacionRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -24,6 +26,8 @@ class MovimientoOrdentrabajoService
 	protected $operacionRepository;
 	protected $movimientoordentrabajoRepository;
 	protected $articulo_costoRepository;
+	protected $pedido_combinacionRepository;
+	protected $clienteRepository;
 
     public function __construct(
 								OrdentrabajoRepositoryInterface $ordentrabajorepository,
@@ -31,7 +35,9 @@ class MovimientoOrdentrabajoService
 								Ordentrabajo_TareaRepositoryInterface $ordentrabajotarearepository,
 								MovimientoOrdentrabajoRepositoryInterface $movimientoordentrabajorepository,
 								Articulo_CostoRepositoryInterface $articulo_costorepository,
-								OperacionRepositoryInterface $operacionrepository
+								OperacionRepositoryInterface $operacionrepository,
+								Pedido_CombinacionRepositoryInterface $pedido_combinacionrepository,
+								ClienteRepositoryInterface $clienterepository
 								)
     {
         $this->ordentrabajoRepository = $ordentrabajorepository;
@@ -40,6 +46,8 @@ class MovimientoOrdentrabajoService
         $this->movimientoordentrabajoRepository = $movimientoordentrabajorepository;
 		$this->articulo_costoRepository = $articulo_costorepository;
         $this->operacionRepository = $operacionrepository;
+		$this->pedido_combinacionRepository = $pedido_combinacionrepository;
+		$this->clienteRepository = $clienterepository;
     }
 
 	public function estadoEnum()
@@ -52,7 +60,7 @@ class MovimientoOrdentrabajoService
 		if ($id)
       		$movimientoOrdentrabajo = $this->movimientoordentrabajoRepository->find($id);
 		else
-      		$movimientoOrdentrabajo = $this->movimientoordentrabajoRepository->all();
+			$movimientoOrdentrabajo = $this->movimientoordentrabajoRepository->allFiltrado();
 
 		return $movimientoOrdentrabajo;
 	}
@@ -64,7 +72,6 @@ class MovimientoOrdentrabajoService
 		$estadoEnum = self::estadoEnum(); 
 
 		$codigos_ot = explode(',', $data['ordenestrabajo']);
-
 		// Recorre cada id de ordenes de trabajo
 		for ($i = 0; $i < count($codigos_ot); $i++)
 		{
@@ -114,7 +121,6 @@ class MovimientoOrdentrabajoService
 					if (count($ordentrabajo_tarea) > 0 && $ordentrabajo_tarea->contains('tarea_id',
 						config('consprod.TAREA_TERMINADA')))
 						throw new ModelNotFoundException("No puede grabar con OT ya terminada");
-
 					// Filtra tarea_id
 					$ordentrabajo_tarea_filtrada = $this->ordentrabajo_tareaRepository
 												->findPorOrdentrabajoId($ordentrabajo->id, $data['tarea_id']);
@@ -139,14 +145,17 @@ class MovimientoOrdentrabajoService
 						
 						if ($tipooperacionEnum[$operacion->tipooperacion] == 'Fin')
 						{
-							if (count($ordentrabajo_tarea_filtrada) == 0)
+							if (count($ordentrabajo_tarea_filtrada) == 0 && $data['tarea_id'] != config('consprod.TAREA_CORTADO_DE_FORRO'))
 								throw new ModelNotFoundException("La tarea no fue iniciada");
 
 							if ($ordentrabajo_tarea_filtrada[0]->empleado_id != $data['empleado_id'])
 								throw new ModelNotFoundException("No puede grabar tarea iniciada por otro empleado");
 							
-							// Actualiza la tarea
-							$accion = 'update';
+							// Actualiza la tarea si es cortado de forro y no existe la crea cargando fin
+							if (count($ordentrabajo_tarea_filtrada) == 0 && $data['tarea_id'] == config('consprod.TAREA_CORTADO_DE_FORRO'))
+								$accion = 'create';
+							else
+								$accion = 'update';
 						}
 					}
 					else
@@ -179,7 +188,8 @@ class MovimientoOrdentrabajoService
 								$dataTarea['desdefecha'] = $dataTarea['fecha'];
 								$dataTarea['hastafecha'] = null;
 								
-								if ($data['tarea_id'] == Config::get("consprod.TAREA_TERMINADA"))
+								if ($data['tarea_id'] === Config::get("consprod.TAREA_TERMINADA") ||
+									$data['tarea_id'] === Config::get("consprod.TAREA_CORTADO_DE_FORRO"))
 									$dataTarea['hastafecha'] = $dataTarea['fecha'];
 
 								$item_tarea = $this->ordentrabajo_tareaRepository->create($dataTarea);
@@ -199,7 +209,8 @@ class MovimientoOrdentrabajoService
 									$dataTarea['desdefecha'] = $ordentrabajo_tarea_filtrada[0]->desdefecha;
 									$dataTarea['hastafecha'] = $dataTarea['fecha'];
 								}
-								if ($data['tarea_id'] == Config::get("consprod.TAREA_TERMINADA"))
+								if ($data['tarea_id'] == Config::get("consprod.TAREA_TERMINADA") ||
+									$data['tarea_id'] == Config::get("consprod.TAREA_CORTADO_DE_FORRO"))
 									$dataTarea['hastafecha'] = $dataTarea['desdefecha'];
 
 								foreach($ordentrabajo_tarea_filtrada as $otTarea)
@@ -249,7 +260,7 @@ class MovimientoOrdentrabajoService
 					DB::commit();
 				} catch (\Exception $e) {
 					DB::rollback();
-					return $e->getMessage();
+					return ['errores' => $e->getMessage()];
 				}
 			}
 			else
@@ -290,12 +301,18 @@ class MovimientoOrdentrabajoService
 						else
 						{
 							// Si no tiene fin borra la tarea, si tiene fecha de fin actualiza desde fecha
-							if ($ordentrabajo_tarea->hastafecha == null)
+							if ($ordentrabajo_tarea->hastafecha == null || $ordentrabajo_tarea->tarea_id == config('consprod.TAREA_CORTADO_DE_FORRO'))
 								$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository->delete($otTarea->id);
 							else
 								$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository
 														->update(['desdefecha' => null], $otTarea->id);
 						}
+
+						// Lee la tarea, si no tienen fechas la borra
+						$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository->find($otTarea->id);
+
+						if ($ordentrabajo_tarea && $ordentrabajo_tarea->desdefecha == null && $ordentrabajo_tarea->hastafecha == null)
+							$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository->delete($otTarea->id);
 					}
 				}
 
@@ -349,7 +366,7 @@ class MovimientoOrdentrabajoService
 			$data['tarea_id'] = Config::get("consprod.TAREA_EMPAQUE"); // Tarea Empaque
 			$data['desdefecha'] = Carbon::now();
 			$data['hastafecha'] = null;
-			$data['empleado_id'] = Config::get("consprod.EMPLEADO_FERLI");
+			$data['empleado_id'] = Config::get("consprod.EMPLEADO_FABRICA");
 			$data['pedido_combinacion_id'] = $request['pedido_combinacion_id'];
 			$data['estado'] = Config::get("consprod.TAREA_ESTADO_PRODUCCION");
 			$data['costo'] = 0;
@@ -363,7 +380,7 @@ class MovimientoOrdentrabajoService
 				'ordentrabajo_tarea_id' => $ordentrabajo->id,
 				'tarea_id' => Config::get("consprod.TAREA_EMPAQUE"),
 				'operacion_id' => Config::get("consprod.OPERACION_INICIO"),
-				'empleado_id' => Config::get("consprod.EMPLEADO_FERLI"),
+				'empleado_id' => Config::get("consprod.EMPLEADO_FABRICA"),
 				'pedido_combinacion_id' => $request['pedido_combinacion_id'],
 				'fecha' => Carbon::now(),
 				'estado' => $estadoEnum['A'],
@@ -382,12 +399,19 @@ class MovimientoOrdentrabajoService
 		// Imprime tarea de armado
 		// Arma nombre de archivo
 		$nombreReporte = "tmp/empaqueOT-" . $data['ordentrabajo_id'] . '.txt';
-
-		$reporte = "";
+		$reporte = chr(27).chr(33).chr(2);
 		$reporte .= "Empaque de ORDEN DE TRABAJO NRO. ".$request['codigoordentrabajo']."\n\n";
-		$reporte .= "Cliente: ".$request['cliente']."\n\n";
-		$reporte .= "Articulo: ".$request['articulo']."\n";
-		$reporte .= "SKU: ".$request['sku']."\n\n";
+		
+		if (isset($request['pedido']))
+			$reporte .= "PEDIDO NRO: ".$request['pedido']."\n";
+
+		$reporte .= chr(27).chr(33).chr(32).$request['cliente']."\n\n";
+		$reporte .= $request['nombretiposuspensioncliente']."\n";
+
+		$reporte .= "Articulo: \n";
+		$reporte .= chr(27).chr(33).chr(32).$request['articulo']."\n";
+
+		$reporte .= chr(27).chr(33).chr(2)."SKU: ".$request['sku']."\n\n";
 		$reporte .= "Combinacion: ".$request['combinacion']."\n\n";
 
 		$reporte .= "MEDIDAS\n";
@@ -397,9 +421,17 @@ class MovimientoOrdentrabajoService
 		{
 			$reporte .= "Talle: ".$medida->nombretalle." Cantidad: ".$medida->cantidad."\n";
 		}
-		
-		$reporte .= "\nTotal pares: ".$request['pares']."\n\n\n\n\n\n\n\n\n\n\n\n\n";
 
+		$pedido_combinacion = $this->pedido_combinacionRepository->find($request['pedido_combinacion_id']);
+		if ($pedido_combinacion)
+		{
+			$reporte .= $pedido_combinacion->observacion."\n";
+		}		
+
+		$reporte .= chr(27).chr(33).chr(32);
+		$reporte .= "\nTotal pares: ".$request['pares']."\n\n\n\n\n\n\n\n\n\n\n\n\n";
+		$reporte .= chr(27).chr(33).chr(2)."\n";
+		
 		Storage::disk('local')->put($nombreReporte, $reporte);
 		$path = Storage::path($nombreReporte);
 		system("lp -darmado ".$path);

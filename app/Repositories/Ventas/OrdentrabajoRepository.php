@@ -68,7 +68,6 @@ class OrdentrabajoRepository implements OrdentrabajoRepositoryInterface
 
     public function find($id)
     {
-		dd('sdf');
         if (null == $ordentrabajo = $this->model->find($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
@@ -84,6 +83,15 @@ class OrdentrabajoRepository implements OrdentrabajoRepositoryInterface
         }
 
         return $ordentrabajo;
+    }
+
+	public function deletePorCodigo($codigo)
+    {
+    	$ordentrabajo = $this->findPorCodigo($codigo);
+		
+        $ordentrabajo = $this->model->destroy($ordentrabajo->id);
+
+		return $ordentrabajo;
     }
 
     public function findOrFail($id)
@@ -289,16 +297,6 @@ class OrdentrabajoRepository implements OrdentrabajoRepositoryInterface
         $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita[0], 
 				'whereArmado' => " WHERE ordtm_nro_orden = '".$id."' " );
         $apiAnita->apiCall($data);
-	}
-
-	// Devuelve ultimo codigo de orden de trabajo + 1 para agregar nuevos en Anita
-
-	public function ultimoCodigoAnita(&$nro) {
-		$ordentrabajo = $this->model->max('id');
-		$nro = 0;
-		if ($ordentrabajo)
-			$nro = $ordentrabajo;
-		$nro = $nro + 1;
 	}
 
 	// Actualiza numerador de OT en Anita

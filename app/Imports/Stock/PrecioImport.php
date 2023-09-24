@@ -5,11 +5,13 @@ namespace App\Imports\Stock;
 use App\Models\Stock\Precio;
 use App\Models\Stock\Listaprecio;
 use App\Models\Stock\Articulo;
+use App\Models\Stock\Talle;
 use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Row;
 use Auth;
 use Carbon\Carbon;
+use DB;
 
 class PrecioImport implements OnEachRow, WithHeadingRow
 {
@@ -80,7 +82,43 @@ class PrecioImport implements OnEachRow, WithHeadingRow
             // Graba los precios de la fila del excel
             foreach ($arrayPrecios as $precio)
             {
-                Precio::create($precio);
+                try 
+                {
+                    Precio::create($precio);
+
+                    // Lee la lista de precios
+                    $listaprecio = ListaPrecio::find($precio['listaprecio_id']);
+
+                    // Busca talles
+                    $desdetalle = $hastatalle = '';
+                    if ($listaprecio)
+                    {
+                        $desdetalle = Talle::select('id')->where('nombre', $listaprecio->desdetalle)->first();
+                        $hastatalle = Talle::select('id')->where('nombre', $listaprecio->hastatalle)->first();
+                    }
+                    // Actualiza los pedidos con ese articulo
+                    DB::table('pedido_combinacion')->where('articulo_id', $precio['articulo_id'])
+                                                    ->update(['precio' => $precio['precio']]);
+
+                    DB::table('pedido_combinacion_talle')->join('pedido_combinacion', 'pedido_combinacion_talle.pedido_combinacion_id', 'pedido_combinacion.id')
+                                                    ->where('pedido_combinacion.articulo_id', $precio['articulo_id'])
+                                                    ->whereBetween('pedido_combinacion_talle.talle_id', [$desdetalle->id, $hastatalle->id])
+                                                    ->update(['pedido_combinacion_talle.precio' => $precio['precio']]);                                                
+
+                    // Actualiza los movimientos de stock con ese articulo
+                    DB::table('articulo_movimiento')->where('articulo_id', $precio['articulo_id'])
+                                                    ->update(['precio' => $precio['precio']]);
+
+                    DB::table('articulo_movimiento_talle')->join('articulo_movimiento', 'articulo_movimiento_talle.articulo_movimiento_id', 'articulo_movimiento.id')
+                                                    ->where('articulo_movimiento.articulo_id', $precio['articulo_id'])
+                                                    ->whereBetween('articulo_movimiento_talle.talle_id', [$desdetalle->id, $hastatalle->id])
+                                                    ->update(['articulo_movimiento_talle.precio' => $precio['precio']]);                
+                    DB::commit();
+                } catch (\Exception $e) {
+                    DB::rollback();
+                    dd($e->getMessage());
+                    return $e->getMessage();
+                }
             }
                 
         }

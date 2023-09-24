@@ -638,8 +638,8 @@ class ArticuloController extends Controller
         $producto = Articulo::select('sku')->where('id', $id)->first();
 
 		// Elimina anita
-		$Articulo = new Articulo();
-        $Articulo->eliminarAnita($producto->sku);
+		//$Articulo = new Articulo();
+        //$Articulo->eliminarAnita($producto->sku);
 
         if ($request->ajax()) {
             if (Articulo::destroy($id)) {

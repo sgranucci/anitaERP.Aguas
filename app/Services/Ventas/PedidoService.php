@@ -7,6 +7,7 @@ use App\Repositories\Ventas\Pedido_Combinacion_TalleRepositoryInterface;
 use App\Repositories\Ventas\Pedido_Combinacion_EstadoRepositoryInterface;
 use App\Repositories\Ventas\Ordentrabajo_Combinacion_TalleRepositoryInterface;
 use App\Repositories\Ventas\Ordentrabajo_TareaRepositoryInterface;
+use App\Repositories\Ventas\OrdentrabajoRepositoryInterface;
 use App\Services\Configuracion\ImpuestoService;
 use App\Services\Stock\Articulo_MovimientoService;
 use App\Queries\Ventas\PedidoQueryInterface;
@@ -22,6 +23,7 @@ use Carbon\Carbon;
 use App;
 use PDF;
 use Auth;
+use Exception;
 
 class PedidoService 
 {
@@ -32,6 +34,7 @@ class PedidoService
 	protected $ordentrabajo_combinacion_talleRepository;
 	protected $ordentrabajo_tareaRepository;
     protected $ordentrabajoQuery;
+	protected $ordentrabajoRepository;
 	protected $ordentrabajoService;
 	protected $pedidoQuery;
 	protected $clienteQuery;
@@ -44,6 +47,7 @@ class PedidoService
 								Pedido_Combinacion_EstadoRepositoryInterface $pedidocombinacionestadorepository,
     							Ordentrabajo_Combinacion_TalleRepositoryInterface $ordentrabajocombinaciontallerepository,
 								Ordentrabajo_TareaRepositoryInterface $ordentrabajotarearepository,
+								OrdentrabajoRepositoryInterface $ordentrabajorepository,
 								OrdentrabajoQueryInterface $ordentrabajoquery,
 								PedidoQueryInterface $pedidoquery,
 								ClienteQueryInterface $clientequery,
@@ -58,6 +62,7 @@ class PedidoService
 		$this->pedido_combinacion_estadoRepository = $pedidocombinacionestadorepository;
         $this->ordentrabajo_combinacion_talleRepository = $ordentrabajocombinaciontallerepository;
 		$this->ordentrabajo_tareaRepository = $ordentrabajotarearepository;
+		$this->ordentrabajoRepository = $ordentrabajorepository;
 		$this->ordentrabajoQuery = $ordentrabajoquery;
         $this->pedidoQuery = $pedidoquery;
         $this->clienteQuery = $clientequery;
@@ -104,12 +109,11 @@ class PedidoService
 				{
                     $qProduccion++;
 
-					if ($estado == 'F')
-					{
-						$factura = $this->ordentrabajoService->otFacturada(0, $item->ot_id);
-						if ($factura['numerofactura'] != -1 && $factura['numerofactura'] != -2)
-							$qFacturado++;
-					}
+					//$factura = $this->ordentrabajoService->otFacturada(0, $item->ot_id);
+					$factura = $this->ordentrabajoService->buscaTareaOt($item->ot_id, config("consprod.TAREA_FACTURADA"));
+					//if ($factura['numerofactura'] != -1 && $factura['numerofactura'] != -2)
+					if ($factura > 0)
+						$qFacturado++;
 				}
 				// Lee estado del pedido
 				$estadoPedido = $this->pedido_combinacion_estadoRepository->traeEstado($item->id);
@@ -193,7 +197,6 @@ class PedidoService
 									$desdearticulo_id, $hastaarticulo_id,
 									$desdelinea_id, $hastalinea_id,
 									$desdefondo_id, $hastafondo_id);
-
 		// Arma datos para listado
 		switch($tipolistado)
 		{
@@ -238,7 +241,7 @@ class PedidoService
 						$anterId = $pedido['pedido_combinacion_id'];
 						$medidas = [];
 
-						$numeropedido = $pedido['codigo'];
+						$numeropedido = $pedido['pedido_id'];
 						$estadopedido = $pedido['codigoot'] != '' ? 'EN PRODUCCION' : 'PENDIENTE';
 
 						// Busca tareas para definir el estado real
@@ -425,7 +428,7 @@ class PedidoService
 				$numeropedido = $pedido['codigo'];
 				$estadopedido = $pedido['codigoot'] != '' ? 'EN PRODUCCION' : 'PENDIENTE';
 
-				$factura = $this->ordentrabajoService->otFacturada(0, $pedido['ot_id']);
+				$factura = $this->ordentrabajoService->otFacturada(0, $pedido['ot_id'], $pedido['pedido_combinacion_id']);
 				if ($factura['numerofactura'] != -1 && $factura['numerofactura'] != -2)
 					$estadopedido = "FACTURADA";
 				else
@@ -638,7 +641,7 @@ class PedidoService
 		return response()->download($path.'/'.$nombre_pdf.'.pdf');
   	}
 
-	// Anula item del pedido 
+	// Anula item del pedido y reasigna la OT
 	public function anularItemPedido($id, $codigoot, $motivocierrepedido_id, $cliente_id = null)
 	{
 	  	$pedido_combinacion = $this->pedido_combinacionRepository->findOrFail($id);
@@ -676,11 +679,17 @@ class PedidoService
 						if ($ot)
 						{
 							// Lee los items
-							foreach ($ot->ordentrabajo_combinacion_talles as $item)
+							$pedido_combinacion_talle = $this->pedido_combinacion_talleRepository
+															->findporpedido_combinacion($id);
+							foreach($pedido_combinacion_talle as $itemPedido)
 							{
-								// Actualiza el nuevo cliente
-								$this->ordentrabajo_combinacion_talleRepository->update(
-															['cliente_id' => $cliente_id], $item->id);
+								foreach ($ot->ordentrabajo_combinacion_talles as $item)
+								{
+									if ($item->pedido_combinacion_talle_id == $itemPedido->id)
+										// Actualiza el nuevo cliente
+										$this->ordentrabajo_combinacion_talleRepository->update(
+																['cliente_id' => $cliente_id], $item->id);
+								}
 							}
 							if ($cliente_id == config("consprod.CLIENTE_STOCK"))
 							{
@@ -688,6 +697,7 @@ class PedidoService
 								
 								// Lee la combinacion
 								$combinacion = Combinacion::find($pedido_combinacion->combinacion_id);
+
 								if ($articulo && $combinacion)
 									$this->generaMovimientoStock(Carbon::now(), $pedido_combinacion, $ot, 
 										$articulo, $combinacion, 0);
@@ -778,7 +788,6 @@ class PedidoService
 					//$this->pedido_combinacionRepository->deleteporpedido($data['pedido_id']);
 					// si es update busca si hay registros borrados
 					$pedido_combinacion = $this->pedido_combinacionRepository->findPorPedidoId($id);
-
 					foreach($pedido_combinacion as $idPedidoCombinacion)
 					{
 						// Busca si no existe el id en el array que devuelve el blade
@@ -789,7 +798,15 @@ class PedidoService
 								$flEncontro = true;
 						}
 						if (!$flEncontro)
+						{
+							if ($idPedidoCombinacion->ot_id > 0)
+							{
+								// Borra la orden de trabajo
+								$this->ordentrabajoRepository->deletePorCodigo($idPedidoCombinacion->ot_id);
+							}
+							// Borra el item
 							$this->pedido_combinacionRepository->delete($idPedidoCombinacion->id);
+						}
 					}
 				}
 				$articulos = $data['articulos_id'];
@@ -813,7 +830,7 @@ class PedidoService
 					if ($articulos[$i_comb] != '') 
 					{
 						// Lee el articulo
-						$articulo = Articulo::select('id','categoria_id','subcategoria_id','linea_id')->
+						$articulo = Articulo::select('id','categoria_id','subcategoria_id','linea_id','impuesto_id')->
 									where('id',$articulos[$i_comb])->first();
 						$categoria_id = $subcategoria_id = $linea_id = NULL;
 						$categoria_codigo = ' ';
@@ -822,6 +839,12 @@ class PedidoService
 							$categoria_id = $articulo->categoria_id;
 							$subcategoria_id = $articulo->subcategoria_id;
 							$linea_id = $articulo->linea_id;
+
+							if ($articulo->impuesto_id == NULL)
+							{
+								DB::rollback();
+								return ['error' => 'El Artículo '.$articulo->sku.' no tiene impuestos cargados'];
+							}
 
 							$categoria = Categoria::where('id' , $articulo->categoria_id)->first();
 							if ($categoria)
@@ -861,10 +884,12 @@ class PedidoService
 						else
 						{
 							// Lee la OT
+							if (!isset($ot_ids[$i_comb]))
+								$ot_ids[$i_comb] = 0;
+
 							if ($ot_ids[$i_comb] > 0)
 							{
 								$ordentrabajo = $this->ordentrabajoQuery->leeOrdenTrabajo($ot_ids[$i_comb]);
-
 								// pasa nro. de orden para anita
 								if ($ordentrabajo)
 									$data['nro_orden'] = $ordentrabajo->codigo ?? -1;
@@ -873,6 +898,32 @@ class PedidoService
 							}
 							else
 								$data['nro_orden'] = -1;
+
+							if (!isset($precios[$i_comb]))
+								$precios[$i_comb] = 0;
+							if (!isset($cantidades[$i_comb]))
+							{
+								$cantidades[$i_comb] = 0;
+
+								// Abre medidas de cada item
+								$jtalles = json_decode($medidas[$i_comb]);
+								if ($jtalles != null)
+								{
+									foreach ($jtalles as $value)
+									{
+										if ($value->cantidad > 0)
+										{
+											$cantidades[$i_comb] += $value->cantidad;
+											$precios[$i_comb] = $value->precio;
+										}
+									}
+								}
+							}
+							if (!isset($numeroitems[$i_comb]))
+								$numeroitems[$i_comb] = 0;
+
+							if (!isset($observaciones[$i_comb]))
+								$observaciones[$i_comb] = '';
 
 							// Actualiza el item
 							$pedido_combinacion = $this->pedido_combinacionRepository->update(
@@ -895,7 +946,7 @@ class PedidoService
 								$loteids[$i_comb] == 0 ? null : $loteids[$i_comb],
 								$ids[$i_comb]);
 
-							// si devolvio true lee nuevamente el registro
+								// si devolvio true lee nuevamente el registro
 							if ($pedido_combinacion)
 							{
 								$pedido_combinacion = $this->pedido_combinacionRepository->find($ids[$i_comb]);
@@ -911,8 +962,7 @@ class PedidoService
 							// Antes de borrar debe traer si tiene otro cliente la OT por reasignacion
 							if (count($pedido_combinacion_talle) > 0)
 							{
-								$ordentrabajo_combinacion_talle = $this
-															->ordentrabajo_combinacion_talleRepository
+								$ordentrabajo_combinacion_talle = $this->ordentrabajo_combinacion_talleRepository
 															->findPorPedidoCombinacionTalleId($pedido_combinacion_talle[0]->id);
 								
 								if (count($ordentrabajo_combinacion_talle) > 0)
@@ -924,13 +974,13 @@ class PedidoService
 
 						// Lee la combinacion
 						$combinacion = Combinacion::find($combinaciones[$i_comb]);
-
 						// Si actualiza borra los items
 						if ($funcion == 'update' )
 							$this->pedido_combinacion_talleRepository->
 									deleteporpedido_combinacion($ids[$i_comb]);
 						// Abre medidas de cada item
 						$jtalles = json_decode($medidas[$i_comb]);
+						$flGraboMedidas = false;
 						if ($jtalles != null)
 						{
 							foreach ($jtalles as $value)
@@ -938,6 +988,8 @@ class PedidoService
 								// Guarda apertura de talles
 								if ($value->cantidad > 0)
 								{
+									$flGraboMedidas = true;
+
 									$pedido_combinacion_talle = $this->pedido_combinacion_talleRepository
 																	->create(
 																				$ids[$i_comb], 
@@ -953,7 +1005,6 @@ class PedidoService
 											$medida = $talle->nombre;
 										else
 											$medida = '';
-
 										$dataErp = array(
 													'ordentrabajo_id' => $ordentrabajo->id,
 													'pedido_combinacion_talle_id' => $pedido_combinacion_talle->id,
@@ -980,10 +1031,19 @@ class PedidoService
 								}
 							}
 						}
-						// Graba stock si el cliente es el correspondiente
-						if ((count($ot_stock_ids) > 0 ? $ot_stock_ids[$i_comb] > 0 : false))
+						if (!$flGraboMedidas)
 						{
-							if (count($ot_stock_ids) > 0)
+							$item = $i_comb + 1;
+							throw new Exception('El item '.$item.' no tiene talles');
+						}
+
+						// Graba stock si el cliente es el correspondiente
+						if (!isset($ot_stock_ids[$i_comb]))
+							$ot_stock_ids[$i_comb] = 0;
+						if (($ot_stock_ids[$i_comb] > 0 || $clienteot_id == config("consprod.CLIENTE_STOCK")) &&
+							$ordentrabajo != null)
+						{
+							if ($ot_stock_ids[$i_comb] > 0)
 								$this->generaMovimientoStock($data['fecha'], $pedido_combinacion, 
 														$ordentrabajo, $articulo, $combinacion,
 														$ot_stock_ids[$i_comb]);
@@ -998,10 +1058,9 @@ class PedidoService
 		} catch (\Exception $e) 
 		{
 			DB::rollback();
-			dd($e->getMessage());
-			return $e->getMessage();
+
+			return ['error' => $e->getMessage()];
 		}
-		
 		return ['id'=>$data['pedido_id'], 'codigo'=>$data['codigo']];
 	}
 

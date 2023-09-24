@@ -13,6 +13,7 @@ use App\Models\Stock\Linea;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use DB;
 
 class PrecioService 
 {
@@ -164,5 +165,91 @@ class PrecioService
 		return($precioRet);
 	}
 
-}
+	public function generaDatosRepListaPrecio($estado, $mventa_id,
+											$desdearticulo_id, $hastaarticulo_id,
+											$desdecategoria_id, $hastacategoria_id, $listasprecio)
+	{
+		$listasPrecio_id = explode(',', $listasprecio);
 
+		// Asigna precio por vigencia
+		$precios = Precio::select('precio.articulo_id as articulo_id', 
+								'articulo.sku as sku', 
+								'articulo.descripcion as descripcion', 
+								'articulo.categoria_id as categoria_id',
+								'articulo.mventa_id as mventa_id',
+								'mventa.nombre as marca',
+								'categoria.nombre as categoria',
+								'precio.listaprecio_id as listaprecio_id', 
+								'precio.fechavigencia as fechavigencia', 
+								'precio.precio')
+				->join('articulo', 'articulo.id', 'precio.articulo_id')
+				->join('mventa', 'mventa.id', 'articulo.mventa_id')
+				->join('categoria', 'categoria.id', 'articulo.categoria_id')
+				->whereBetween('articulo_id', [$desdearticulo_id, $hastaarticulo_id]);
+		
+		if ($mventa_id > 0)
+			$precios = $precios->where('articulo.mventa_id', $mventa_id);
+
+		$precios = $precios->whereBetween('articulo.categoria_id', [$desdecategoria_id, $hastacategoria_id])
+				->whereIn('precio.listaprecio_id', $listasPrecio_id)
+				->orderBy('articulo.descripcion')
+				->orderBy('articulo.sku')
+				->orderBy('listaprecio_id')
+				->orderBy('fechavigencia', 'desc');		
+		
+		if ($estado != 'TODAS')
+		{
+			$query = $precios->whereExists(function($query) use($estado)
+				{
+					$query->select(DB::raw(1))
+						->from("combinacion")
+						  ->whereRaw("combinacion.articulo_id=articulo.id and combinacion.estado='".substr($estado,0,1)."'");
+				});
+
+			$query = $query->get();
+		}
+		else
+			$query = $precios->get();
+		$data = [];
+		$anterSku = '';
+		foreach($query as $articulo)
+		{
+			if ($articulo['sku'] != $anterSku)
+			{
+				if ($anterSku != '')
+				{
+					$data[] = [
+						'articulo_id' => $articulo_id,
+						'sku' => $sku,
+						'descripcion' => $descripcion,
+						'marca' => $marca,
+						'categoria' => $categoria,
+						'precios' => $precios
+					];
+				}
+				$anterSku = $articulo['sku'];
+				$precios = [];
+			}
+			
+			$articulo_id = $articulo['articulo_id'];
+			$sku = $articulo['sku'];
+			$descripcion = $articulo['descripcion'];
+			$marca = $articulo['marca'];
+			$categoria = $articulo['categoria'];
+
+			for ($i = 0, $flEncontro = false; $i < count($precios); $i++)
+			{
+				if ($articulo['listaprecio_id'] == $precios[$i]['listaprecio_id'])
+				{
+					$flEncontro = true;
+				}
+			}
+			if (!$flEncontro)
+				$precios[] = [ 'listaprecio_id' => $articulo['listaprecio_id'],
+								'precio' => $articulo['precio'],
+								'fechavigencia' => $articulo['fechavigencia']
+						];
+		}
+		return($data);
+	}
+}

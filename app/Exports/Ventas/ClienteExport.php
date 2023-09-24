@@ -27,7 +27,7 @@ class ClienteExport implements FromView, WithColumnFormatting, WithMapping, Shou
 {
 	use Exportable;
 	private $desdeCliente_id, $hastaCliente_id, $estado, $tipoSuspensionCliente_id;
-	private $descripcionEstado;
+	private $descripcionEstado, $desdeVendedor_id, $hastaVendedor_id;
 		
 	protected $dates = ['fecha'];
     private $clienteQuery, $tiposuspensionclienteRepository;
@@ -45,12 +45,14 @@ class ClienteExport implements FromView, WithColumnFormatting, WithMapping, Shou
 	{
 		// Lee informacion del listado
 		$data = $this->clienteQuery->generaDatosRepCliente($this->desdeCliente_id, $this->hastaCliente_id,
-			$this->estado, $this->tipoSuspensionCliente_id);
+			$this->estado, $this->tipoSuspensionCliente_id, $this->desdeVendedor_id, $this->hastaVendedor_id);
 
 		return view('exports.ventas.reportecliente.reportecliente', 
 					['clientes' => $data, 
 					'desdecliente' => $this->desdeCliente_id,
 					'hastacliente' => $this->hastaCliente_id,
+					'desdevendedor' => $this->desdeVendedor_id,
+					'hastavendedor' => $this->hastaVendedor_id,
 					'estado' => $this->descripcionEstado,
 					]);
 	}
@@ -116,12 +118,15 @@ class ClienteExport implements FromView, WithColumnFormatting, WithMapping, Shou
     }
 
 	public function parametros($desdecliente_id, $hastacliente_id,
-							$estado, $tiposuspensioncliente_id)
+							$estado, $tiposuspensioncliente_id, $desdevendedor_id,
+							$hastavendedor_id)
 	{
 		$this->desdeCliente_id = $desdecliente_id;
-		$this->hastacliente_id = $hastacliente_id;
+		$this->hastaCliente_id = $hastacliente_id;
 		$this->estado = $estado;
 		$this->tipoSuspensionCliente_id = $tiposuspensioncliente_id;
+		$this->desdeVendedor_id = $desdevendedor_id;
+		$this->hastaVendedor_id = $hastavendedor_id;
 
 		$this->descripcionEstado = $estado;
 		if ($estado == 'SUSPENDIDOS')

@@ -77,8 +77,8 @@ class ClienteRepository implements ClienteRepositoryInterface
     	$cliente = Cliente::find($id);
 
 		// Elimina anita
-		if ($cliente)
-			self::eliminarAnita($cliente->codigo);
+		//if ($cliente)
+			//self::eliminarAnita($cliente->codigo);
 
         $cliente = $this->model->destroy($id);
 
@@ -87,7 +87,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 
     public function find($id)
     {
-        if (null == $cliente = $this->model->with("cliente_entregas")->with("cliente_archivos")->find($id)) {
+        if (null == $cliente = $this->model->with("cliente_entregas")->with("cliente_archivos")->with("tipossuspensioncliente")->find($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
 

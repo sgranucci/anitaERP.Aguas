@@ -19,6 +19,7 @@ use App\Repositories\Ventas\VentaRepositoryInterface;
 use App\Repositories\Ventas\Venta_ImpuestoRepositoryInterface;
 use App\Repositories\Ventas\Venta_ExportacionRepositoryInterface;
 use App\Repositories\Ventas\Cliente_CuentacorrienteRepositoryInterface;
+use App\Repositories\Ventas\Cliente_EntregaRepositoryInterface;
 use App\Repositories\Ventas\TransporteRepositoryInterface;
 use App\Repositories\Ventas\IncotermRepositoryInterface;
 use App\Repositories\Ventas\FormapagoRepositoryInterface;
@@ -76,6 +77,7 @@ class FacturacionService
 	protected $pedido_combinacionRepository;
 	protected $pedido_combinacion_talleRepository;
 	protected $cliente_cuentacorrienteRepository;
+	protected $cliente_entregaRepository;
 	protected $puntoventaRepository;
 	protected $tipotransaccionRepository;
 	protected $condicionivaRepository;
@@ -128,7 +130,8 @@ class FacturacionService
 								IncotermRepositoryInterface $incotermrepository,
 								FormapagoRepositoryInterface $formapagorepository,
 								Cliente_CuentacorrienteRepositoryInterface $cliente_cuentacorrienterepository,
-								LoteRepositoryInterface $loterepository
+								LoteRepositoryInterface $loterepository,
+								Cliente_EntregaRepositoryInterface $cliente_entregarepository
 								)
     {
         $this->ordentrabajoQuery = $ordentrabajoquery;
@@ -157,6 +160,7 @@ class FacturacionService
 		$this->incotermRepository = $incotermrepository;
 		$this->formapagoRepository = $formapagorepository;
 		$this->loteRepository = $loterepository;
+		$this->cliente_entregaRepository = $cliente_entregarepository;
     }
 
 	// Factura por item de OT
@@ -189,7 +193,6 @@ class FacturacionService
 		$this->formaPagoExportacion = '';
 		$this->monedaExportacion = '';
 		$this->abreviaturaIncoterm = '';
-
 		// Arma variables de exportacion
 		if ($this->incoterm_id >= 1)
 		{
@@ -210,6 +213,7 @@ class FacturacionService
 		// Lee los items a facturar
 		$dataFactura = [];
 		$totPares = 0;
+
 		for ($i = 0; $i < count($ordenestrabajo_id); $i++)
 		{
 			$ordentrabajo_id = $ordenestrabajo_id[$i];
@@ -232,7 +236,7 @@ class FacturacionService
 						$articulo = $this->articuloQuery->traeArticuloPorId($item->pedido_combinacion_talles->pedido_combinaciones->articulo_id);
 
 						if (!$articulo)
-							return 'Articulo inexistente';
+							return ['error' => 'Artículo inexistente'];
 
 						$combinacion_id = $item->pedido_combinacion_talles->pedido_combinaciones->combinacion_id;
 						$moneda_id = $item->pedido_combinacion_talles->pedido_combinaciones->moneda_id;
@@ -240,7 +244,6 @@ class FacturacionService
 						
 						// Trae la combinacion
 						$combinacion = Combinacion::find($combinacion_id);
-						
 						// Trae la categoria
 						$categoria = Categoria::find($articulo->categoria_id);
 						$codigoCategoria = '';
@@ -251,17 +254,15 @@ class FacturacionService
 						$cliente = $this->clienteQuery->traeClienteporId($item->cliente_id);
 
 						if (!$cliente)
-							return 'Cliente inexistente';
+							return ['error' => 'Cliente inexistente'];
 
 						if ($cliente->nroinscripcion == null)
-							return 'No tiene CUIT';
+							return ['error' => 'No tiene CUIT'];
 							
 						$this->cuentacontable_id = $cliente->cuentacontable_id;
 						$this->codigoCuentaContable = $cliente->cuentascontables->codigo;
-
 						// Saca letra del comprobante
 						$condicioniva = $this->condicionivaRepository->find($cliente->condicioniva_id);
-
 						$letra = 'Z';
 						if ($condicioniva)
 							$letra = $condicioniva->letra;
@@ -271,22 +272,37 @@ class FacturacionService
 							$this->pedidoQuery->leePedidoporId($item->pedido_combinacion_talles->pedidos_combinacion->pedido_id);
 
 						if (!$pedido_query)
-							return 'Pedido inexistente';
+							return ['error' => 'Pedido inexistente'];
 						else	
 							$pedido = $pedido_query[0];
+						
+						if ($pedido->cliente_entrega_id == 0)
+							return ['error' => 'No tiene lugar de entrega cargado'];
 
-						// Trae el lote
-						$lote_id = $item->pedido_combinacion_talles->pedidos_combinacion->lote_id;
-						$this->numeroDespacho = '';
-						if ($lote_id > 0 && $lote_id != null)
+							// Lee lugar de entrega
+						if ($pedido->lugarentrega == null && $pedido->cliente_entrega_id > 0)
 						{
-							$lote = $this->loteRepository->find($lote_id);
+							$cliente_entrega = $this->cliente_entregaRepository->find($pedido->cliente_entrega_id);
+
+							if ($cliente_entrega)
+								$pedido->lugarentrega = $cliente_entrega->nombre;
+						}
+						// Trae el lote
+						$lotestock_id = $item->ordentrabajo_stock_id;
+
+						// Trae el id del lote de importacion
+						$loteimportacion_id = $this->articulo_movimientoService->buscaLoteImportacion($lotestock_id);
+
+						$this->numeroDespacho = '';
+						if ($loteimportacion_id > 0 && $loteimportacion_id != null)
+						{
+							$lote = $this->loteRepository->find($loteimportacion_id);
 
 							if ($lote)
 								$this->numeroDespacho = $lote->numerodespacho;
 						}
 					}
-					
+
 					// lee el talle 
 					$talle = Talle::find($item->pedido_combinacion_talles->talle_id);
 
@@ -294,7 +310,6 @@ class FacturacionService
 					{
 						$precio = $this->precioService->
 										asignaPrecio($articulo->id, $talle->id, $fechaFactura);
-
 						for ($i = 0, $flEncontro = false; $i < count($dataFactura); $i++)
 						{
 							if ($dataFactura[$i]['precio'] == $precio[0]['precio'] &&
@@ -318,7 +333,7 @@ class FacturacionService
 								"articulo_id" => $articulo->id,
 								"sku" => $articulo->sku,
 								"descripcion" => $articulo->descripcion,
-								"codigounidadmedida" => $articulo->unidadesdemedidas->codigo,
+								"codigounidadmedida" => $articulo->unidadesdemedidas->codigo ?? 1,
 								'categoria' => $codigoCategoria,
 								"descripcion" => $articulo->descripcion,
 								"combinacion_id" => $combinacion_id,
@@ -333,7 +348,9 @@ class FacturacionService
 												
 							for ($i = 0, $flEncontro = false; $i < count($dataFactura); $i++)
 							{
-								if ($dataFactura[$i]['precio'] == $precio[0]['precio'])
+								if ($dataFactura[$i]['precio'] == $precio[0]['precio'] &&
+									$dataFactura[$i]['sku'] == $articulo->sku &&
+									$dataFactura[$i]['combinacion_id'] == $combinacion_id)
 								{
 									$flEncontro = true;
 									break;
@@ -367,7 +384,7 @@ class FacturacionService
 				}
 			}
 		}
-		
+
 		// Arma datos del cliente
 		$datosCliente = [ "condicioniva_id" => $cliente->condicioniva_id,
 						  "nroinscripcion" => $cliente->nroinscripcion,
@@ -389,11 +406,11 @@ class FacturacionService
 
 		// Lee punto de venta
 		$puntoventa = $this->puntoventaRepository->find($puntoventa_id);
-
 		// Lee punto de venta del remito
-		$puntoventaremito = $this->puntoventaRepository->find($this->puntoventaremito_id);
-
-		if ($puntoventa && $puntoventaremito)
+		$puntoventaremito = null;
+		if ($this->puntoventaremito_id >= 1)
+			$puntoventaremito = $this->puntoventaRepository->find($this->puntoventaremito_id);
+		if ($puntoventa && ($puntoventa->modofacturacion != 'M' ? $puntoventaremito : true))
 		{
 			// Lee empresa
 			$empresa = Empresa::find($puntoventa->empresa_id);
@@ -405,7 +422,6 @@ class FacturacionService
 			$codigoTipoTransaccion = $tipotransaccion->codigo;
 			$this->nombreTipoTransaccion = $tipotransaccion->nombre;
 			$signo = $tipotransaccion->signo == 'S' ? 1. : -1.;
-			
 			// Numera factura con web service si es factura electronica
 			if ($puntoventa->modofacturacion != 'M')
 			{
@@ -417,10 +433,15 @@ class FacturacionService
 															$codigoTipoTransaccion,
 															$puntoventa);
 
+				//$numero = 72298;
 			}
 			else // Numera manualmente
 			{
-
+				$venta = $this->ventaRepository->traeUltimoComprobanteVenta($tipotransaccion_id, $puntoventa_id);
+				if ($venta)
+					$numero = $venta->numerocomprobante;
+				else	
+					$numero = 0;
 			}
 
 			if ($numero != -1)
@@ -428,10 +449,12 @@ class FacturacionService
 				$numero++;
 
 				// Pide numero de remito
-				$numeroremito = $this->ventaRepository->traeUltimoNumeroRemito('REM','R',$puntoventaremito->codigo);
+				if ($puntoventaremito && $puntoventa->modofacturacion != 'M')
+					$numeroremito = $this->ventaRepository->traeUltimoNumeroRemito('REM','R',$puntoventaremito->codigo);
+				else	
+					$numeroremito = 0;
 
-				if ($numeroremito == 'Error')
-					return 'Error al numerar Remito';
+				//$numeroremito = 72299;
 
 				// Procesa Factura electronica
 				if ($puntoventa->modofacturacion != 'M')
@@ -493,24 +516,6 @@ class FacturacionService
 				DB::beginTransaction();
 				try 
 				{
-					// Solicita CAE
-					if ($puntoventa->modofacturacion != 'M')
-					{
-
-						$cae = $this->facturaelectronicaService->solicitaCAE(
-							$empresa->nroinscripcion,
-							$codigoTipoTransaccion,
-							$puntoventa,
-							$dataCAE);
-						//$cae = ['cae' => '73290782166660', 'fechavencimientocae' => '20230727'];
-						
-						if ($cae == 'Error')
-							throw new Exception('No pudo asignar CAE');
-
-						if ($cae['fechavencimientocae'] == 0)
-							throw new Exception('No pudo asignar CAE');
-					}
-					
 					if ($codigoTipoTransaccion >= '200')
 						$tipoAnita = substr($tipotransaccion->abreviatura,0,1)+"CE";
 					else
@@ -548,13 +553,17 @@ class FacturacionService
 						'telefono' => $cliente->telefono,
 						'nroinscripcion' => $cliente->nroinscripcion,
 						'condicioniva_id' => $cliente->condicioniva_id,
-						'cae' => $cae['cae'],
-						'fechavencimientocae' => $cae['fechavencimientocae'],
 						'puntoventaremito_id' => $this->puntoventaremito_id,
             			'numeroremito' => $numeroremito,
 						'cantidadbulto' => $this->cantidadBulto
 					];	
-
+					// Verifica si ya existe en anita
+					$ventaAnita = Self::buscaVentaAnita(substr($venta['codigo'], 0, 3), $letra, $puntoventa->codigo, $venta['numerocomprobante']);
+					// Si existe retorna con error
+					if ($ventaAnita == $venta['numerocomprobante'])
+					{
+						throw new Exception('La factura '.$venta['numerocomprobante'].' ya existe en ANITA');
+					}
 					// Graba venta
 					$vta = $this->ventaRepository->create($venta);
 
@@ -593,8 +602,7 @@ class FacturacionService
 							];
 							$this->venta_impuestoRepository->create($data);
 						}
-					}
-
+					} 
 					// Graba cuenta corriente
 					foreach($cuentacorriente as $cuota)
 					{
@@ -654,11 +662,10 @@ class FacturacionService
 								'codigocombinacion' => $item['codigocombinacion']
 							];
 						}
-						$articulo_movimiento = $this->articulo_movimientoService->
-										guardaArticuloMovimiento('create',
-										$dataArticuloMovimiento, $dataTalle);
+						//$articulo_movimiento = $this->articulo_movimientoService->
+										//guardaArticuloMovimiento('create',
+										//$dataArticuloMovimiento, $dataTalle);
 					}
-
 					// Graba contabilidad
 
 					// Marca OT como facturada
@@ -681,16 +688,70 @@ class FacturacionService
 						$ordentrabajo = $this->ordentrabajo_tareaRepository->create($data);
 					}
 
-					// Graba anita
-					$anita = self::grabaAnita($puntoventa->codigo, $letra, $puntoventaremito->codigo, $numeroremito,
+					if ($puntoventa->modofacturacion != 'M')
+					{
+						// Graba anita
+						$anita = self::grabaAnita($puntoventa->codigo, $letra, $puntoventaremito->codigo, $numeroremito,
 									$venta, $dataCAE, $conceptosTotales, $cuentacorriente, $dataFactura, $signo);
 
-					if ($anita == 'Error')
-						throw new Exception('Error en grabacion anita.');
- 
+						if ($anita == 'Error')
+							throw new Exception('Error en grabacion anita.');
+
+						if ($anita == 'Errvend')
+							throw new Exception('No tiene vendedor asignado.');
+
+						// Solicita CAE
+						if ($puntoventa->modofacturacion != 'M')
+						{
+							$cae = $this->facturaelectronicaService->solicitaCAE(
+								$empresa->nroinscripcion,
+								$codigoTipoTransaccion,
+								$puntoventa,
+								$dataCAE);
+							//$cae = ['cae' => '73300854793410', 'fechavencimientocae' => '20230806'];
+							
+							if ($cae == 'Error')
+								throw new Exception('No pudo asignar CAE');
+	
+							if ($cae['fechavencimientocae'] == 0)
+								throw new Exception('No pudo asignar CAE');
+						}
+						$this->ventaRepository->update([
+														'cae' => $cae['cae'], 
+														'fechavencimientocae' => $cae['fechavencimientocae']
+														],
+														$vta->id);
+					}
 					DB::commit();
 
-					return ['factura' => $numero];
+					if ($puntoventa->modofacturacion != 'M')
+					{
+						// Graba cae en anita
+						$apiAnita = new ApiAnita();
+
+						$data = array( 	'tabla' => 'vencae', 
+										'acc' => 'insert',
+										'campos' => ' 
+											venc_tipo, venc_letra, venc_sucursal, venc_nro, venc_nro_cae, venc_fecha_vto,
+											venc_nro_id, venc_nro_sec ',
+										'valores' => "
+											'".substr($venta['codigo'], 0, 3)."',
+											'".$letra."',
+											'".$puntoventa->codigo."',
+											'".$venta['numerocomprobante']."',
+											'".$cae['cae']."',
+											'".date('Ymd', strtotime($cae['fechavencimientocae']))."',
+											'".'1'."',
+											'".'1'."'
+										"
+								);
+						$vencae = $apiAnita->apiCall($data);
+
+						if (strpos($vencae, 'Error') !== false)
+							return 'Error';
+					}
+
+					return ['factura' => $numero, 'error' => ''];
 				} catch (\Exception $e) {
 					DB::rollback();
 
@@ -698,8 +759,8 @@ class FacturacionService
 					if ($venta['codigo'] ?? '')
 						self::borraAnita(substr($venta['codigo'], 0, 3), $letra, 
 											$puntoventa->codigo, $venta['numerocomprobante']);
-																
-					return $e->getMessage();
+
+					return ['error' => $e->getMessage()];
 				}
 			}
 		}
@@ -741,9 +802,23 @@ class FacturacionService
 		// Lee comisiones
 		$vendedor = Self::leeVendedor(str_pad($cliente->codigo, 6, "0", STR_PAD_LEFT), $this->mventa_id);
 
+		if ($vendedor == 0)
+			return 'Errvend';
+		
 		// Graba venta
         $apiAnita = new ApiAnita();
 		$exento = $dataCAE['exento'] + $dataCAE['nogravado'];
+
+		if (!isset($cliente->localidades->nombre))
+			$nombreLocalidad = '';
+		else
+			$nombreLocalidad = $cliente->localidades->nombre;	
+
+		if (!isset($cliente->provincias->nombre))
+			$nombreProvincia = '';
+		else
+			$nombreProvincia = $cliente->provincias->nombre;	
+
         $data = array( 	'tabla' => 'venta', 
 						'acc' => 'insert',
             			'campos' => ' 
@@ -796,8 +871,8 @@ class FacturacionService
 							'".'0'."',
 							'".$cliente->nombre."',
 							'".$cliente->domicilio."',
-							'".$cliente->localidades->nombre."',
-							'".$cliente->provincias->nombre."',
+							'".$nombreLocalidad."',
+							'".$nombreProvincia."',
 							'".$cliente->codigopostal."',
 							'".$cliente->nroinscripcion."',
 							'".($cliente->letra == 'A' ? '1' : '4')."',
@@ -813,12 +888,10 @@ class FacturacionService
 							'".'0'."'
 							"
 					);
-					
         $vta = $apiAnita->apiCall($data);
 
 		if (strpos($vta, 'Error') !== false)
 			return 'Error';
-			
 		// Graba venibr
 		foreach ($conceptostotales as $concepto)
 		{
@@ -850,31 +923,6 @@ class FacturacionService
 					return 'Error';
 			}
 		}
-
-		// Graba vencae
-		$apiAnita = new ApiAnita();
-
-		$data = array( 	'tabla' => 'vencae', 
-						'acc' => 'insert',
-						'campos' => ' 
-							venc_tipo, venc_letra, venc_sucursal, venc_nro, venc_nro_cae, venc_fecha_vto,
-							venc_nro_id, venc_nro_sec ',
-						'valores' => "
-							'".substr($venta['codigo'], 0, 3)."',
-							'".$letra."',
-							'".$puntoventa."',
-							'".$venta['numerocomprobante']."',
-							'".$venta['cae']."',
-							'".date('Ymd', strtotime($venta['fechavencimientocae']))."',
-							'".'1'."',
-							'".'1'."'
-						"
-				);
-		$vencae = $apiAnita->apiCall($data);
-
-		if (strpos($vencae, 'Error') !== false)
-			return 'Error';
-			
 		// Graba climov
 		$nroCuota = 0;
 		foreach($cuentacorriente as $cuota)
@@ -976,7 +1024,6 @@ class FacturacionService
 			
 		// Agrupa por medida / partida para anita
 		$dataItem = [];
-		
 		foreach($datatalle as $item)
 		{
 			foreach ($item['medidas'] as $medida)
@@ -1122,7 +1169,7 @@ class FacturacionService
 								'".($cliente->subzonavta_id == null ? '0' : $cliente->subzonavta_id)."',
 								'".'0'."',
 								'".$medida['partida']."',
-								'".$medida['pedido']."',
+								'".substr($medida['pedido'],-8)."',
 								'".Auth::user()->nombre."',
 								'".'ERP'."',
 								'".date_format(Carbon::now(), 'Ymd')."',
@@ -1135,8 +1182,8 @@ class FacturacionService
 								"
 				);
 			$stkmov = $apiAnita->apiCall($data);
-			//if (strpos($stkmov, 'Error') !== false)
-				//return 'Error';
+			if (strpos($stkmov, 'Error') !== false)
+				return 'Error';
 		}
 		// Graba leyenda de exportacion
 		if ($this->leyendaExportacion != '')
@@ -1373,7 +1420,32 @@ class FacturacionService
         );
         $dataAnita = json_decode($apiAnita->apiCall($data));
 
-		return $dataAnita[0]->clico_vendedor;
+		if (isset($dataAnita[0]))
+			return $dataAnita[0]->clico_vendedor;
+		
+		return 0;
+	}
+
+	// Busca si existe la factura
+	private function buscaVentaAnita($tipo, $letra, $puntoventa, $numero)
+	{
+		$apiAnita = new ApiAnita();
+        $data = array( 'acc' => 'list', 
+						'tabla' => 'venta', 
+						'campos' => '
+							ven_nro
+						' ,
+						'whereArmado' => " WHERE ven_tipo = '".$tipo."' AND
+												ven_letra = '".$letra."' AND
+												ven_sucursal = '".$puntoventa."' AND
+												ven_nro = '".$numero."'
+						" );
+		$dataAnita = json_decode($apiAnita->apiCall($data));
+
+		if (count($dataAnita) > 0)
+			return $dataAnita[0]->ven_nro;
+		
+		return 0;
 	}
 
 	// Borra factura en Anita

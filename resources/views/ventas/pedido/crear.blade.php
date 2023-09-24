@@ -10,6 +10,20 @@
     var CLIENTE_STOCK_ID = "{{ config('cliente.CLIENTE_STOCK_ID') }}";
 	function sub()
 	{
+
+        // Cuenta los articulos para validar cantidad maxima
+        var cantidadArticulo = 0;
+
+        $("#tbody-tabla .articulo").each(function(index) {
+            cantidadArticulo = cantidadArticulo + 1;
+        });
+
+        if (cantidadArticulo > 42)
+        {
+            alert("No puede generar pedidos con mas de 42 ítems");
+            return false;
+        }
+
 		$('#formgeneral').submit();
 	}
 

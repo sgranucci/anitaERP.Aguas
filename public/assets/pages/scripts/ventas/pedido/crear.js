@@ -47,6 +47,7 @@
 	var titulofactura_txt=[];
 	var offFactura;
 	var modalActivo;
+	var descuentoCliente;
 	
 	function completarCliente_Entrega(cliente_id){
         var loc_id;
@@ -298,13 +299,14 @@
 			let ordentrabajo = $(this).val();
 			let ot = this;
 			let tilde = $(this).parents("tr").find(".checkImpresion");
+			let pedido_combinacion_id = $(this).parents("tr").find(".ids").val();
 			
 			// Busca si tiene factura asociada
-			var listarUri = "/anitaERP/public/ventas/estadoot/"+ordentrabajo;
+			var listarUri = "/anitaERP/public/ventas/estadoot/"+ordentrabajo+"/"+pedido_combinacion_id;
 		
 			$.get(listarUri, function(data){
 				
-				if (data.numerofactura != -1 && data.numerofactura != -2)
+				if (data.numerofactura != -1 && data.numerofactura != -2 && data.numerofactura != -3)
 				{
 					$(ot).css("background-color","red");
 						$(ot).css("font-weight","900");
@@ -371,6 +373,7 @@
 				let estadocliente = $("#estadocliente").val();
 				let tiposuspensioncliente_id = $("#tiposuspensioncliente_id").val();
 				let nombretiposuspensioncliente = $("#nombretiposuspensioncliente").val();
+				let pedido_combinacion_id = $(this).parents("tr").find(".ids").val();
 			
 				// No deja factura cliente stock
 				if (cliente_id == CLIENTE_STOCK_ID)
@@ -401,11 +404,18 @@
 				}
 
 				// Busca si tiene factura asociada
-				var listarUri = "/anitaERP/public/ventas/estadoot/"+ordentrabajo;
+				var listarUri = "/anitaERP/public/ventas/estadoot/"+ordentrabajo+"/"+pedido_combinacion_id;
             
 				$.get(listarUri, function(data){
 					
-					if (data.numerofactura != -1 && data.numerofactura != -2)
+					if (data.numerofactura == -3)
+					{
+						alert("OT no está terminada");
+
+						$(tilde).prop("checked",false);
+						return;						
+					}
+					if (data.numerofactura != -1 && data.numerofactura != -2 && data.numerofactura != -3)
 					{
 						alert("OT ya facturada "+data.numerofactura);
 						$(tilde).prop("checked",false);
@@ -444,6 +454,9 @@
         $(".modulo").on('change', function() {
 			modulo_id = $(this).parents("tr").find(".modulo").val();
 		  	moduloElegido_id = modulo_id;
+
+			// Blanquea medidas
+			$(this).parents("tr").find(".medidas").val("");
 		});
 
 		// Con click sobre cantidad abre modal de medidas
@@ -656,6 +669,10 @@
 			if (ordentrabajo_stock_codigo == '')
 				ordentrabajo_stock_codigo = 0;
 
+			// Elimina caracteres especiales de la leyenda
+			var pattern = /[\^*@!"#$%&/,()=?¡!¿'\\]/gi;
+			leyenda = leyenda.replace(pattern, ' ');
+
 			if (ordentrabajo_stock_codigo > 0)
 			{
 				var listarUri = "/anitaERP/public/ventas/controlaordentrabajostock/"+ordentrabajo_stock_codigo+"/"+articulo_id+"/"+combinacion_id;
@@ -861,7 +878,6 @@
 				precios.push(value.precio);
 			});
 		}
-
 		completarTalles(modulo_id, 0, medidas, cantidades, precios);
 	}
 
@@ -916,7 +932,6 @@
 		var tipoalta = $('#tipoalta').val();
 
         pedido_combinacion = $(this).parents("tr").find(".ids");
-
 		if (ot > 0)
 			alert("No puede volver a generar OT");
 		else
@@ -929,10 +944,17 @@
 					alert('No puede generar ot a cliente provisorio');
 				else
 				{
-					var leyenda = $(this).parents("tr").find(".observacion").val();
-					$("#leyendaot").val(leyenda);
-	
-					$("#crearOrdenTrabajoModal").modal('show');
+					if (pedido_combinacion.val() == 0)
+					{
+						alert('No puede generar ot sin grabar el nuevo item');
+					}
+					else
+					{
+						var leyenda = $(this).parents("tr").find(".observacion").val();
+						$("#leyendaot").val(leyenda);
+		
+						$("#crearOrdenTrabajoModal").modal('show');
+					}
 				}
 			}
 		}
@@ -945,6 +967,7 @@
 		motivoAnulacionOt = $(this).parents('tr').find('.motivosanulacion').val();
 		nombreClienteAnulacionOt = $(this).parents('tr').find('.clientesanulacion').val();
 	  	itemAnulacionOt = $(this);
+	  	let pedido_combinacion_id = $(this).parents("tr").find(".ids").val();
 
 	  	itemAnulacion = $(this).parents('tr').find('.item');
 	  	itemAnulacionId = $(this).parents('tr').find('.ids').val();
@@ -953,11 +976,11 @@
 	  	flAnulacionItem = true;
 
 		// Busca si tiene factura asociada
-		var listarUri = "/anitaERP/public/ventas/estadoot/"+codigoAnulacionOt;
+		var listarUri = "/anitaERP/public/ventas/estadoot/"+codigoAnulacionOt+"/"+pedido_combinacion_id;
 
 		$.get(listarUri, function(data){
 			
-			if (data.numerofactura != -1 && data.numerofactura != -2)
+			if (data.numerofactura != -1 && data.numerofactura != -2 && data.numerofactura != -3)
 			{
 				alert("OT ya facturada "+data.numerofactura);
 			}
@@ -1129,14 +1152,15 @@
     function borraRenglon() {
         event.preventDefault();
 		ordentrabajo = $(this).parents('tr').find('.otcodigo').val();
+		let pedido_combinacion_id = $(this).parents("tr").find(".ids").val();
 		
 		// Busca si tiene factura asociada
-		var listarUri = "/anitaERP/public/ventas/estadoot/"+ordentrabajo;
+		var listarUri = "/anitaERP/public/ventas/estadoot/"+ordentrabajo+"/"+pedido_combinacion_id;
 		var flError = false;
 
 		$.get(listarUri, function(data){
 							
-			if (data.numerofactura != -1 && data.numerofactura != -2)
+			if (data.numerofactura != -1 && data.numerofactura != -2 && data.numerofactura != -3)
 			{
 				alert("OT ya facturada "+data.numerofactura);
 				flError = true;
@@ -1217,10 +1241,10 @@
 		$("input[type=checkbox]:checked").each(function(){
 
 			ordentrabajo = $(this).parents('tr').find('.otcodigo').val();
+			itemId = $(this).parents('tr').find('.ids').val();
 			
-			if (!otFacturada(ordentrabajo))
+			if (!otFacturada(ordentrabajo, itemId))
 			{
-				itemId = $(this).parents('tr').find('.ids').val();
 				pedido_combinacion_ids.push(itemId);
 
 				otId = $(this).parents('tr').find('.ot').val();
@@ -1234,6 +1258,7 @@
 				modulo_id = $(this).parents("tr").find(".modulo").val();
 				combinacion_id = $(this).parents("tr").find(".combinacion").val();
 				nombrecliente = $("#cliente_id option:selected").text();
+				descuentoCliente = $('#descuento').val();
 
 				// Lee tabla de medidas
 				var val_medida = $(this).parents("tr").find(".medidas").val();
@@ -1298,10 +1323,13 @@
 		modal.find('#nombrecliente').val(nombrecliente);
 		modal.find('.modal-title').text('Factura PEDIDO '+numeroPedido);
 		modal.find('#facturarMedidasModal').empty();
+		modal.find('#descuentopie').val(descuentoCliente);
 
     	// Lee punto de venta si es de exportacion
     	leePuntoVenta(puntoVentaDefault);
-    
+
+		alert('Va a facturar '+offFactura+' items');
+		
 		for (i = 0; i < offFactura; i++)
 		{
 			modal.find('#facturarMedidasModal').append(titulofactura_txt[i]+tallesfactura_txt[i]+medidasfactura_txt[i]+preciosfactura_txt[i]+tallesidfactura_txt[i]);
@@ -1406,6 +1434,12 @@
 		var incoterm_id = $('#incoterm_id').val();
 		var mercaderia = $('#mercaderia').val();
 		var leyendaexportacion = $('#leyendaexportacion').val();
+
+		if (cantidadbulto < 1 || cantidadbulto > 999999)
+		{
+			alert("No permite facturar sin cargar bultos");
+			return false;
+		}
 		
 		$('#facturarOrdenTrabajoModal').modal('hide');
 
@@ -1428,12 +1462,17 @@
 					_token: token
 				},
 				function(data, status){
-					alert("Factura Número: " + data.factura + "\nEstado: " + status);
+					if (data.error != '')
+                 	   alert(data.error);
+                	else
+                	{
+						alert("Factura Número: " + data.factura + "\nEstado: " + status);
 
-					$("#facturarOrdenTrabajoModal").modal('hide');
+						$("#facturarOrdenTrabajoModal").modal('hide');
 
-					// Marca como facturados los items
-					marcaItemFacturado();
+						// Marca como facturados los items
+						marcaItemFacturado();
+					}
 				});
 	});
 
@@ -1525,14 +1564,14 @@
         }
     }
 
-	function otFacturada(ordentrabajo)
+	function otFacturada(ordentrabajo, pedido_combinacion_id)
 	{
 		// Busca si tiene factura asociada
-		var listarUri = "/anitaERP/public/ventas/estadoot/"+ordentrabajo;
+		var listarUri = "/anitaERP/public/ventas/estadoot/"+ordentrabajo+"/"+pedido_combinacion_id;
             
 		$.get(listarUri, function(data){
 							
-			if (data.numerofactura != -1 && data.numerofactura != -2)
+			if (data.numerofactura != -1 && data.numerofactura != -2 && data.numerofactura != -3)
 				return true;
 			else 
 			{

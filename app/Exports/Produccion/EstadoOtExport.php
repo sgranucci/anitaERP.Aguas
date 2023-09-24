@@ -58,10 +58,12 @@ class EstadoOtExport implements FromView, WithColumnFormatting, WithMapping, Sho
                 // Si ya tiene una OT en proceso cierra 
                 if ($currOrdenTrabajo_id != 0)
                 {
-                    $datas[] = [
+                    if (count($tareaData) > 0)
+                        $datas[] = [
                             'encabezado' => $encData, 
                             'tareas' => $tareaData
-                    ];
+                        ];
+
                     $encData = [];
                 }
                 $currOrdenTrabajo_id = $ottarea->ordentrabajo_id;
@@ -79,7 +81,7 @@ class EstadoOtExport implements FromView, WithColumnFormatting, WithMapping, Sho
                 {
                     $sku = $ottarea->pedidos_combinacion->articulos->sku;
                     $linea = $ottarea->pedidos_combinacion->articulos->lineas->nombre;
-                    $pares = $ottarea->pedidos_combinacion->cantidad;
+                    $pares = $ottarea->pares;
                 }
                 
                 // Arma encabezado
@@ -99,7 +101,14 @@ class EstadoOtExport implements FromView, WithColumnFormatting, WithMapping, Sho
                 // Si la tarea coincide con ids de la columna asigna
                 if (in_array($ottarea->tarea_id, $value))
                 {
-                    $tareaData[] = ['columna' => $key, 
+                    $flRepetida = false;
+                    if (count($tareaData) > 0)
+                    {
+                        if ($tareaData[count($tareaData)-1]['tarea_id'] == $ottarea->tareas->id)
+                            $flRepetida = true;
+                    }
+                    if (!$flRepetida)
+                        $tareaData[] = ['columna' => $key, 
                                 'fechainicio' => $ottarea->desdefecha, 
                                 'fechafin' => $ottarea->hastafecha, 
                                 'empleado_id' => $ottarea->empleado_id,
@@ -116,10 +125,11 @@ class EstadoOtExport implements FromView, WithColumnFormatting, WithMapping, Sho
         // Cierra ultimo ciclo
         if ($currOrdenTrabajo_id != 0)
         {
-            $datas[] = [
+            if (count($tareaData) > 0)
+                $datas[] = [
                     'encabezado' => $encData, 
                     'tareas' => $tareaData
-            ];
+                ];
         }
 
         return view('exports.produccion.estadoot', [

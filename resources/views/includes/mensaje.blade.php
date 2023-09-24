@@ -7,3 +7,12 @@
         </ul>
     </div>
 @endif
+@if (session("errores"))
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (session("errores") as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif

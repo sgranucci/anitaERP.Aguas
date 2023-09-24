@@ -101,30 +101,61 @@
     <input type="text" name="hastalote" id="hastalote" class="form-control" value=""/>
     </div>
 </div>
-<div class="form-group row">
-	<label for="estado" class="col-lg-3 col-form-label requerido">Estado de las combinaciones</label>
-   	<select name="estado" id="estado" data-placeholder="Estado de las combinaciones" class="col-lg-4 form-control required" data-fouc required>
-   		<option value="">-- Seleccionar estado de las combinaciones --</option>
-       	@foreach($estado_enum as $key => $value)
-       		@if( $key == 'ACTIVAS')
-       			<option value="{{ $key }}" selected="select">{{ $value }}</option>    
-       		@else
-       			<option value="{{ $key }}">{{ $value }}</option>    
-       		@endif
-       	@endforeach
-    </select>
+<div class="row">
+	<div class="col-sm-6">
+		<div class="form-group row">
+			<label for="estado" class="col-lg-3 col-form-label requerido">Estado de las combinaciones</label>
+			<select name="estado" id="estado" data-placeholder="Estado de las combinaciones" class="col-lg-4 form-control required" data-fouc required>
+				<option value="">-- Seleccionar estado de las combinaciones --</option>
+				@foreach($estado_enum as $key => $value)
+					@if( $key == 'ACTIVAS')
+						<option value="{{ $key }}" selected="select">{{ $value }}</option>    
+					@else
+						<option value="{{ $key }}">{{ $value }}</option>    
+					@endif
+				@endforeach
+			</select>
+		</div>
+		<div class="form-group row">
+			<label for="estadoOt" class="col-lg-3 col-form-label requerido">Estado de las OT</label>
+			<select name="estadoOt" id="estadoOt" data-placeholder="Estado de las órdenes de trabajo" class="col-lg-4 form-control required" data-fouc required>
+				<option value="">-- Seleccionar estado de las OT --</option>
+				@foreach($estadoOt_enum as $key => $value)
+					@if( $key == 'TODAS')
+						<option value="{{ $key }}" selected="select">{{ $value }}</option>    
+					@else
+						<option value="{{ $key }}">{{ $value }}</option>    
+					@endif
+				@endforeach
+			</select>
+		</div>
+	</div>
+	<div class="col-sm-6">
+		<div class="form-group row">
+			<label for="imprimefoto" class="col-lg-3 col-form-label requerido">Imprime fotos</label>
+			<select name="imprimefoto" id="imprimefoto" data-placeholder="Imprime fotos" class="col-lg-2 form-control required" data-fouc required>
+				<option value="">-- Seleccionar si imprime las fotos --</option>
+				@foreach($foto_enum as $key => $value)
+					@if( $key == 'SIN_FOTO')
+						<option value="{{ $key }}" selected="select">{{ $value }}</option>    
+					@else
+						<option value="{{ $key }}">{{ $value }}</option>    
+					@endif
+				@endforeach
+			</select>
+		</div>
+		<div class="form-group row">
+			<label for="apertura" class="col-lg-3 col-form-label requerido">Apertura</label>
+			<select name="apertura" id="apertura" data-placeholder="Imprime fotos" class="col-lg-3 form-control required" data-fouc required>
+				<option value="">-- Seleccionar si totaliza o abre por movimientos --</option>
+				@foreach($apertura_enum as $key => $value)
+					@if( $key == 'TOTALIZADO')
+						<option value="{{ $key }}" selected="select">{{ $value }}</option>    
+					@else
+						<option value="{{ $key }}">{{ $value }}</option>    
+					@endif
+				@endforeach
+			</select>
+		</div>
+	</div>
 </div>
-<div class="form-group row">
-	<label for="imprimefoto" class="col-lg-3 col-form-label requerido">Imprime fotos</label>
-   	<select name="imprimefoto" id="imprimefoto" data-placeholder="Imprime fotos" class="col-lg-2 form-control required" data-fouc required>
-   		<option value="">-- Seleccionar si imprime las fotos --</option>
-       	@foreach($foto_enum as $key => $value)
-       		@if( $key == 'CON_FOTO')
-       			<option value="{{ $key }}" selected="select">{{ $value }}</option>    
-       		@else
-       			<option value="{{ $key }}">{{ $value }}</option>    
-       		@endif
-       	@endforeach
-    </select>
-</div>
-

@@ -49,7 +49,7 @@
 		<div class="form-group row" id="divlugar">
     		<label for="lugarentrega" class="col-lg-3 col-form-label">Lugar de Entrega</label>
     		<div class="col-lg-8">
-    			<input type="text" name="lugarentrega" id="lugarentrega" class="form-control" value="{{old('lugarentrega', $pedido->lugarentrega ?? '')}}">
+    			<input type="text" name="lugarentrega" id="lugarentrega" class="form-control" value="{{old('lugarentrega', $pedido->entrega_nombre ?? '')}}">
     		</div>
 		</div>
 		<div class="form-group row" id="divcodigoentrega">
@@ -232,9 +232,11 @@
                             			<i class="fa fa-window-close text-danger ianulaItem"></i>
 								@endif
 								</button>
-								<button type="button" title="Elimina esta linea" style="padding:0;" class="btn-accion-tabla eliminar tooltipsC">
-                            		<i class="fa fa-trash text-danger"></i>
-								</button>
+								@if (can('borrar-items-pedidos', false))
+									<button type="button" title="Elimina esta linea" style="padding:0;" class="btn-accion-tabla eliminar tooltipsC">
+										<i class="fa fa-trash text-danger"></i>
+									</button>
+								@endif
 								@if (count($pedidoitem->pedido_combinacion_estados) > 0)
 									<button type="button" title="Historia de anulaci&oacute;nes" style="padding:0;" class="btn-accion-tabla historiaitem tooltipsC">
                             			<i class="fa fa-book text-danger"></i>

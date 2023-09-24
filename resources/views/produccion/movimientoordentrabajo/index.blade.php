@@ -25,7 +25,7 @@
                 </div>
             </div>
             <div class="card-body table-responsive p-0">
-                <table class="table table-striped table-bordered table-hover" id="tabla-data">
+                <table class="table table-striped table-bordered table-hover" id="tabla-data-2">
                     <thead>
                         <tr>
                             <th class="width20">ID</th>
@@ -42,10 +42,10 @@
                         @foreach ($datas as $data)
                         <tr>
                             <td>{{$data->id}}</td>
-                            <td>{{$data->ordenestrabajo->codigo}}</td>
-                            <td>{{$data->tareas->nombre}}</td>
-                            <td>{{$data->operaciones->nombre}}</td>
-                            <td>{{$data->empleados->nombre}}</td>
+                            <td>{{str_pad($data->codigo, 4, "0", STR_PAD_LEFT)}}</td>
+                            <td>{{$data->nombretarea}}</td>
+                            <td>{{$data->nombreoperacion}}</td>
+                            <td>{{$data->nombreempleado}}</td>
             				<td>{{date("d/m/Y", strtotime($data->fecha ?? ''))}}</td>
                             <td>{{$estado_enum[$data->estado]}}</td>
                             <td>

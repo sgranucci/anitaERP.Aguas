@@ -24,7 +24,32 @@
 		@endforeach
 	</select>
 </div>
-
+<div class="form-group row">
+	<label for="desdevendedor" class="col-lg-3 col-form-label ">Desde vendedor</label>
+	<select name="desdevendedor_id" id="desdevendedor_id" data-placeholder="Vendedor" class="col-lg-4 form-control " data-fouc>
+		<option value="">-- Seleccionar vendedor --</option>
+		@foreach($vendedor_query as $key => $value)
+			@if( (int) $value->id == '0')
+				<option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
+			@else
+				<option value="{{ $value->id }}">{{ $value->nombre }}</option>    
+			@endif
+		@endforeach
+	</select>
+</div>
+<div class="form-group row">
+	<label for="hastavendedor" class="col-lg-3 col-form-label ">Hasta vendedor</label>
+	<select name="hastavendedor_id" id="hastavendedor_id" data-placeholder="Vendedor" class="col-lg-4 form-control " data-fouc>
+		<option value="">-- Seleccionar vendedor --</option>
+		@foreach($vendedor_query as $key => $value)
+			@if( (int) $value->id == '99999999')
+				<option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
+			@else
+				<option value="{{ $value->id }}">{{ $value->nombre }}</option>    
+			@endif
+		@endforeach
+	</select>
+</div>
 <div class="form-group row">
 	<label for="estado" class="col-lg-3 col-form-label requerido">Estado del pedido</label>
    	<select name="estado" id="estado" data-placeholder="Estado del pedido" class="col-lg-4 form-control required" data-fouc>

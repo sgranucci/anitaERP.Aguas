@@ -44,10 +44,12 @@ class ProgArmadoExport implements FromView, WithColumnFormatting, WithMapping, S
                                                     $this->ordenesTrabajo,
                                                     $this->tipoProgramacion
                                                     );
-        
+    
+        $_fecha = Carbon::now();
         return view('exports.produccion.reporteprogarmado.reporteprogarmado', [
                         'data' => $data,
                         'ordenestrabajo' => $this->ordenesTrabajo,
+                        'fecha' => $_fecha
                         ]
                     );
 	}
@@ -88,7 +90,8 @@ class ProgArmadoExport implements FromView, WithColumnFormatting, WithMapping, S
     {
         return [
                 'A' => 8,
-                'J' => 8
+                'J' => 8,
+                'G' => 20,
             ];
     }
 

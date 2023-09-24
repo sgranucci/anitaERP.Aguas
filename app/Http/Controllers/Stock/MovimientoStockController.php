@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ValidacionMovimientoStock;
 use App\Services\Stock\MovimientoStockService;
 use App\Repositories\Ventas\TipotransaccionRepository;
+use App\Repositories\Stock\LoteRepositoryInterface;
 use App\Models\Stock\Depmae;
 use App\Models\Stock\Articulo;
 use App\Models\Stock\Mventa;
@@ -19,13 +20,16 @@ class MovimientoStockController extends Controller
 {
 	private $movimientoStockService;
     private $tipotransaccionRepository;
+    private $loteRepository;
 	
     public function __construct(MovimientoStockService $movimientoStockservice,
+                                LoteRepositoryInterface $loterepository,
                                 TipotransaccionRepository $tipotransaccionRepository
     							)
     {
         $this->movimientoStockService = $movimientoStockservice;
         $this->tipotransaccionRepository = $tipotransaccionRepository;
+        $this->loteRepository = $loterepository;
     }
 
     /**
@@ -54,14 +58,14 @@ class MovimientoStockController extends Controller
         $this->armarTablasVista($deposito_query,
                                 $mventa_query, $articulo_query, $modulo_query, 
                                 $listaprecio_query, $articuloall_query, $articuloxsku_query,
-                                $tipotransaccion_query);
+                                $tipotransaccion_query, $lote_query);
 
         $tipotransacciondefault_id = cache()->get(generaKey('tipotransaccion'));
 
         return view('stock.movimientostock.crear', compact(
             'mventa_query', 'articulo_query', 'modulo_query', 'listaprecio_query', 
             'articuloall_query', 'articuloxsku_query', 
-            'tipotransaccion_query', 'tipotransacciondefault_id', 'deposito_query'));
+            'tipotransaccion_query', 'tipotransacciondefault_id', 'deposito_query', 'lote_query'));
     }
 
     /**
@@ -103,13 +107,13 @@ class MovimientoStockController extends Controller
 		$this->armarTablasVista($deposito_query,
                             $mventa_query, $articulo_query, $modulo_query, 
                             $listaprecio_query, $articuloall_query, $articuloxsku_query, 
-                            $tipotransaccion_query, $movimientostock);
+                            $tipotransaccion_query, $lote_query, $movimientostock);
 
 		$tipotransacciondefault_id = cache()->get(generaKey('tipotransaccion'));
         return view('stock.movimientostock.editar', compact('movimientostock', 
 			'mventa_query', 'articulo_query', 'modulo_query', 
 			'listaprecio_query', 'articuloall_query', 'articuloxsku_query', 
-			'tipotransaccion_query', 'tipotransacciondefault_id', 'deposito_query'));            
+			'tipotransaccion_query', 'tipotransacciondefault_id', 'deposito_query', 'lote_query'));            
     }
 
     /**
@@ -163,7 +167,7 @@ class MovimientoStockController extends Controller
 	private function armarTablasVista(&$deposito_query,
                 &$mventa_query, &$articulo_query, &$modulo_query, &$listaprecio_query, 
                 &$articuloall_query, &$articuloxsku_query, 
-                &$tipotransaccion_query, $movimientostock = null)
+                &$tipotransaccion_query, &$lote_query, $movimientostock = null)
     {
         $mventa_query = Mventa::all();
         $tipotransaccion_query = $this->tipotransaccionRepository->all(['E','S'], ['A']);
@@ -202,6 +206,7 @@ class MovimientoStockController extends Controller
 
         $modulo_query = Modulo::all();
         $listaprecio_query = Listaprecio::all();
+        $lote_query = $this->loteRepository->all();
     }
 }
 

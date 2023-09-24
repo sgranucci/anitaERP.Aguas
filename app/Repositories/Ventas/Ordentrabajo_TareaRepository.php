@@ -95,6 +95,7 @@ class Ordentrabajo_TareaRepository implements Ordentrabajo_TareaRepositoryInterf
 	public function findPorRangoFecha($desdefecha, $hastafecha, $ordenestrabajo = null)
     {
 		$ordentrabajo_tarea = $this->model->whereBetween('desdefecha', [$desdefecha, $hastafecha])
+								->leftJoin('ordentrabajo', 'ordentrabajo.id', 'ordentrabajo_tarea.ordentrabajo_id')
 								->with("tareas")
 								->with("empleados")
 								->with("usuarios")
@@ -103,18 +104,49 @@ class Ordentrabajo_TareaRepository implements Ordentrabajo_TareaRepositoryInterf
 
 		$arrayOrdenesTrabajo = explode(',', $ordenestrabajo);
 
-		if ($ordenestrabajo)
-			$ordentrabajo_tarea = $ordentrabajo_tarea->whereIn('ordentrabajo_id', function($query) use($arrayOrdenesTrabajo)
-			{
-				$query->select('id')
-					  ->from('ordentrabajo')
-					  ->whereIn('ordentrabajo.codigo', $arrayOrdenesTrabajo);
-			})->orderby('ordentrabajo_id')->get();
+		if ($ordenestrabajo != null)
+			$ordentrabajo_tarea = $ordentrabajo_tarea
+										->whereIn('ordentrabajo.codigo', $arrayOrdenesTrabajo)
+										->orderBy('ordentrabajo.id')->get();
 		else
-			$ordentrabajo_tarea = $ordentrabajo_tarea->orderby('ordentrabajo_id')->get();
-
+			$ordentrabajo_tarea = $ordentrabajo_tarea->orderBy('ordentrabajo_id')->get();
 		return $ordentrabajo_tarea;
     }
+
+	public function findReporteEstadoOt($desdefecha, $hastafecha, $ordenestrabajo = null)
+    {
+		$ordentrabajo_tarea = $this->model->select('ordentrabajo_tarea.id as id',
+													'ordentrabajo_tarea.ordentrabajo_id as ordentrabajo_id',
+													'ordentrabajo_tarea.tarea_id as tarea_id',
+													'ordentrabajo_tarea.empleado_id as empleado_id',
+													'ordentrabajo_tarea.pedido_combinacion_id as pedido_combinacion_id',
+													'ordentrabajo_tarea.desdefecha as desdefecha',
+													'ordentrabajo_tarea.hastafecha as hastafecha',
+													'ordentrabajo_tarea.estado as estado',
+													'ordentrabajo_tarea.costo as costo',
+													'ordentrabajo.codigo as codigo',
+													DB::raw('sum(pedido_combinacion_talle.cantidad) as pares'))
+								->whereBetween('desdefecha', [$desdefecha, $hastafecha])
+								->leftJoin('ordentrabajo', 'ordentrabajo.id', 'ordentrabajo_tarea.ordentrabajo_id')
+								->leftJoin('ordentrabajo_combinacion_talle', 'ordentrabajo_combinacion_talle.ordentrabajo_id', 'ordentrabajo_tarea.ordentrabajo_id')
+								->leftJoin('pedido_combinacion_talle', 'pedido_combinacion_talle.id', 'ordentrabajo_combinacion_talle.pedido_combinacion_talle_id')
+								->with("tareas")
+								->with("empleados")
+								->with("usuarios")
+								->with("ordenestrabajo")
+								->groupBy('ordentrabajo_tarea.id');
+
+		$arrayOrdenesTrabajo = explode(',', $ordenestrabajo);
+
+		if ($ordenestrabajo != null)
+			$ordentrabajo_tarea = $ordentrabajo_tarea
+										->whereIn('ordentrabajo.codigo', $arrayOrdenesTrabajo)
+										->orderBy('ordentrabajo.id')->get();
+		else
+			$ordentrabajo_tarea = $ordentrabajo_tarea->orderBy('ordentrabajo_id')->get();
+		return $ordentrabajo_tarea;
+    }
+
 
 	public function agrupaPorFechaTarea($desdefecha, $hastafecha, $apertura, $ordenestrabajo = null)
     {
@@ -177,7 +209,7 @@ class Ordentrabajo_TareaRepository implements Ordentrabajo_TareaRepositoryInterf
 	}
     
 	// Lee tareas por rangos
-    public function findTareaPorRangos($desdefecha, $hastafecha,
+    public function findTareaPorRangos($estadoot, $desdefecha, $hastafecha,
                                     $desdetarea_id, $hastatarea_id,
                                     $desdecliente_id, $hastacliente_id,
                                     $desdearticulo, $hastaarticulo,
@@ -190,17 +222,21 @@ class Ordentrabajo_TareaRepository implements Ordentrabajo_TareaRepositoryInterf
 						'ordentrabajo.codigo as numeroot',
 						'ordentrabajo_tarea.tarea_id as tarea_id',
 						'tarea.nombre as nombretarea',
+						'articulo.sku as sku',
 						'articulo.descripcion as nombrearticulo',
 						'combinacion.nombre as nombrecombinacion',
 						'pedido.codigo as numeropedido',
 						'ordentrabajo_tarea.desdefecha as desdefecha',
 						'ordentrabajo_tarea.hastafecha as hastafecha',
 						'articulo_costo.costo as costoporpar',
+						'pedido_combinacion_talle.pedido_combinacion_id',
 						'pedido_combinacion.cantidad as cantidad')
 						->join('tarea', 'tarea.id', 'ordentrabajo_tarea.tarea_id')
-						->join('empleado', 'empleado.id', 'ordentrabajo_tarea.empleado_id')
+						->leftjoin('empleado', 'empleado.id', 'ordentrabajo_tarea.empleado_id')
 						->join('ordentrabajo', 'ordentrabajo.id', 'ordentrabajo_tarea.ordentrabajo_id')
-						->join('pedido_combinacion', 'pedido_combinacion.id', 'ordentrabajo_tarea.pedido_combinacion_id')
+						->join('ordentrabajo_combinacion_talle', 'ordentrabajo_combinacion_talle.ordentrabajo_id', 'ordentrabajo_tarea.ordentrabajo_id')
+						->join('pedido_combinacion_talle', 'pedido_combinacion_talle.id', 'ordentrabajo_combinacion_talle.pedido_combinacion_talle_id')
+						->join('pedido_combinacion', 'pedido_combinacion.id', 'pedido_combinacion_talle.pedido_combinacion_id')
 						->join('pedido', 'pedido.id', 'pedido_combinacion.pedido_id')
 						->join('articulo', 'articulo.id', 'pedido_combinacion.articulo_id')
 						->leftJoin('articulo_costo', function($join)
@@ -209,16 +245,32 @@ class Ordentrabajo_TareaRepository implements Ordentrabajo_TareaRepositoryInterf
 							$join->on('articulo_costo.tarea_id', 'ordentrabajo_tarea.tarea_id');
 						})
 						->join('combinacion', 'combinacion.id', 'pedido_combinacion.combinacion_id')
-						->whereBetween('ordentrabajo_tarea.hastafecha', [$desdefecha, $hastafecha])
 						->whereBetween('pedido.cliente_id', [$desdecliente_id, $hastacliente_id])
                         ->whereBetween('ordentrabajo_tarea.tarea_id', [$desdetarea_id, $hastatarea_id])
+						->whereBetween('ordentrabajo_tarea.empleado_id', [$desdeempleado_id, $hastaempleado_id])
+						->groupBy('pedido_combinacion_talle.pedido_combinacion_id')
 						->orderBy('numerolegajo')
 						->orderBy('tarea_id')
 						->orderBy('numeroot');
 						
+		switch($estadoot)
+		{
+		case 'CUMPLIDA':
+			$data = $data->whereBetween('ordentrabajo_tarea.hastafecha', [$desdefecha, $hastafecha]);
+			break;
+		case 'PENDIENTE':
+			$data = $data->whereBetween('ordentrabajo_tarea.desdefecha', [$desdefecha, $hastafecha])
+					->where('ordentrabajo_tarea.hastafecha', '=', null);
+			break;
+		default:
+			$data = $data->whereBetween('ordentrabajo_tarea.desdefecha', [$desdefecha, $hastafecha]);
+		}
+
 		if ($desdearticulo != '' && $hastaarticulo != '')
 			$data = $data->whereBetween('articulo.descripcion', [$desdearticulo, $hastaarticulo]);
 
+		if ($desdeempleado_id != '' && $hastaempleado_id != '')
+			$data = $data->whereBetween('ordentrabajo_tarea.empleado_id', [$desdeempleado_id, $hastaempleado_id]);
 		return $data->get();
     }
 

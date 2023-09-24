@@ -15,8 +15,8 @@ class GeneraOrdenes implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $tries = 5;
-    public $backoff = 1;
+    //public $tries = 5;
+    //public $backoff = 1;
     private $especie;
     private $calculoBase;
     private $mmCorta;
@@ -28,6 +28,11 @@ class GeneraOrdenes implements ShouldQueue
     private $umbralXTL;
     private $swingSize;
     private $filtroSetup;
+    private $factorCompresion;
+
+    public $timeout = 36000;
+
+    public $failOnTimeout = false;
 
     /**
      * Create a new job instance.
@@ -49,7 +54,7 @@ class GeneraOrdenes implements ShouldQueue
         $this->umbralXTL = $umbralxtl;
         $this->swingSize = $swingSize;
         $this->filtroSetup = $filtroSetup;
-
+        $this->factorCompresion = 5;
         switch($compresion)
         {
         case 1:
@@ -76,7 +81,7 @@ class GeneraOrdenes implements ShouldQueue
      * @return void
      */
     public function handle()
-    {
+    {        
         $indicadoresService = new IndicadoresService;
 
         $currId = 0;
@@ -87,10 +92,7 @@ class GeneraOrdenes implements ShouldQueue
         $indicadoresService->acumClose = $indicadoresService->acumLow = $indicadoresService->acumHigh = 0;
         $indicadoresService->acumVolume = 0;
         $indicadoresService->acumCantLectura = 0;
-        if ($this->factorCompresion == 1)
-            $indicadoresService->acumFlEmpezoRango = true;    
-        else
-            $indicadoresService->acumFlEmpezoRango = false;
+        $indicadoresService->acumFlEmpezoRango = false;
         $indicadoresService->acumItem = 0;
         $indicadoresService->acumFecha = "01-01-2001";
         $indicadoresService->acumFechaInicioRango = "01-01-2001";
@@ -108,13 +110,15 @@ class GeneraOrdenes implements ShouldQueue
                     'closePrice as close',
                     'volume')
             ->where('especie', $this->especie)
-            ->where('fecha','>','2023-07-16')
+            ->where('fecha','>','2023-09-04')
+            ->where('fecha','<','2023-09-09')
             ->get();
-
         do
         {
+            $cantidadLeidos = 0;
             foreach($dataPrueba as $data)
             {
+                $cantidadLeidos++;
             //$data = DB::connection('trade')->table('trade.lecturas')
             //    ->select('id',
             //        'fechalectura',
@@ -130,23 +134,22 @@ class GeneraOrdenes implements ShouldQueue
                 if ($data->id > $currId)
                     break;
             }
-
             if ($data->id != $currId)
             {
                 $currId = $data->id;
 
-                Log::info($data->fechalectura.' '.$data->open." ".$data->high);
+                //Log::info($data->fechalectura.' '.$data->open." ".$data->high);
 
                 $indicadoresService->generaDatosOrdenes($data, $this->especie, $this->calculoBase, 
                         $this->mmCorta, $this->mmLarga, $this->compresion, $this->largoVMA, $this->largoCCI, 
                         $this->largoXTL, $this->umbralXTL, $this->swingSize, $this->filtroSetup,
                         $this->factorCompresion);
             }
-            //sleep(25);
-            $q++;
+        } while ($currId == $data->id && $cantidadLeidos < count($dataPrueba));
 
-            Log::info("Count ".$q);
-        } while ($currId == $data->id);
+        // Graba los que faltan
+        if ($indicadoresService->acumItem <= 500)
+            $indicadoresService->grabaTablaIndicadores();
 
         Log::info("Finalizo correctamente");
     }

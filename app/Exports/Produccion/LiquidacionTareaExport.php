@@ -70,15 +70,17 @@ class LiquidacionTareaExport implements FromView, WithColumnFormatting, WithMapp
 					'desdearticulo_id' => $this->desdearticulo_id, 'hastaarticulo_id' => $this->hastaarticulo_id, 
 					'desdetarea_id' => $this->desdetarea_id, 'hastatarea_id' => $this->hastatarea_id, 
 					'desdefecha' => $this->desdefecha, 'hastafecha' => $this->hastafecha,
-					'nombredesdeempleado' => '', 'nombrehastaempleado' => '']);
+					'nombredesdeempleado' => '', 'nombrehastaempleado' => '',
+					'estado' => $this->estadoot]);
 	}
 
 	public function columnFormats(): array
     {
         return [
             'A' => NumberFormat::FORMAT_TEXT,
-			'J' => NumberFormat::FORMAT_NUMBER_00,
+			'J' => NumberFormat::FORMAT_NUMBER,
 			'K' => NumberFormat::FORMAT_NUMBER_00,
+			'L' => NumberFormat::FORMAT_NUMBER_00,
             ];
     }
 
@@ -110,8 +112,8 @@ class LiquidacionTareaExport implements FromView, WithColumnFormatting, WithMapp
             'A' => ['font' => ['bold' => true]],
             'E' => ['font' => ['bold' => true]],
             'F' => ['font' => ['bold' => true]],
-            'I' => ['font' => ['bold' => true]],
-			'K' => ['font' => ['bold' => true]],
+            'J' => ['font' => ['bold' => true]],
+			'L' => ['font' => ['bold' => true]],
         ];
     }
 
@@ -127,7 +129,7 @@ class LiquidacionTareaExport implements FromView, WithColumnFormatting, WithMapp
         return [
             AfterSheet::class    => function(AfterSheet $event) {
 
-                $event->sheet->getDelegate()->freezePane('A3');
+                $event->sheet->getDelegate()->freezePane('A4');
 
             },
         ];
@@ -152,8 +154,8 @@ class LiquidacionTareaExport implements FromView, WithColumnFormatting, WithMapp
 		$this->hastacliente_id = $hastacliente_id;
 		$this->desdetarea_id = $desdetarea_id;
 		$this->hastatarea_id = $hastatarea_id;
-		$this->desdearticulo_id = $desdearticulo_id;
-		$this->hastaarticulo_id = $hastaarticulo_id;
+		$this->desdeempleado_id = $desdeempleado_id;
+		$this->hastaempleado_id = $hastaempleado_id;
 
 		return $this;
 	}

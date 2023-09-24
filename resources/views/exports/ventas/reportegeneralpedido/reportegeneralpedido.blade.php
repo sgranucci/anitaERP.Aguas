@@ -13,8 +13,8 @@
 		@php
 			$campoIdData = 'articulo_id';
 			$campoNombreData = 'nombrearticulo';
-			$campoIdData2 = '';
-			$campoNombreData2 = '';
+			$campoIdData2 = 'combinacion';
+			$campoNombreData2 = 'combinacion';
 		@endphp
         @break
 	@case('LINEA')
@@ -113,7 +113,9 @@
 			@endif
 
 			@php $totalPares = 0; @endphp
+
 			@include('exports.ventas.reportegeneralpedido.imprimeunitem')
+			
 			@for ($ii = config('consprod.DESDE_MEDIDA'); $ii <= config('consprod.HASTA_MEDIDA'); $ii++)
 				@foreach($data['medidas'] as $medida)
 					@if ($ii == $medida['medida'])

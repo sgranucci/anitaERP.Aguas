@@ -54,7 +54,6 @@ class MovimientoStockService
 
 		if (!array_key_exists('leyenda',$data))
 			$data['leyenda'] = ' ';
-
 		DB::beginTransaction();
 		try 
 		{
@@ -140,6 +139,7 @@ class MovimientoStockService
 						'moneda_id' => $monedas[$i],
 						'incluyeimpuesto' => $incluyeimpuestos[$i],
 						'listaprecio_id' => $listaprecios[$i],
+						'loteimportacion_id' => $data['loteimportacion_id']
 					];
 					$dataTalle = [];
 					$jtalles = json_decode($medidas[$i]);

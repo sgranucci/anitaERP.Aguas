@@ -60,6 +60,6 @@ class RuleMovimientoOrdentrabajo implements Rule
     {
 		  $ots = implode(',', $this->ordenesConProblemas);
 
-      return 'Error en campo :attribute. OT: '.$ots;
+      return 'Error en secuencia :attribute. OT: '.$ots;
     }
 }

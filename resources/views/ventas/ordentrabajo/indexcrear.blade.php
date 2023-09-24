@@ -10,6 +10,8 @@
 	var leyendas=[];
 
     $(function () {
+		$(document).on('click', '.checkImpresion', sumaPares);
+
     	// Cierra modal 
     	$('#cierraOrdenTrabajoModal').on('click', function () {
     	});
@@ -43,6 +45,9 @@
 
 						$('#crearOrdenTrabajoModal').modal('hide');
 
+						var pattern = /[\^*@!"#$%&/,()=?¡!¿'\\]/gi;
+						leyenda = leyenda.replace(pattern, '');
+
 						if (checkotstock == 'on')
 							var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/ordentrabajo/"+ids+"/on/"+ordentrabajo_stock_codigo+'/'+leyenda;
 						else
@@ -60,7 +65,10 @@
 			else
 			{
 				$('#crearOrdenTrabajoModal').modal('hide');
-
+				
+				var pattern = /[\^*@!"#$%&/,()=?¡!¿'\\]/gi;
+				leyenda = leyenda.replace(pattern, '');
+						
 				var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/ordentrabajo/"+ids+"/off/"+ordentrabajo_stock_codigo+'/'+leyenda;
 
 				window.location.href = listarUri;
@@ -68,17 +76,34 @@
 		});
 	});
 
+	function sumaPares()
+	{
+		let pares = 0;
+
+		$('input[type=checkbox]:checked').each(function() {
+			var cantidad = $(this).parents('tr').find('.pares').html();
+
+			pares += parseFloat(cantidad);
+		});
+
+		$("#totalpares").val(pares.toFixed(0));
+	}
 	function generaOt()
 	{
 		checksId=[];
-		leyendas=[];
+		leyendas='';
 		$('input[type=checkbox]:checked').each(function() {
 			var itemId = $(this).parents('tr').find('.ids').html();
 			var leyenda = $(this).parents('tr').find('.observaciones').html();
 			checksId.push(itemId);
-			leyendas.push(leyenda);
+			if (leyenda !== "" && leyenda !== " " && leyenda !== null)
+				leyendas = leyendas + leyenda + " ";
 		});
 		
+		// Elimina caracteres especiales de la leyenda
+		var pattern = /[\^*@!"#$%&/,()=?¡!¿'\\]/gi;
+		leyendas = leyendas.replace(pattern, ' ');
+
 		$("#leyendaot").val(leyendas);
 		$("#crearOrdenTrabajoModal").modal('show');
 	}
@@ -101,7 +126,10 @@
 					<h3 class="card-title">&nbsp; Art&iacute;culo: {{$datas[0]->pedido_combinaciones[0]->articulo_id}}-{{$datas[0]->pedido_combinaciones[0]->articulos->descripcion}}</h2>
 					<h3 class="card-title">&nbsp; Combinaci&oacute;n: {{$datas[0]->pedido_combinaciones[0]->combinaciones->nombre}}</h2>
 				@endif
-                <div class="card-tools">
+				<h3 class="card-title">&nbsp;</h3>
+				<input type="text" class="col-lg-1" style="color:black;" value="Total pares:" readonly/>
+				<input type="text" id="totalpares" class="col-lg-1" style="color:black;" value="" readonly/>
+				<div class="card-tools">
                     @if (can('crear-ordenes-de-trabajo', false))
 						<button type="submit" onclick="generaOt()" class="btn btn-primary">
                     		<i class="fa fa-fw fa-industry"></i>Genera OT
@@ -121,6 +149,7 @@
                             <th>Pares</th>
                             <th>Observacion</th>
                             <th>OT</th>
+							<th class="width80" data-orderable="false">Edita Pedido</th>
                             <th class="width80" data-orderable="false">Genera OT</th>
                         </tr>
                     </thead>
@@ -133,9 +162,16 @@
             					<td>{{date("d/m/Y", strtotime($pedido->fechaentrega ?? ''))}}</td>
                             	<td>{{$pedido->codigo}}</td>
                             	<td>{{$pedido->clientes->nombre}}</td>
-                            	<td>{{round($data->cantidad,0)}}</td>
+                            	<td class="pares">{{round($data->cantidad,0)}}</td>
                             	<td class="observaciones">{{$data->observacion}}</td>
                             	<td>{{$data->ot_id}}</td>
+								<td>
+								@if (can('editar-pedidos', false))
+                                	<a href="{{route('editar_pedido', ['id' => $pedido->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">
+                                   	<i class="fa fa-edit"></i>
+                                	</a>
+								@endif
+								</td>
                             	<td>
 									<input name="checks[]" class="checkImpresion" type="checkbox" autocomplete="off">
                             	</td>

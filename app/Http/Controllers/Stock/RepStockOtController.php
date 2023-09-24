@@ -35,8 +35,17 @@ class RepStockOtController extends Controller
 			'TODAS' => 'Todas las combinaciones'
         ];
         $foto_enum = [
+            'SIN_FOTO' => 'Sin fotos',
 			'CON_FOTO' => 'Con fotos',
-			'SIN_FOTO' => 'Sin fotos',
+        ];
+        $apertura_enum = [
+            'TOTALIZADO' => 'Totalizado',
+			'MOVIMIENTOS' => 'Movimientos',
+        ];
+        $estadoOt_enum = [
+            'TODAS' => 'Todas las OT',
+			'ENTREGA' => 'Entrega inmediata',
+            'PRODUCCION' => 'En producción',
         ];
         $articulo_query = $this->articuloQuery->allQueryConCombinacion(['id','sku','descripcion'], 'descripcion');
         $articulo_query->prepend((object) ['id'=>'0','descripcion'=>'Primero']);
@@ -51,7 +60,8 @@ class RepStockOtController extends Controller
         $mventa_query->prepend((object) ['id'=>'0','nombre'=>'Todas las marcas']);
 
         return view('stock.repstockot.create', compact('estado_enum', 'articulo_query', 'linea_query', 
-                                                        'mventa_query', 'categoria_query', 'foto_enum'));
+                                                        'mventa_query', 'categoria_query', 'foto_enum', 
+                                                        'apertura_enum', 'estadoOt_enum'));
     }
 
     public function crearReporteStockOt(Request $request)
@@ -75,7 +85,7 @@ class RepStockOtController extends Controller
                                                 $request->desdelinea_id, $request->hastalinea_id,
                                                 $request->desdecategoria_id, $request->hastacategoria_id,
                                                 $request->desdelote, $request->hastalote,
-                                                $request->imprimefoto)
+                                                $request->imprimefoto, $request->estadoOt, $request->apertura)
                                     ->download('stockot.'.$extension);
     }
 }

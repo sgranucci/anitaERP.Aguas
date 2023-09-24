@@ -156,7 +156,8 @@ class OrdentrabajoQuery implements OrdentrabajoQueryInterface
 			->join('talle', 'talle.id', '=', 'pedido_combinacion_talle.talle_id')
 			->join('articulo_caja', 'articulo_caja.articulo_id', 'pedido_combinacion.articulo_id')
 			->join('caja', 'caja.id', 'articulo_caja.caja_id')
-			->join('articulo', 'articulo.id', 'caja.articulo_id');
+			->join('articulo', 'articulo.id', 'caja.articulo_id')
+			->whereIn('ordentrabajo_combinacion_talle.ordentrabajo_stock_id', [0, null]);
 
 		if ($ordenestrabajo != '')
 		{

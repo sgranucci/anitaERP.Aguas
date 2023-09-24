@@ -48,7 +48,7 @@
                         </div>
                         <div class="form-group row">
                             <label for="recipient-name" class="col-lg-4 col-form-label">Cantidad de bultos</label>
-                            <input type="number" id="cantidadbulto" name="cantidadbulto" value="1"></input>
+                            <input type="number" id="cantidadbulto" name="cantidadbulto" value="0"></input>
                         </div>
                     </div>
                 </div>

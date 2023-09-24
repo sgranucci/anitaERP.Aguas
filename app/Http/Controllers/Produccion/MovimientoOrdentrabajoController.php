@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Produccion;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\ValidacionMovimientoOrdentrabajo;
 use App\Services\Produccion\MovimientoOrdentrabajoService;
 use App\Repositories\Produccion\TareaRepositoryInterface;
@@ -70,10 +71,14 @@ class MovimientoOrdentrabajoController extends Controller
 		session(['operacion_id'=>$request->operacion_id]);
 		session(['empleado_id'=>$request->empleado_id]);
 
-		$mensaje = '';
+        $mensaje = '';
 		try
 		{
 			$data = $this->movimientoOrdentrabajoService->guardaMovimientoOrdenTrabajo($request->all(), 'create');
+
+            if (isset($data['errores']))
+                throw new ModelNotFoundException($data['errores']);
+
 			if (is_array($data))
 				$mensaje = "Movimiento de OT creado con exito";
 			else
@@ -82,6 +87,8 @@ class MovimientoOrdentrabajoController extends Controller
 		} catch (\Exception $e)
 		{
 			$mensaje = $e->getMessage();
+            
+		    return back()->with('errores', [$mensaje]);
 		}
 
 		$this->armarTablasVista($tarea_query, $operacion_query, $empleado_query);

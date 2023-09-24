@@ -25,7 +25,7 @@ class TiposuspensionclienteController extends Controller
      */
     public function index()
     {
-        can('listar-tipo-suspension-clientes');
+        can('listar-tipos-suspension-clientes');
 		$datas = $this->repository->all();
 
         return view('ventas.tiposuspensioncliente.index', compact('datas'));
@@ -38,7 +38,7 @@ class TiposuspensionclienteController extends Controller
      */
     public function crear()
     {
-        can('crear-tipo-suspension-clientes');
+        can('crear-tipos-suspension-clientes');
 
         return view('ventas.tiposuspensioncliente.crear');
     }
@@ -65,7 +65,7 @@ class TiposuspensionclienteController extends Controller
      */
     public function editar($id)
     {
-        can('editar-tipo-suspension-clientes');
+        can('editar-tipos-suspension-clientes');
         $data = $this->repository->findOrFail($id);
 
         return view('ventas.tiposuspensioncliente.editar', compact('data'));
@@ -80,7 +80,7 @@ class TiposuspensionclienteController extends Controller
      */
     public function actualizar(Validaciontiposuspensioncliente $request, $id)
     {
-        can('actualizar-tipo-suspension-clientes');
+        can('actualizar-tipos-suspension-clientes');
         $this->repository->update($request->all(), $id);
 
         return redirect('ventas/tiposuspensioncliente')->with('mensaje', 'Tipo de suspensión de cliente actualizado con éxito');
@@ -94,7 +94,7 @@ class TiposuspensionclienteController extends Controller
      */
     public function eliminar(Request $request, $id)
     {
-        can('borrar-tipo-suspension-clientes');
+        can('borrar-tipos-suspension-clientes');
 
         if ($request->ajax()) {
         	if ($this->repository->delete($id)) {

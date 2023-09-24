@@ -9,6 +9,6 @@ return [
                 'CORTADO_VISTA' => ['4'],
                 'APARADO' => ['6'],
                 'ARMADO' => ['30'],
-                'EMPAQUE' => ['32', '34']
+                'EMPAQUE' => ['34']
             ]
     ];

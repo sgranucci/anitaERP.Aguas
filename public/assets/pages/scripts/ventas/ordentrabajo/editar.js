@@ -19,6 +19,7 @@ var modulo_actual = 1;
 var ordentrabajo_id;
 var nombrecliente;
 var itemFacturar;
+var descuentoPie;
     
 function sub()
 {
@@ -106,6 +107,7 @@ function facturarPedido(item)
     cliente_id = $(item).parents("tr").find(".cliente_id").val();
     nombrecliente = $(item).parents("tr").find(".cliente").val();
     estadocliente = $(item).parents("tr").find(".estadocliente").val();
+    descuentoPie = $(item).parents("tr").find(".descuentopie").val();
     tiposuspensioncliente_id = $(item).parents("tr").find(".tiposuspensioncliente_id").val();
     nombretiposuspensioncliente = $(item).parents("tr").find(".nombretiposuspensioncliente").val();
 
@@ -206,6 +208,7 @@ $(document).on('shown.bs.modal', '#facturarOrdenTrabajoModal', function() {
 
     modal.find('#fechafactura').val(hoy.toISOString().substring(0,10));
     modal.find('#nombrecliente').val(nombrecliente);
+    modal.find('#descuentopie').val(descuentoPie);
     modal.find('.modal-title').text('Factura OT '+ot+' '+descripcion_articulo+' Combinacion '+nombre_combinacion);
     modal.find('#facturarMedidasModal').empty();
     modal.find('#facturarMedidasModal').append(talles_txt+medidas_txt+precios_txt+tallesid_txt);
@@ -328,7 +331,7 @@ $('#aceptaFacturarOrdenTrabajoModal').on('click', function () {
     var puntoventa_id = $('#puntoventa_id').val();
     var tipotransaccion_id = $('#tipotransaccion_id').val();
     var descuentopie = $('#descuentopie').val();
-    var descuentolinea = $('#descuentopie').val();
+    var descuentolinea = $('#descuentolinea').val();
     var fechafactura = $('#fechafactura').val();
     var leyendafactura = $('#leyendafactura').val();
     var cantidadbulto = $('#cantidadbulto').val();
@@ -362,10 +365,15 @@ $('#aceptaFacturarOrdenTrabajoModal').on('click', function () {
                 _token: token
             },
             function(data, status){
-                alert("Factura Número: " + data.factura + "\nEstado: " + status);
-                $("#facturarOrdenTrabajoModal").modal('hide');
-                $(itemFacturar).parents("tr").find(".facturar").css( "color", "red");
-                completarTareas(ordentrabajo_id);
+                if (data.error != '')
+                    alert(data.error);
+                else
+                {
+                    alert("Factura Número: " + data.factura + "\nEstado: " + status);
+                    $("#facturarOrdenTrabajoModal").modal('hide');
+                    $(itemFacturar).parents("tr").find(".facturar").css( "color", "red");
+                    completarTareas(ordentrabajo_id);
+                }
             });
 });
 
@@ -375,7 +383,8 @@ function empacarPedido(item)
     var ordentrabajo_id = $('#ordentrabajo_id').val();
     var codigoordentrabajo = $('#codigoordentrabajo').val();
     var cliente = $(item).parents("tr").find(".cliente").val();
-    var pedido = $(item).parents("tr").find(".pedido").val();
+    var nombretiposuspensioncliente = $(item).parents("tr").find(".nombretiposuspensioncliente").val();
+    var pedido = $(item).parents("tr").find(".codigo").val();
     var articulo = $(item).parents("tr").find(".articulo").val();
     var sku = $(item).parents("tr").find(".sku").val();
     var combinacion = $(item).parents("tr").find(".nombre_combinacion").val();
@@ -399,6 +408,7 @@ function empacarPedido(item)
         {
             $.post("/anitaERP/public/produccion/empacarTarea",
             {
+                pedido: pedido,
                 pedido_combinacion_id: pedido_combinacion_id,
                 ordentrabajo_id: ordentrabajo_id,
                 codigoordentrabajo: codigoordentrabajo,
@@ -409,6 +419,7 @@ function empacarPedido(item)
                 combinacion: combinacion,
                 medidas: medidas,
                 pares: pares,
+                nombretiposuspensioncliente: nombretiposuspensioncliente,
                 _token: token
             },
             function(data, status){

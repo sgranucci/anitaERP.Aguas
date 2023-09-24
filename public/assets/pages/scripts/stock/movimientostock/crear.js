@@ -389,6 +389,9 @@
         $(".modulo").on('change', function() {
 			modulo_id = $(this).parents("tr").find(".modulo").val();
 		  	moduloElegido_id = modulo_id;
+			
+			// Blanquea medidas
+			$(this).parents("tr").find(".medidas").val("");
 		});
 
 		// Con click sobre cantidad abre modal de medidas

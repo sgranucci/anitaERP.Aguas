@@ -2,8 +2,7 @@
 
 namespace App\Queries\Stock;
 
-use App\Models\Stock\Articulo;
-use App\ApiAnita;
+use App\Models\Stock\Articulo_Movimiento;
 use DB;
 
 class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
@@ -15,9 +14,9 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
      *
      * @param Post $post
      */
-    public function __construct(Articulo $cliente)
+    public function __construct(Articulo_Movimiento $articulo_movimiento)
     {
-        $this->model = $cliente;
+        $this->model = $articulo_movimiento;
     }
 
     public function generaDatosRepStockOt($estado, $mventa_id,
@@ -41,10 +40,11 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
                             'articulo_movimiento_talle.id as idmov',
                             'articulo_movimiento_talle.cantidad as cantidad',
                             'articulo_movimiento_talle.precio as precio')
-                            ->join('combinacion', 'combinacion.articulo_id', 'articulo.id')
+                            ->join('articulo', 'articulo.id', 'articulo_movimiento.articulo_id')
+                            ->join('combinacion', 'combinacion.id', 'articulo_movimiento.combinacion_id')
                             ->join('linea', 'linea.id', 'articulo.linea_id')
                             ->join('mventa', 'mventa.id', 'articulo.mventa_id')
-                            ->join('articulo_movimiento', 'articulo_movimiento.combinacion_id', 'combinacion.id')
+                            //->join('articulo_movimiento', 'articulo_movimiento.combinacion_id', 'combinacion.id')
                             ->join('articulo_movimiento_talle', 'articulo_movimiento_talle.articulo_movimiento_id', 
                                 'articulo_movimiento.id')
                             ->join('talle', 'talle.id', 'articulo_movimiento_talle.talle_id')
@@ -52,9 +52,9 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
                             ->whereBetween('articulo.categoria_id', [$desdecategoria_id, $hastacategoria_id])
                             ->where('articulo_movimiento.lote', '>', '0')
         					->orderBy('nombrelinea','ASC')
-                            ->orderBy('modulo_id', 'ASC')
                             ->orderBy('sku','ASC')
-                            ->orderBy('codigocombinacion', 'ASC')
+                            ->orderBy('nombrecombinacion', 'ASC')
+                            ->orderBy('modulo_id', 'ASC')
                             ->orderBy('lote','ASC');
 
         if ($desdearticulo != '' && $hastaarticulo != '')
@@ -98,9 +98,10 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
             'talle.nombre as nombretalle',
             'articulo_movimiento_talle.cantidad as cantidad',
             'articulo_movimiento_talle.precio as precio')
+            ->join('articulo', 'articulo.id', 'articulo_movimiento.articulo_id')
             ->join('combinacion', 'combinacion.articulo_id', 'articulo.id')
             ->join('mventa', 'mventa.id', 'articulo.mventa_id')
-            ->join('articulo_movimiento', 'articulo_movimiento.combinacion_id', 'combinacion.id')
+            //->join('articulo_movimiento', 'articulo_movimiento.combinacion_id', 'combinacion.id')
             ->join('articulo_movimiento_talle', 'articulo_movimiento_talle.articulo_movimiento_id', 'articulo_movimiento.id')
             ->join('talle', 'talle.id', 'articulo_movimiento_talle.talle_id')
             ->where('articulo_movimiento.lote', '=', $lote)
@@ -110,6 +111,17 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
             ->get();
 
         return $articulo_query;
+    }
+
+    public function buscaLoteImportacion($lotestock_id)
+    {
+        $articulo_movimiento = $this->model->select('articulo_movimiento.loteimportacion_id as loteimportacion_id')
+            ->where('articulo_movimiento.lote', '=', $lotestock_id)
+            ->where('articulo_movimiento.loteimportacion_id', '>', 0)
+            ->orderBy('articulo_movimiento.loteimportacion_id','ASC')
+            ->get();
+
+        return $articulo_movimiento;
     }
 }
 

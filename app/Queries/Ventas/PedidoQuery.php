@@ -45,7 +45,6 @@ class PedidoQuery implements PedidoQueryInterface
     public function allPendienteOt($articulo_id, $combinacion_id)
     {
 		$mod = $this->model->with('clientes:id,nombre')->with('mventas:id,nombre')->with('transportes:id,nombre')
-				->where('estado','0')
 				->withWhereHasOtArticuloCombinacion($articulo_id, $combinacion_id)
 				->get();
 
@@ -109,25 +108,27 @@ class PedidoQuery implements PedidoQueryInterface
                         ->with('clientes:id,nombre')
                         ->with('mventas:id,nombre')
                         ->join('pedido_combinacion', 'pedido_combinacion.pedido_id', '=', 'pedido.id')
-                        ->join('pedido_combinacion_talle', 'pedido_combinacion_talle.pedido_combinacion_id', '=', 'pedido_combinacion.id')
+                        ->leftjoin('pedido_combinacion_talle', 'pedido_combinacion_talle.pedido_combinacion_id', '=', 'pedido_combinacion.id')
                         ->leftjoin('ordentrabajo_combinacion_talle', 'ordentrabajo_combinacion_talle.pedido_combinacion_talle_id', '=', 'pedido_combinacion_talle.id')
                         ->leftjoin('ordentrabajo', 'ordentrabajo.id', '=', 'ordentrabajo_combinacion_talle.ordentrabajo_id')
                         ->join('articulo', 'articulo.id', '=', 'pedido_combinacion.articulo_id')
                         ->join('combinacion', 'combinacion.id', '=', 'pedido_combinacion.combinacion_id')
                         ->join('linea', 'linea.id', '=', 'articulo.linea_id')
                         ->join('talle', 'talle.id', '=', 'pedido_combinacion_talle.talle_id')
-                        ->join('fondo', 'fondo.id', '=', 'combinacion.fondo_id')
+                        ->leftjoin('fondo', 'fondo.id', '=', 'combinacion.fondo_id')
                         ->join('cliente', 'cliente.id', '=', 'pedido.cliente_id')
                         ->leftjoin('tiposuspensioncliente', 'tiposuspensioncliente.id', 'cliente.tiposuspension_id')
                         ->leftjoin('vendedor', 'vendedor.id', '=', 'pedido.vendedor_id')
                         ->leftjoin('color', 'color.id', '=', 'combinacion.colorfondo_id')
                         ->whereBetween('pedido.fecha', [$desdefecha, $hastafecha])
                         ->whereBetween('pedido.cliente_id', [$desdecliente_id, $hastacliente_id])
-                        ->whereBetween('combinacion.fondo_id', [$desdefondo_id, $hastafondo_id])
                         ->whereBetween('pedido.vendedor_id', [$desdevendedor_id, $hastavendedor_id])
                         ->whereBetween('pedido_combinacion.articulo_id', [$desdearticulo_id, $hastaarticulo_id])
                         ->whereBetween('linea.id', [$desdelinea_id, $hastalinea_id]);
-             
+
+        if ($desdefondo_id != 0 || $hastafondo_id != 99999999)
+            $pedido = $pedido->whereBetween('combinacion.fondo_id', [$desdefondo_id, $hastafondo_id]);
+
         // Selecciona marca
         if ($mventa_id > 0)
             $pedido = $pedido->where('articulo.mventa_id', $mventa_id);
@@ -157,7 +158,6 @@ class PedidoQuery implements PedidoQueryInterface
                             ->orderBy('pedido_combinacion.id')->get();
                 break;
         }
-      
         return $pedido;
     }
 

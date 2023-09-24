@@ -52,6 +52,19 @@
         		@endforeach
         	</select>
 		</div>
+		<div class="form-group row" id="divlote">
+			<label for="lote" class="col-lg-3 col-form-label">Lote importación</label>
+			<select name="loteimportacion_id" id="loteimportacion_id" data-placeholder="Lote de stock" class="col-lg-5 form-control" data-fouc>
+				<option value="">-- Seleccionar lote --</option>
+				@foreach($lote_query as $key => $value)
+					@if( (int) $value->id == (int) old('loteimportacion_id', $movimientostock->articulos_movimiento[0]->loteimportacion_id ?? ''))
+						<option value="{{ $value->id }}" selected="select">{{ $value->numerodespacho }}</option>    
+					@else
+						<option value="{{ $value->id }}">{{ $value->numerodespacho}}</option>    
+					@endif
+				@endforeach
+			</select>				
+		</div>
 	</div>
 </div>
 

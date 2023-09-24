@@ -484,6 +484,9 @@ class PedidoController extends Controller
     {
 		$data = $this->pedidoService->guardaPedido($request->all(), 'create');
 
+		if (isset($data['error']))
+			return back()->with('errores', [$pedido['error']]);
+
 		$mensaje = '';
 		if (isset($data['id']))
 			$mensaje = 'Pedido '.$data['id'].' '.$data['codigo'].' creado con exito ';
@@ -502,12 +505,24 @@ class PedidoController extends Controller
         can('editar-pedidos');
 
     	$pedido = $this->pedidoService->leePedido($id);
-		
 		$this->armarTablasVista($cliente_query, $condicionventa_query, $vendedor_query, $transporte_query,
 							$mventa_query, $articulo_query, $modulo_query, $listaprecio_query, 
 							$moneda_query, $articuloall_query, $articuloxsku_query, 
 							$tiposuspensioncliente_query, $motivocierrepedido_query, $lote_query, 
 							$puntoventa_query, $tipotransaccion_query, $formapago_query, $incoterm_query, $pedido);
+
+		// Busca el cliente en select
+		$flEncontro = false;
+		foreach($cliente_query as $cliente)
+		{
+			if ($cliente->id == $pedido->cliente_id)
+			{
+				$flEncontro = true;
+				break;
+			}
+		}
+		if (!$flEncontro)
+			return back()->with('errores', ['Cliente '.$pedido->clientes->nombre.' no activo']);
 
 		$puntoventadefault_id = cache()->get(generaKey('puntoventa'));
 		$puntoventaremitodefault_id = cache()->get(generaKey('puntoventaremito'));
@@ -531,8 +546,11 @@ class PedidoController extends Controller
     public function actualizar(ValidacionPedido $request, $id)
 	{
         can('actualizar-pedidos');
-
+		
 		$pedido = $this->pedidoService->guardaPedido($request->all(), 'update', $id);
+
+		if (isset($pedido['error']))
+			return back()->with('errores', [$pedido['error']]);
 
 		$mensaje = "Pedido ".$request->codigo." actualizado con exito";
 

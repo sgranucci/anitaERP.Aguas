@@ -35,6 +35,13 @@ class MovimientoOrdentrabajo extends Model
         return $this->belongsTo(Ordentrabajo_Tarea::class, 'ordentrabajo_id');
     }
 
+    public function ordenestrabajo_tarea_en_produccion()
+    {
+        return $this->belongsTo(Ordentrabajo_Tarea::class, 'ordentrabajo_id')
+                    //->whereNotIn('ordentrabajo_tarea.tarea_id', [config('consprod.TAREA_TERMINADA'),config('consprod.TAREA_FACTURADA')]);
+                    ->where('ordentrabajo_tarea.tarea_id', 32);
+    }
+    
     public function tareas()
     {
         return $this->hasOne(Tarea::class, 'id', 'tarea_id');

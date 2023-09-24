@@ -23,6 +23,7 @@ class ReporteIndicadoresExport implements WithMultipleSheets
     private $indicadores = [];
     private $operaciones = [];
     private $filtroSetup;
+    private $administracionPosicion, $tiempo;
 
     public function __construct()
     {
@@ -54,7 +55,9 @@ class ReporteIndicadoresExport implements WithMultipleSheets
                                                     $this->filtroSetup,
                                                     $this->indicadores,
                                                     $this->cantidadContratos,
-                                                    $calculoBaseTxt),
+                                                    $calculoBaseTxt,
+                                                    $this->administracionPosicion,
+                                                    $this->tiempo),
             'Worksheet 2' => new OperacionesExport($this->operaciones)
         ];
     }
@@ -62,7 +65,7 @@ class ReporteIndicadoresExport implements WithMultipleSheets
     public function parametros($desdefecha, $hastafecha, $desdehora, $hastahora, $especie, $calculobase, 
                                 $mmcorta, $mmlarga, $compresion, $largovma, $largocci, $largoxtl,
                                 $umbralxtl, $calculobase_enum, $swingSize, $filtroSetup, 
-                                $cantidadContratos, $indicadores, $operaciones)
+                                $cantidadContratos, $indicadores, $operaciones, $administracionposicion, $tiempo)
     {
         $this->desdeFecha = $desdefecha;
         $this->hastaFecha = $hastafecha;
@@ -83,6 +86,8 @@ class ReporteIndicadoresExport implements WithMultipleSheets
         $this->cantidadContratos = $cantidadContratos;
         $this->indicadores = $indicadores;
         $this->operaciones = $operaciones;
+        $this->administracionPosicion = $administracionposicion;
+        $this->tiempo = $tiempo;
         
         return $this;
     }

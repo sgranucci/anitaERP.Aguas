@@ -32,6 +32,7 @@ use App\Mail\Ventas\ClienteProvisorio;
 use App\Exports\Ventas\ClienteExport;
 use Carbon\Carbon;
 use Mail;
+use DB;
 
 class ClienteController extends Controller
 {
@@ -129,30 +130,44 @@ class ClienteController extends Controller
      */
     public function guardar(ValidacionCliente $request)
     {
-		$cliente = $this->clienteRepository->create($request->all());
+        try
+        {
+            $cliente = $this->clienteRepository->create($request->all());
 
-		// Guarda tablas asociadas
-		if ($cliente)
-		{
-			$cliente_entrega = $this->cliente_entregaRepository->create($request->all(), $cliente->id);
+            // Guarda tablas asociadas
+            if ($cliente)
+            {
+                $cliente_entrega = $this->cliente_entregaRepository->create($request->all(), $cliente->id);
 
-        	$cliente_archivo = $this->cliente_archivoRepository->create($request, $cliente->id);
-		}
+                $cliente_archivo = $this->cliente_archivoRepository->create($request, $cliente->id);
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
+            return ['errores' => $e->getMessage()];
+        }
 
         return redirect('ventas/cliente')->with('mensaje', 'Cliente creado con exito');
     }
 
     public function guardarClienteProvisorio(ValidacionClienteProvisorio $request)
     {
- 		$cliente = $this->clienteRepository->create($request->all());
+        try
+        {
+            $cliente = $this->clienteRepository->create($request->all());
 
-		// Guarda tablas asociadas
-        if ($cliente)
-		{
-			$cliente_entrega = $this->cliente_entregaRepository->create($request->all(), $cliente->id);
+            // Guarda tablas asociadas
+            if ($cliente)
+            {
+                $cliente_entrega = $this->cliente_entregaRepository->create($request->all(), $cliente->id);
 
-        	$cliente_archivo = $this->cliente_archivoRepository->create($request, $cliente->id);
-		}
+                $cliente_archivo = $this->cliente_archivoRepository->create($request, $cliente->id);
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
+            return ['errores' => $e->getMessage()];
+        }
 
         // Procesa envio del correo para aprobacion del cliente provisorio
         $receivers = "pedidos@ferli.com.ar";
@@ -203,14 +218,21 @@ class ClienteController extends Controller
     {
         can('actualizar-clientes');
 
-		// Graba cliente
-        $this->clienteRepository->update($request->all(), $id);
+        try
+        {
+            // Graba cliente
+            $this->clienteRepository->update($request->all(), $id);
 
-		// Graba lugares de entrega
-        $this->cliente_entregaRepository->update($request->all(), $id);
+            // Graba lugares de entrega
+            $this->cliente_entregaRepository->update($request->all(), $id);
 
-		// Graba archivos asociados
-        $this->cliente_archivoRepository->update($request, $id);
+            // Graba archivos asociados
+            $this->cliente_archivoRepository->update($request, $id);
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
+            return ['errores' => $e->getMessage()];
+        }
 
         return redirect('ventas/cliente')->with('mensaje', 'Cliente actualizado con exito');
     }
@@ -301,8 +323,12 @@ class ClienteController extends Controller
 		];
         $tiposuspensioncliente_query = $this->tiposuspensionclienteRepository->all();
         $tiposuspensioncliente_query->prepend((object) ['id'=>'TODOS','nombre'=>'Todos los tipos de suspensión']);
+        $vendedor_query = Vendedor::all();
+		$vendedor_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);
+		$vendedor_query->push((object) ['id'=>'99999999','nombre'=>'Ultimo']);
         
-        return view('ventas.repcliente.crear', compact('cliente_query', 'estado_enum', 'tiposuspensioncliente_query'));
+        return view('ventas.repcliente.crear', compact('cliente_query', 'estado_enum', 
+                                                        'tiposuspensioncliente_query', 'vendedor_query'));
     }
 
     public function crearReporteCliente(Request $request)
@@ -324,7 +350,9 @@ class ClienteController extends Controller
                 ->parametros($request->desdecliente_id, 
                              $request->hastacliente_id, 
                              $request->estado, 
-                             $request->tiposuspensioncliente_id)
+                             $request->tiposuspensioncliente_id,
+                             $request->desdevendedor_id,
+                             $request->hastavendedor_id)
                 ->download('cliente.'.$extension);
     }
     

@@ -29,7 +29,7 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 	use Exportable;
 	private $desdearticulo_id, $hastaarticulo_id,
 			$desdelinea_id, $hastalinea_id,
-			$estado, $mventa_id, $desdelote, $hastalote, $imprimefoto;
+			$estado, $mventa_id, $desdelote, $hastalote, $imprimeFoto, $estadoOt, $apertura;
 
 	protected $dates = ['fecha'];
     private $articulo_movimientoService;
@@ -112,7 +112,8 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 				$desdeArticuloRango, $hastaArticuloRango,
 				$this->desdelinea_id, $this->hastalinea_id,
 				$this->desdecategoria_id, $this->hastacategoria_id,
-				$this->desdelote, $this->hastalote);
+				$this->desdelote, $this->hastalote,
+				$this->estadoOt, $this->apertura);
 				
 		return view('exports.stock.reportestockot.reportestockot', 
 					['data' => $data, 
@@ -122,7 +123,8 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 					'desdelinea' => $desdeLinea, 'hastalinea' => $hastaLinea, 
 					'desdecategoria' => $desdeCategoria, 'hastacategoria' => $hastaCategoria,
 					'desdelote' => $this->desdelote, 'hastalote' => $this->hastalote,
-					'imprimefoto' => $this->imprimefoto
+					'imprimefoto' => $this->imprimeFoto,
+					'estadoot' => $this->estadoOt
 					]);
 	}
 
@@ -243,7 +245,7 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 							$desdelinea_id, $hastalinea_id,
 							$desdecategoria_id, $hastacategoria_id,
 							$desdelote, $hastalote,
-							$imprimefoto)
+							$imprimefoto, $estadoot, $apertura)
 	{
 		$this->estado = $estado;
 		$this->mventa_id = $mventa_id;
@@ -255,7 +257,9 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 		$this->hastacategoria_id = $hastacategoria_id;
 		$this->desdelote = $desdelote;
 		$this->hastalote = $hastalote;
-		$this->imprimefoto = $imprimefoto;
+		$this->imprimeFoto = $imprimefoto;
+		$this->estadoOt = $estadoot;
+		$this->apertura = $apertura;
 		
 		return $this;
 	}

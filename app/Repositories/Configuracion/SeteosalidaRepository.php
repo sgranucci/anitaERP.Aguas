@@ -92,8 +92,18 @@ class SeteosalidaRepository implements SeteosalidaRepositoryInterface
     {
         if ($opcion == 'xx')
             $opcion = null;
+
+        $programa = request()->server('HTTP_REFERER');
+
+        // Puentea seteo desde botones de impresion de OT en pedidos y ordenes de trabajo
+        if (strstr($programa, 'pedido'))
+            $programa = "http://160.132.0.209/anitaERP/public/ventas/repemisionot";
+
+        if (strstr($programa, 'ordenestrabajo'))
+            $programa = "http://160.132.0.209/anitaERP/public/ventas/repemisionot";
+
         // Agrega programa enviado a la url completa
-        $urlCompleta = str_replace('/', '_', request()->server('HTTP_REFERER'));
+        $urlCompleta = str_replace('/', '_', $programa);
         $programa = $urlCompleta.($opcion ? '_'.Str::slug($opcion, '_'): '');
 
         return $programa;

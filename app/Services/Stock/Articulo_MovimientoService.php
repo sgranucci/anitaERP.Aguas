@@ -57,7 +57,7 @@ class Articulo_MovimientoService
 				$dataMovimiento['moneda_id'] = null;
 			if ($dataMovimiento['incluyeimpuesto'] == 'NaN')
 				$dataMovimiento['incluyeimpuesto'] = null;	
-				
+
 			$articulo_movimiento = $this->articulo_movimientoRepository->create($dataMovimiento);
 
 			if ($articulo_movimiento)
@@ -150,14 +150,15 @@ class Articulo_MovimientoService
 	public function generaDatosRepStockOt($estado, $mventa_id, $desdearticulo, $hastaarticulo,
 										$desdelinea_id, $hastalinea_id,
 										$desdecategoria_id, $hastacategoria_id,
-										$desdelote, $hastalote, $estadoot, $apertura)
+										$desdelote, $hastalote, $estadoot, $apertura, $deposito_id)
 	{
 		// Lee informacion del listado
 		$data = $this->articulo_movimientoQuery->generaDatosRepStockOt($estado, $mventa_id,
 				$desdearticulo, $hastaarticulo,
 				$desdelinea_id, $hastalinea_id,
 				$desdecategoria_id, $hastacategoria_id,
-				$desdelote, $hastalote);
+				$desdelote, $hastalote, $deposito_id);
+
 		// Arma el reporte
 		$datas = [];
 		$medidas = [];
@@ -165,15 +166,22 @@ class Articulo_MovimientoService
 		$anterSku = '';
 		$anterCodigoCombinacion = '';
 		$anterModulo_Id = 0;
+		$anterOrdentrabajo_id = 0;
+		$anterId = 0;
 		$totalPares = 0;
 		foreach ($data as $movimiento)
 		{
 			// Realiza corte
-			if ($anterSku != $movimiento['sku'] ||
+			if ($apertura != 'MOVIMIENTOS' ?
+				($anterSku != $movimiento['sku'] ||
+				$anterCodigoCombinacion != $movimiento['codigocombinacion'] ||
+				$anterLote != $movimiento['lote']) :
+				($anterSku != $movimiento['sku'] ||
 				$anterCodigoCombinacion != $movimiento['codigocombinacion'] ||
 				$anterLote != $movimiento['lote'] ||
 				$anterModulo_Id != $movimiento['modulo_id'] ||
-				$apertura == 'MOVIMIENTOS')
+				($anterOrdentrabajo_id != 0 ? $anterOrdentrabajo_id != $movimiento['ordentrabajo_id'] : false) ||
+				$anterId != $movimiento['id']))
 			{
 				if ($anterSku != '' && $totalPares != 0)
 				{
@@ -205,6 +213,8 @@ class Articulo_MovimientoService
 								'modulo_id' => $modulo_id,
 								'cantidadmodulo' => $cantidadModulo,
 								'modulo' => $modulo,
+								'pedido' => $pedido,
+								'ordencompra' => $ordencompra,
 								'medidas' => $medidas
 						];
 				}
@@ -212,6 +222,8 @@ class Articulo_MovimientoService
 				$anterCodigoCombinacion = $movimiento['codigocombinacion'];
 				$anterLote = $movimiento['lote'];
 				$anterModulo_Id = $movimiento['modulo_id'];
+				$anterOrdentrabajo_id = $movimiento['ordentrabajo_id'];
+				$anterId = $movimiento['id'];
 
 				$foto = $movimiento['foto'];
 				$nombreLinea = $movimiento['nombrelinea'];
@@ -220,23 +232,8 @@ class Articulo_MovimientoService
 				$nombreCombinacion = $movimiento['nombrecombinacion'];
 				$lote = $movimiento['lote'];
 				$precio = $movimiento['precio'];
-
-				// Lee tareas de la OT para ver situacion
-				$situacion = 'Pendiente de producción';
-				$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository->findPorOrdentrabajoId($movimiento['ordentrabajo_id']);
-				
-				if (count($ordentrabajo_tarea) > 0)
-				{
-					$situacion = 'En producción';
-
-					foreach($ordentrabajo_tarea as $tarea)
-					{
-						if ($tarea->tarea_id == config('consprod.TAREA_TERMINADA'))
-							$situacion = 'ENTREGA INMEDIATA';
-					}
-				}
-				else	
-					$situacion = 'ENTREGA INMEDIATA';
+				$pedido = $movimiento['pedido'];
+				$ordencompra = $movimiento['ordentrabajo_id'];
 
 				$modulo_id = $movimiento['modulo_id'];
 				$medidas = [];
@@ -273,6 +270,26 @@ class Articulo_MovimientoService
 				$medidas[] = ['medida' => $movimiento['nombretalle'], 'cantidad' => $movimiento['cantidad']];
 				$totalPares += $movimiento['cantidad'];
 			}
+			if ($movimiento['cantidad'] > 0)
+			{
+				// Lee tareas de la OT para ver situacion
+				$situacion = 'Pendiente de producción';
+				$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository->findPorOrdentrabajoId($movimiento['ordentrabajo_id']);
+
+				if (count($ordentrabajo_tarea) > 0)
+				{
+					$situacion = 'En producción';
+
+					foreach($ordentrabajo_tarea as $tarea)
+					{
+						if ($tarea->tarea_id == config('consprod.TAREA_TERMINADA') ||
+							$tarea->tarea_id == config('consprod.TAREA_TERMINADA_STOCK'))
+							$situacion = 'ENTREGA INMEDIATA';
+					}
+				}
+				else	
+					$situacion = 'ENTREGA INMEDIATA';
+			}
 		}
 		if ($anterSku != '' && $totalPares != 0)
 		{
@@ -304,6 +321,8 @@ class Articulo_MovimientoService
 						'modulo_id' => $modulo_id,
 						'cantidadmodulo' => $cantidadModulo,
 						'modulo' => $modulo,
+						'pedido' => $pedido,
+						'ordencompra' => $ordencompra,
 						'medidas' => $medidas
 				];
 		}

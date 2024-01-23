@@ -8,7 +8,7 @@ interface Articulo_MovimientoQueryInterface
                                             $desdearticulo, $hastaarticulo,
                                             $desdelinea_id, $hastalinea_id,
                                             $desdecategoria_id, $hastacategoria_id,
-                                            $desdelote, $hastalote);
+                                            $desdelote, $hastalote, $deposito_id);
     public function leeStockPorLote($lote, $articulo_id, $combinacion_id);
     public function buscaLoteImportacion($lotestock_id);
 }

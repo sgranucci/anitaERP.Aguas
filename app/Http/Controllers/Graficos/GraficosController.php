@@ -120,9 +120,15 @@ class GraficosController extends Controller
 			'B' => 'Administración filtrando por tiempo',
 			];
 
+		$filtrosMatematicos_enum = [
+				'S' => 'Con filtros matematicos',
+				'B' => 'Sin filtros matematicos',
+				];
+	
 		$calculoBase_enum = $this->calculoBase_enum;
 		return view('graficos.reporteindicadores.create', compact('calculoBase_enum', 'compresion_enum',
-																'filtroSetup_enum', 'administracionPosicion_enum'));
+																'filtroSetup_enum', 'administracionPosicion_enum',
+																'filtrosMatematicos_enum'));
 	}
 
 	public function crearReporteIndicadores(Request $request)
@@ -159,7 +165,8 @@ class GraficosController extends Controller
 						$request->filtroSetup,
 						$request->cantidadcontratos,
 						$request->administracionposicion,
-						$request->tiempo);
+						$request->tiempo,
+						$request->filtrosmatematicos);
 
 		return (new ReporteIndicadoresExport)
 				->parametros($request->desdefecha, 

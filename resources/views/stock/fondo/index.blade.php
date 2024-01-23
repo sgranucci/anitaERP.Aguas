@@ -30,9 +30,6 @@ Fondos
                         <tr>
                             <th class="width20">ID</th>
                             <th>Nombre</th>
-                            <th>Art&iacute;culo</th>
-                            <th>Descripci&oacute;n</th>
-                            <th>C&oacute;digo</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>
                     </thead>
@@ -41,9 +38,6 @@ Fondos
                         <tr>
                             <td>{{$data->id}}</td>
                             <td>{{$data->nombre}}</td>
-                            <td>{{$data->sku}}</td>
-                            <td>{{$data->desc_articulo}}</td>
-                            <td>{{$data->codigo}}</td>
                             <td>
                        			@if (can('editar-fondos', false))
                                 	<a href="{{route('editar_fondo', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">

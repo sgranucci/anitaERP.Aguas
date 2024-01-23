@@ -4,6 +4,7 @@ namespace App\Services\Configuracion;
 use App\Models\Stock\Articulo;
 use App\Models\Configuracion\Impuesto;
 use App\Services\Configuracion\IIBBService;
+use App\Repositories\Configuracion\CondicionivaRepositoryInterface;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -13,12 +14,15 @@ use Auth;
 class ImpuestoService
 {
 	protected $IIBBService;
+	protected $condicionivaRepository;
 
     public function __construct(
-								IIBBService $IIBBservice
+								IIBBService $IIBBservice,
+								CondicionivaRepositoryInterface $condicionivarepository
 								)
     {
         $this->IIBBService = $IIBBservice;
+		$this->condicionivaRepository = $condicionivarepository;
     }
 
 	public function calculaImpuestoVenta($dataItem, $dataCliente)
@@ -40,13 +44,31 @@ class ImpuestoService
 		$provincia = $dataCliente['provincia'];
 		$porcDescuento = 0;
 
+		// Lee condicion de iva del cliente
+		$condicioniva = $this->condicionivaRepository->find($dataCliente['condicioniva_id']);
+
+		$flConIva = true;
+		if ($condicioniva)
+		{
+			if ($condicioniva->coniva == 'N')
+				$flConIva = false;
+		}
+
 		// Calcula netos por tasa
 		$netos = [];
 		$subtotales = [];
+
 		foreach($dataItem as $item)
 		{
 			// Lee tasa impuesto del item
         	$impuesto = Impuesto::findOrFail($item['impuesto_id']);
+
+			// Asume que no tiene impuesto incluido si el cliente no lleva iva
+			if (!$flConIva)
+			{
+				$item['incluyeimpuesto'] = 'N';
+				$impuesto->valor = 0;
+			}
 
 			if ($impuesto)
 			{
@@ -55,7 +77,9 @@ class ImpuestoService
 							($item['incluyeimpuesto'] == 'N' || $item['incluyeimpuesto'] == '2' ? 
 							$item['precio'] : ($item['precio'] / (1.+($impuesto->valor/100))));
 
-				$totalItem = $importesindto * (1. - ($item['descuento'] / 100.));
+				//$totalItem = $importesindto * (1. - ($item['descuento'] / 100.));
+				// Asigna total sin descuento porque el item ya viene neteado con el descuento de linea
+				$totalItem = $importesindto;
 
 				$totalBruto += $totalItem;
 				$descuentoItem += ($importesindto * $item['descuento'] / 100.);
@@ -91,20 +115,23 @@ class ImpuestoService
 
 		// Agrega impuestos nacionales
 		$impuestos = [];
-		for ($i = 0; $i < count($netos); $i++)
+		if ($flConIva)
 		{
-			if($netos[$i]['tasa'] != 0.)
+			for ($i = 0; $i < count($netos); $i++)
 			{
-				$detalle = "Iva ".$netos[$i]['tasa']."%";
-				$importe = $netos[$i]['importe'] * $netos[$i]['tasa'] / 100.;
-
-				$impuestos[] = ["concepto"=>$detalle,
+				if($netos[$i]['tasa'] != 0.)
+				{
+					$detalle = "Iva ".$netos[$i]['tasa']."%";
+					$importe = $netos[$i]['importe'] * $netos[$i]['tasa'] / 100.;
+	
+					$impuestos[] = ["concepto"=>$detalle,
 								"baseimponible" => $netos[$i]['importe'],
 								"tasa"=>$netos[$i]['tasa'],
 								"importe"=>$importe,
 								"impuesto_id"=>$netos[$i]['impuesto_id'],
 								"codigo"=>$netos[$i]['codigo']
 							];
+				}
 			}
 		}
 

@@ -10,6 +10,7 @@ use App\Repositories\Ventas\Ordentrabajo_TareaRepositoryInterface;
 use App\Repositories\Ventas\OrdentrabajoRepositoryInterface;
 use App\Services\Configuracion\ImpuestoService;
 use App\Services\Stock\Articulo_MovimientoService;
+use App\Services\Stock\PrecioService;
 use App\Queries\Ventas\PedidoQueryInterface;
 use App\Queries\Ventas\ClienteQueryInterface;
 use App\Queries\Ventas\OrdentrabajoQueryInterface;
@@ -40,6 +41,7 @@ class PedidoService
 	protected $clienteQuery;
 	protected $impuestoService;
 	protected $articulo_movimientoService;
+	protected $precioService;
 
     public function __construct(PedidoRepositoryInterface $pedidorepository,
     							Pedido_CombinacionRepositoryInterface $pedidocombinacionrepository,
@@ -50,6 +52,7 @@ class PedidoService
 								OrdentrabajoRepositoryInterface $ordentrabajorepository,
 								OrdentrabajoQueryInterface $ordentrabajoquery,
 								PedidoQueryInterface $pedidoquery,
+								PrecioService $precioservice,
 								ClienteQueryInterface $clientequery,
 								ImpuestoService $impuestoservice,
 								OrdentrabajoService $ordentrabajoservice,
@@ -69,6 +72,7 @@ class PedidoService
         $this->impuestoService = $impuestoservice;
 		$this->articulo_movimientoService = $articulo_movimientoservice;
 		$this->ordentrabajoService = $ordentrabajoservice;
+		$this->precioService = $precioservice;
     }
 
 	public function leePedido($id)
@@ -242,10 +246,13 @@ class PedidoService
 						$medidas = [];
 
 						$numeropedido = $pedido['pedido_id'];
-						$estadopedido = $pedido['codigoot'] != '' ? 'EN PRODUCCION' : 'PENDIENTE';
+						if ($pedido['estado'] == 'A')
+							$estadopedido = 'ANULADO';
+						else
+							$estadopedido = $pedido['codigoot'] != '' ? 'EN PRODUCCION' : 'PENDIENTE';
 
 						// Busca tareas para definir el estado real
-						if ($pedido['codigoot'] != '')
+						if ($pedido['codigoot'] != '' && $estadopedido != 'ANULADO')
 						{
 							$this->ordentrabajoService->traeEstadoOt($pedido['ordentrabajo_id'], $pedido['pedido_combinacion_id'], 
 																	$nombretarea);
@@ -315,7 +322,8 @@ class PedidoService
 						$cc = true;
 					break;
 				case 'EN PRODUCCION':
-					if ($item['numeroot'] != '' && $item['numeroot'] != '0')
+					if ($item['numeroot'] != '' && $item['numeroot'] != '0' && $item['estadopedido'] != 'FACTURADA' &&
+						$item['estadopedido'] != 'TERMINADA')
 						$cc = true;
 					break;
 				case 'TERMINADOS':
@@ -324,6 +332,10 @@ class PedidoService
 					break;
 				case 'FACTURADOS':
 					if ($item['estadopedido'] == 'FACTURADA')
+						$cc = true;
+					break;
+				case 'ANULADOS':
+					if ($item['estadopedido'] == 'ANULADO')
 						$cc = true;
 					break;
 				default:
@@ -425,7 +437,7 @@ class PedidoService
 
 				$medidas = [];
 
-				$numeropedido = $pedido['codigo'];
+				$numeropedido = $pedido['pedido_id'];
 				$estadopedido = $pedido['codigoot'] != '' ? 'EN PRODUCCION' : 'PENDIENTE';
 
 				$factura = $this->ordentrabajoService->otFacturada(0, $pedido['ot_id'], $pedido['pedido_combinacion_id']);
@@ -607,15 +619,43 @@ class PedidoService
 
 			if ($articulo && in_array($pedidoitem->id, $itemsId))
 			{
-				$tblImpuesto[] = ["cantidad" => $pedidoitem->cantidad,
-								"precio" => $pedidoitem->precio,
+			  	foreach($pedidoitem->pedido_combinacion_talles as $item)
+				{
+					$talle = Talle::find($item->talle_id);
+
+					$precio = $this->precioService->
+                                        asignaPrecio($articulo->id, $talle->id, Carbon::now());
+
+                    for ($i = 0, $flEncontro = false; $i < count($tblImpuesto); $i++)
+                    {
+                    	if ($tblImpuesto[$i]['precio'] == $precio[0]['precio'] &&
+                    		$tblImpuesto[$i]['sku'] == $articulo->sku &&
+                    		$tblImpuesto[$i]['combinacion_id'] == $pedidoitem->combinacion_id)
+                    	{
+                    		$flEncontro = true;
+                    		break;
+                    	}
+                    }
+                    if (!$flEncontro)
+                   	{
+						$tblImpuesto[] = ["sku" => $articulo->sku,
+				  				"combinacion_id" => $pedidoitem->combinacion_id,
+				  				"cantidad" => $item->cantidad,
+								"precio" => $precio[0]['precio'],
 								"descuento" => $pedidoitem->descuento,
 								"descuentointegrado" => $pedidoitem->descuentointegrado,
 								"descuentofinal" => $pedido->descuento,
 								"descuentointegradofinal" => $pedido->descuentointegrado,
 								"incluyeimpuesto" => $pedidoitem->incluyeimpuesto,
 								"impuesto_id" => $articulo->impuesto_id,
+								"id" => $pedidoitem->id
 								];
+				  	}
+					else
+					{
+					  	$tblImpuesto[$i]['cantidad'] += $item->cantidad;
+					}
+				}
 			}
 		}
 
@@ -630,7 +670,7 @@ class PedidoService
 		// Calcula impuestos
 		$conceptosTotales = $this->impuestoService->calculaImpuestoVenta($tblImpuesto, $datosCliente);
 
-		$view =  \View::make('exports.ventas.prefactura', compact('pedido', 'itemsId', 'conceptosTotales'))
+		$view =  \View::make('exports.ventas.prefactura', compact('pedido', 'itemsId', 'conceptosTotales', 'tblImpuesto'))
 			    ->render();
 		$path = storage_path('pdf/pedido');
 
@@ -645,6 +685,12 @@ class PedidoService
 	public function anularItemPedido($id, $codigoot, $motivocierrepedido_id, $cliente_id = null)
 	{
 	  	$pedido_combinacion = $this->pedido_combinacionRepository->findOrFail($id);
+
+		// Si el pedido estaba en stock borra el movimiento
+		$flBorraStock = false;
+		if ($pedido_combinacion->cliente_id == config("consprod.CLIENTE_STOCK"))
+			$flBorraStock = true;
+
 		$orden = 0;
 		if ($pedido_combinacion)
 		{
@@ -702,6 +748,8 @@ class PedidoService
 									$this->generaMovimientoStock(Carbon::now(), $pedido_combinacion, $ot, 
 										$articulo, $combinacion, 0);
 							}
+							if ($flBorraStock)
+								$this->articulo_movimientoService->deletePorPedido_combinacionId($pedido_combinacion->id);
 						}
 					}
 					// Graba estado

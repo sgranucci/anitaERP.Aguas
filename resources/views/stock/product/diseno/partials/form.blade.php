@@ -91,9 +91,9 @@
                         <option value="">-- Seleccionar --</option>
                         @foreach($linea as $key => $value)
                             @if( isset($producto) && $value->id == $producto->linea_id)
-                                <option value="{{ $value->id }}" selected="select">{{ $value->codigo }}-{{ $value->nombre }}</option>    
+                                <option value="{{ $value->id }}" selected="select">{{ $value->nombre }}-{{ $value->codigo }}</option>    
                             @else
-                                <option value="{{ $value->id }}">{{ $value->codigo }}-{{ $value->nombre }}</option>    
+                                <option value="{{ $value->id }}">{{ $value->nombre }}-{{ $value->codigo }}</option>    
                             @endif
                         @endforeach
                     </select>

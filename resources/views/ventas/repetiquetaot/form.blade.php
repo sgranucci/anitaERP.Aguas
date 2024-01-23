@@ -26,7 +26,7 @@
 			<select name="origen" class="col-lg-3 form-control" required>
 				<option value="">-- Elija origen --</option>
 				@foreach($origen_enum as $value => $origen)
-					@if( $value == 'ANITA')
+					@if( $value == 'ERP')
 						<option value="{{ $value }}" selected="select">{{ $origen }}</option>    
 					@else
 						<option value="{{ $value }}">{{ $origen }}</option>    

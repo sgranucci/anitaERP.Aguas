@@ -86,6 +86,11 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 		$this->app->bind(
+        	'App\Repositories\Ventas\Venta_EmisionRepositoryInterface',
+        	'App\Repositories\Ventas\Venta_EmisionRepository',
+    	);
+
+		$this->app->bind(
         	'App\Repositories\Ventas\Venta_ImpuestoRepositoryInterface',
         	'App\Repositories\Ventas\Venta_ImpuestoRepository',
     	);

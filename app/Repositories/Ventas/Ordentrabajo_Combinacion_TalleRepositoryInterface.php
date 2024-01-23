@@ -14,6 +14,7 @@ interface Ordentrabajo_Combinacion_TalleRepositoryInterface
     public function deleteporordentrabajo($ordentrabajo_id);
     public function findPorOrdenTrabajoId($ordentrabajo_id);
     public function findPorPedidoCombinacionTalleId($pedido_combinacion_talle_id);
+    public function findPorOrdentrabajoStockId($ordentrabajostock_id);
     public function sincronizarConAnita();
 
 }

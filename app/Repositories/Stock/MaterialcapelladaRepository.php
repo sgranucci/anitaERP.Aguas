@@ -27,11 +27,6 @@ class MaterialcapelladaRepository implements MaterialcapelladaRepositoryInterfac
 
     public function all()
     {
-        $hay_materialcapelladas = $this->model->first();
-
-		if (!$hay_materialcapelladas)
-			self::sincronizarConAnita();
-
         $ret = $this->model->get();
 
         return $ret;
@@ -39,44 +34,19 @@ class MaterialcapelladaRepository implements MaterialcapelladaRepositoryInterfac
 
     public function create(array $data)
     {
-        Articulo::insert([
-				'descripcion' => $data['nombre'],
-				'sku' => $data['sku'],
-				'usoarticulo_id' => '3',
-			]);
-
-		$articulo = Articulo::select('id')->where('sku',$data['sku'])->first();
-
-		$data['articulo_id'] = $articulo->id;
-
         $materialcapellada = $this->model->create($data);
-
-		// Graba anita
-		self::guardarAnita($data);
     }
 
     public function update(array $data, $id)
     {
         $materialcapellada = $this->model->findOrFail($id)
             ->update($data);
-		//
-		// Actualiza anita
-		self::actualizarAnita($data);
-
 		return $materialcapellada;
-
-        //return $this->model->where('id', $id)
-         //   ->update($data);
     }
 
     public function delete($id)
     {
     	$materialcapellada = Materialcapellada::find($id);
-
-		//
-		// Elimina anita
-		if ($materialcapellada->articulo_id != '')
-			self::eliminarAnita($materialcapellada->articulo_id);
 
         $materialcapellada = $this->model->destroy($id);
 

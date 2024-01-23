@@ -170,7 +170,7 @@
                 				@foreach ($capelladas as $material)
                 					<option value="{{ $material->id }}"
                 					@if (old('materiales.' . $loop->parent->index, optional($combinacion_capeart)->material_id) == $material->id) selected @endif
-                				>{{ $material->descripcion }}</option>
+                				>{{ $material->nombre }}</option>
                 				@endforeach
                 			</select>
                 		</td>
@@ -267,7 +267,7 @@
                 				@foreach ($avios as $material)
                 					<option value="{{ $material->id }}"
                 					@if (old('materiales_avios.' . $loop->parent->index, optional($combinacion_avioart)->material_id) == $material->id) selected @endif
-                				>{{ $material->descripcion }}</option>
+                				>{{ $material->nombre }}</option>
                 				@endforeach
                 			</select>
                 		</td>
@@ -319,7 +319,7 @@
                 			<option value="">-- Elija material --</option>
                 			@foreach ($avios as $material)
                 				<option value="{{ $material->id }}"
-                			>{{ $material->descripcion }}</option>
+                			>{{ $material->nombre }}</option>
                 			@endforeach
                 		</select>
                 	</td>

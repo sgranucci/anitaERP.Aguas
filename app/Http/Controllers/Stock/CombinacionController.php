@@ -19,6 +19,8 @@ use App\Models\Stock\Categoria;
 use App\Models\Stock\Subcategoria;
 use App\Models\Stock\Precio;
 use App\Services\Stock\PrecioService;
+use App\Repositories\Stock\MaterialcapelladaRepositoryInterface;
+use App\Repositories\Stock\MaterialavioRepositoryInterface;
 use App\Http\Requests\ValidacionCombinacion;
 use App\Http\Requests\ValidacionCombinacionTecnica;
 use App\Http\Requests\ValidacionCatalogo;
@@ -35,10 +37,16 @@ use PDF;
 class CombinacionController extends Controller
 {
 	protected $precioService;
+	protected $materialcapelladaRepository;
+	protected $materialavioRepository;
 
-    public function __construct(PrecioService $precioservice)
+    public function __construct(PrecioService $precioservice,
+								MaterialcapelladaRepositoryInterface $materialcapelladarepository,
+								MaterialavioRepositoryInterface $materialaviorepository)
     {
 		$this->precioService = $precioservice;
+		$this->materialcapelladaRepository = $materialcapelladarepository;
+		$this->materialavioRepository = $materialaviorepository;
         $this->middleware('auth');
     }
     
@@ -256,12 +264,14 @@ class CombinacionController extends Controller
 			$horma = Horma::orderBy('nombre')->get();
 			$serigrafia = Serigrafia::orderBy('nombre')->get();
 
-			$capelladas = Articulo::select('id', 'sku', 'descripcion', 'usoarticulo_id')
-                           ->where('usoarticulo_id','=',3)->get();
-			$avios = Articulo::select('id', 'sku', 'descripcion', 'usoarticulo_id')
-                           ->where('usoarticulo_id','=',6)->get();
+			//$capelladas = Articulo::select('id', 'sku', 'descripcion', 'usoarticulo_id')
+            //               ->where('usoarticulo_id','=',3)->get();
+			//$avios = Articulo::select('id', 'sku', 'descripcion', 'usoarticulo_id')
+            //               ->where('usoarticulo_id','=',6)->get();
+			$capelladas = $this->materialcapelladaRepository->all();
+			$avios = $this->materialavioRepository->all();
 
-        	$tipos = [
+			$tipos = [
            	['id' => 'C', 'nombre'  => 'Capellada'],
            	['id' => 'B', 'nombre'  => 'Base'],
            	['id' => 'F', 'nombre'  => 'Forro'],

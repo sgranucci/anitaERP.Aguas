@@ -291,6 +291,7 @@ class FacturaElectronicaService
 				$tipo = $resp->tipo_cbte;
 				$pventa = $resp->punto_vta;
 				$numero = $resp->cbte_nro;
+				$resultado = 'A';
 			}
 			else
 			{

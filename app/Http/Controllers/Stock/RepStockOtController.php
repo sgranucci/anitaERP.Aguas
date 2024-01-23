@@ -11,6 +11,7 @@ use App\Queries\Stock\ArticuloQueryInterface;
 use App\Models\Stock\Linea;
 use App\Models\Stock\Mventa;
 use App\Models\Stock\Categoria;
+use App\Models\Stock\Depmae;
 use PDF;
 
 class RepStockOtController extends Controller
@@ -58,10 +59,12 @@ class RepStockOtController extends Controller
         $categoria_query->push((object) ['id'=>'99999999','nombre'=>'Ultimo']);
         $mventa_query = Mventa::all();
         $mventa_query->prepend((object) ['id'=>'0','nombre'=>'Todas las marcas']);
+        $deposito_query = Depmae::all();
+        $deposito_query->prepend((object) ['id'=>'0','nombre'=>'Todos los depositos']);
 
         return view('stock.repstockot.create', compact('estado_enum', 'articulo_query', 'linea_query', 
                                                         'mventa_query', 'categoria_query', 'foto_enum', 
-                                                        'apertura_enum', 'estadoOt_enum'));
+                                                        'apertura_enum', 'estadoOt_enum', 'deposito_query'));
     }
 
     public function crearReporteStockOt(Request $request)
@@ -85,7 +88,8 @@ class RepStockOtController extends Controller
                                                 $request->desdelinea_id, $request->hastalinea_id,
                                                 $request->desdecategoria_id, $request->hastacategoria_id,
                                                 $request->desdelote, $request->hastalote,
-                                                $request->imprimefoto, $request->estadoOt, $request->apertura)
+                                                $request->imprimefoto, $request->estadoOt, $request->apertura,
+                                                $request->deposito_id)
                                     ->download('stockot.'.$extension);
     }
 }

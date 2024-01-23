@@ -30,8 +30,6 @@
                         <tr>
                             <th class="width20">ID</th>
                             <th>Nombre</th>
-                            <th>Sku</th>
-                            <th>Descripci&oacute;n</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>
                     </thead>
@@ -40,8 +38,6 @@
                         <tr>
                             <td>{{$data->id}}</td>
                             <td>{{$data->nombre}}</td>
-                            <td>{{$data->descarticulo}}</td>
-                            <td>{{$data->sku}}</td>
                             <td>
                        			@if (can('editar-materialavio', false))
                                 	<a href="{{route('editar_materialavio', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">

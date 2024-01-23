@@ -23,9 +23,10 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
                                             $desdearticulo, $hastaarticulo,
                                             $desdelinea_id, $hastalinea_id,
                                             $desdecategoria_id, $hastacategoria_id,
-                                            $desdelote, $hastalote)
+                                            $desdelote, $hastalote, $deposito_id)
     {
         $articulo_query = $this->model->select('articulo_movimiento.ordentrabajo_id as ordentrabajo_id',
+                            'articulo_movimiento.deposito_id as deposito_id',
                             'combinacion.foto as foto', 
                             'linea.nombre as nombrelinea',
                             'articulo.sku as sku', 
@@ -37,6 +38,8 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
                             'articulo_movimiento.modulo_id as modulo_id',
                             'articulo_movimiento_talle.talle_id as talle_id',
                             'talle.nombre as nombretalle',
+							'pedido_combinacion.pedido_id as pedido',
+                            'articulo_movimiento.id as id',
                             'articulo_movimiento_talle.id as idmov',
                             'articulo_movimiento_talle.cantidad as cantidad',
                             'articulo_movimiento_talle.precio as precio')
@@ -48,13 +51,14 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
                             ->join('articulo_movimiento_talle', 'articulo_movimiento_talle.articulo_movimiento_id', 
                                 'articulo_movimiento.id')
                             ->join('talle', 'talle.id', 'articulo_movimiento_talle.talle_id')
+                            ->leftjoin('pedido_combinacion', 'pedido_combinacion.id', 'articulo_movimiento.pedido_combinacion_id')
                             ->whereBetween('articulo.linea_id', [$desdelinea_id, $hastalinea_id])
                             ->whereBetween('articulo.categoria_id', [$desdecategoria_id, $hastacategoria_id])
                             ->where('articulo_movimiento.lote', '>', '0')
         					->orderBy('nombrelinea','ASC')
                             ->orderBy('sku','ASC')
                             ->orderBy('nombrecombinacion', 'ASC')
-                            ->orderBy('modulo_id', 'ASC')
+                            //->orderBy('modulo_id', 'ASC')
                             ->orderBy('lote','ASC');
 
         if ($desdearticulo != '' && $hastaarticulo != '')
@@ -62,7 +66,10 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
             
         if ($mventa_id != 0)
             $articulo_query = $articulo_query->where('articulo.mventa_id', $mventa_id);
-
+        
+        if ($deposito_id != 0)
+            $articulo_query = $articulo_query->where('deposito_id', $deposito_id);
+        
         switch($estado)
         {
         case 'ACTIVAS':

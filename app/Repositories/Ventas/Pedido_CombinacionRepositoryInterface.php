@@ -19,6 +19,7 @@ interface Pedido_CombinacionRepositoryInterface
     public function findOrFail($id);
     public function findPorPedidoCombinacionId($pedido_combinacion_id);
     public function findPorPedidoId($pedido_id);
+    public function findPorOrdenTrabajoId($ordentrabajo_id);
     public function sincronizarConAnita();
 	public function actualizarAnitaEstado($estado, $codigo, $orden);
 	public function actualizarAnitaNroOt($nro_orden, $codigo, $orden);

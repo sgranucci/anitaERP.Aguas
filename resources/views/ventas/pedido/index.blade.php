@@ -68,7 +68,6 @@ function limpiaFiltros(){
                             <th class="width20">ID</th>
                             <th>Fecha</th>
                             <th class="width50">Cliente</th>
-                            <th>Codigo Anita</th>
                             <th>Marca</th>
                             <th>Pares</th>
 							<th>Estado</th>
@@ -86,9 +85,6 @@ function limpiaFiltros(){
         						</td>
         						<td>
             						<b>{{ $pedido['nombrecliente'] ?? '' }}</b>
-        						</td>
-        						<td>
-                					<small> {{$pedido['codigo']}}</small>
         						</td>
         						<td>
             						{{ $pedido['nombremarca'] ?? '' }}

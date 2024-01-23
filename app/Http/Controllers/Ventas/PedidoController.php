@@ -257,7 +257,8 @@ class PedidoController extends Controller
 			'PENDIENTES' => 'Pedidos pendientes',
 			'EN PRODUCCION' => 'Pedidos en produccion',
 			'TERMINADOS' => 'Pedidos terminados',
-			'FACTURADOS' => 'Pedidos facturados'
+			'FACTURADOS' => 'Pedidos facturados',
+			'ANULADOS' => 'Pedidos anulados'
 		];
 		$vendedor_query = Vendedor::all();
 		$vendedor_query->prepend((object) ['id'=>'0','nombre'=>'Primero']);

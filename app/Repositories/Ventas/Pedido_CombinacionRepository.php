@@ -194,6 +194,16 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 		return $pedido_combinacion;
     }
 
+	public function findPorOrdenTrabajoId($ordentrabajo_id)
+    {
+    	$pedido_combinacion = $this->model->select('pedido_combinacion.id as id', 
+										'pedido_combinacion.pedido_id as ot_id')
+										->where('pedido_combinacion.ot_id', $ordentrabajo_id)
+										->get();
+
+		return $pedido_combinacion;
+    }
+
     public function sincronizarConAnita()
 	{
 		ini_set('max_execution_time', '300');

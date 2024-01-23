@@ -27,11 +27,6 @@ class MaterialavioRepository implements MaterialavioRepositoryInterface
 
     public function all()
     {
-        $hay_materialavios = $this->model->first();
-
-		if (!$hay_materialavios)
-			self::sincronizarConAnita();
-
         $ret = $this->model->get();
 
         return $ret;
@@ -39,44 +34,20 @@ class MaterialavioRepository implements MaterialavioRepositoryInterface
 
     public function create(array $data)
     {
-        Articulo::insert([
-				'descripcion' => $data['nombre'],
-				'sku' => $data['sku'],
-				'usoarticulo_id' => '6',
-			]);
-
-		$articulo = Articulo::select('id')->where('sku',$data['sku'])->first();
-
-		$data['articulo_id'] = $articulo->id;
-
         $materialavio = $this->model->create($data);
-
-		// Graba anita
-		self::guardarAnita($data);
     }
 
     public function update(array $data, $id)
     {
         $materialavio = $this->model->findOrFail($id)
             ->update($data);
-		//
-		// Actualiza anita
-		self::actualizarAnita($data);
 
 		return $materialavio;
-
-        //return $this->model->where('id', $id)
-         //   ->update($data);
     }
 
     public function delete($id)
     {
     	$materialavio = Materialavio::find($id);
-
-		//
-		// Elimina anita
-		if ($materialavio->articulo_id != '')
-			self::eliminarAnita($materialavio->articulo_id);
 
         $materialavio = $this->model->destroy($id);
 

@@ -7,6 +7,7 @@ use App\Queries\Stock\ArticuloQueryInterface;
 use App\Models\Stock\Linea;
 use App\Models\Stock\Categoria;
 use App\Models\Stock\Mventa;
+use App\Models\Stock\Depmae;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\Exportable;
@@ -29,7 +30,7 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 	use Exportable;
 	private $desdearticulo_id, $hastaarticulo_id,
 			$desdelinea_id, $hastalinea_id,
-			$estado, $mventa_id, $desdelote, $hastalote, $imprimeFoto, $estadoOt, $apertura;
+			$estado, $mventa_id, $desdelote, $hastalote, $imprimeFoto, $estadoOt, $apertura, $deposito_id;
 
 	protected $dates = ['fecha'];
     private $articulo_movimientoService;
@@ -113,8 +114,18 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 				$this->desdelinea_id, $this->hastalinea_id,
 				$this->desdecategoria_id, $this->hastacategoria_id,
 				$this->desdelote, $this->hastalote,
-				$this->estadoOt, $this->apertura);
-				
+				$this->estadoOt, $this->apertura, $this->deposito_id);
+
+		if ($this->deposito_id != 0)
+		{
+			$deposito = Depmae::find($this->deposito_id);
+
+			if ($deposito)
+				$txtDeposito = "Deposito: ".$deposito->nombre;
+		}
+		else	
+			$txtDeposito = "Todos los depositos";
+
 		return view('exports.stock.reportestockot.reportestockot', 
 					['data' => $data, 
 					'estado' => $this->estado,
@@ -124,7 +135,8 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 					'desdecategoria' => $desdeCategoria, 'hastacategoria' => $hastaCategoria,
 					'desdelote' => $this->desdelote, 'hastalote' => $this->hastalote,
 					'imprimefoto' => $this->imprimeFoto,
-					'estadoot' => $this->estadoOt
+					'estadoot' => $this->estadoOt,
+					'deposito' => $txtDeposito
 					]);
 	}
 
@@ -193,8 +205,6 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
     {
         return [
             'A' => 20,
-			'E' => 4,
-			'F' => 4,
 			'G' => 4,
 			'H' => 4,
 			'I' => 4,
@@ -220,7 +230,34 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 			'AC' => 4,
 			'AD' => 4,
 			'AE' => 4,
-			'AG' => 3
+			'AF' => 4,
+			'AG' => 4,
+			'AI' => 3,
+			'AK' => 4,
+			'AL' => 4,
+			'AM' => 4,
+			'AN' => 4,
+			'AO' => 4,
+			'AP' => 4,
+			'AQ' => 4,
+			'AR' => 4,
+			'AS' => 4,
+			'AT' => 4,
+			'AU' => 4,
+			'AV' => 4,
+			'AW' => 4,
+			'AX' => 4,
+			'AY' => 4,
+			'AZ' => 4,
+			'BA' => 4,
+			'BB' => 4,
+			'BC' => 4,
+			'BD' => 4,
+			'BE' => 4,
+			'BF' => 4,
+			'BG' => 4,
+			'BI' => 3,
+			'BK' => 4,
 		];
     }
 
@@ -245,7 +282,8 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 							$desdelinea_id, $hastalinea_id,
 							$desdecategoria_id, $hastacategoria_id,
 							$desdelote, $hastalote,
-							$imprimefoto, $estadoot, $apertura)
+							$imprimefoto, $estadoot, $apertura,
+							$deposito_id)
 	{
 		$this->estado = $estado;
 		$this->mventa_id = $mventa_id;
@@ -260,6 +298,7 @@ class StockOtExport implements FromView, WithColumnFormatting, WithMapping, Shou
 		$this->imprimeFoto = $imprimefoto;
 		$this->estadoOt = $estadoot;
 		$this->apertura = $apertura;
+		$this->deposito_id = $deposito_id;
 		
 		return $this;
 	}

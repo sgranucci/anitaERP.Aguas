@@ -47,18 +47,34 @@
     	</tr>
   		</thead>
     	<tbody>
+		@php $totalPares = 0; @endphp
 		@foreach ($pedido->pedido_combinaciones as $item)
 			@if (in_array($item->id, $itemsId))
-        		<tr>
-					<td>{{ $item->articulos->sku }}</td>
-					<td>{{ $item->articulos->descripcion }}</td>
-					<td>{{ $item->combinaciones->codigo }}-{{ $item->combinaciones->nombre }}</td>
-					<td>{{ $item->modulos->nombre }}</td>
-					<td>{{ number_format($item->cantidad, 0) }}</td>
-					<td align="right">{{ number_format($item->precio, 2) }}</td>
-        		</tr>
+				@for ($ii = 0; $ii < count($tblImpuesto); $ii++)
+					@if ($item->id == $tblImpuesto[$ii]['id'])
+        				<tr>
+							<td>{{ $item->articulos->sku }}</td>
+							<td>{{ $item->articulos->descripcion }}</td>
+							<td>{{ $item->combinaciones->codigo }}-{{ $item->combinaciones->nombre }}</td>
+							<td>{{ $item->modulos->nombre }}</td>
+							<td>{{ number_format($tblImpuesto[$ii]['cantidad'], 0) }}</td>
+							<td align="right">{{ number_format($tblImpuesto[$ii]['precio'], 2) }}</td>
+        				</tr>
+					@endif
+    			@endfor
+
+				@php $totalPares += $item->cantidad; @endphp
+
 			@endif
     	@endforeach
+		<tr>
+			<td> </td>
+			<td> </td>
+			<td> </td>
+			<td>TOTAL PARES</td>
+			<td>{{$totalPares}}</td>
+			<td> </td>
+		</tr>
 		@foreach ($conceptosTotales as $itemTotal)
         	<tr>
 				<td> </td>

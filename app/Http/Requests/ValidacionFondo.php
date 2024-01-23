@@ -25,7 +25,6 @@ class ValidacionFondo extends FormRequest
     {
         return [
             'nombre' => 'required|max:50|unique:fondo,nombre,' . $this->route('id'),
-            'codigo' => 'required|',
         ];
     }
 }

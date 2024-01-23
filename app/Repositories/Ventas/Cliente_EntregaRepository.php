@@ -62,6 +62,13 @@ class Cliente_EntregaRepository implements Cliente_EntregaRepositoryInterface
         return $cliente;
     }
 
+	public function leeClienteEntrega($cliente_id)
+	{
+		$cliente_entrega = $this->model->where('cliente_id', $cliente_id)->get();
+
+		return $cliente_entrega;
+	}
+	
     public function findOrFail($id)
     {
         if (null == $cliente = $this->model->findOrFail($id)) {

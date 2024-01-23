@@ -20,6 +20,7 @@ class CrearTablaArticulocosto extends Migration
 			$table->unsignedBigInteger('tarea_id');
 			$table->foreign('tarea_id', 'fk_costotarea_tarea')->references('id')->on('tarea')->onDelete('cascade')->onUpdate('cascade');
 			$table->decimal('costo',20,6);
+            $table->date('fechaviencia')->nullable();
             $table->timestamps();
             $table->charset = 'utf8mb4';
             $table->collation = 'utf8mb4_spanish_ci';

@@ -29,7 +29,11 @@ class MovimientoOrdentrabajoRepository implements MovimientoOrdentrabajoReposito
 
     public function all()
     {
-        $tareas = [config('consprod.TAREA_TERMINADA'),config('consprod.TAREA_FACTURADA')];
+        $tareas = [
+                    config('consprod.TAREA_TERMINADA'),
+                    config('consprod.TAREA_TERMINADA_STOCK'),
+                    config('consprod.TAREA_FACTURADA')
+                ];
         $all = $this->model->with(['ordenestrabajo_tarea' => function($query) use($tareas) {
             $query->whereIn('ordentrabajo_tarea.tarea_id', $tareas);
           }])->with('tareas')->with('operaciones')->with('empleados')->get();
@@ -38,7 +42,7 @@ class MovimientoOrdentrabajoRepository implements MovimientoOrdentrabajoReposito
         return $this->model->with('ordenestrabajo_tarea')->with('tareas')->with('operaciones')->with('empleados')->get();
     }
 
-    public function allFiltrado()
+    public function allFiltrado($id = null)
     {
         $all = $this->model->select('movimientoordentrabajo.id as id',
                                     'ordentrabajo.codigo as codigo',
@@ -57,13 +61,42 @@ class MovimientoOrdentrabajoRepository implements MovimientoOrdentrabajoReposito
                                       ->from('ordentrabajo_tarea')
                                       ->whereRaw('ordentrabajo_tarea.ordentrabajo_id = movimientoordentrabajo.ordentrabajo_id')
                                       ->whereRaw('ordentrabajo_tarea.tarea_id in (32, 33)');
-                            })
-                            ->orderBy('movimientoordentrabajo.id', 'desc')
+                            });
+
+        if ($id)
+            $all = $all->where('movimientoordentrabajo.ordentrabajo_id', $id);
+
+        $all = $all->orderBy('movimientoordentrabajo.id', 'desc');
+
                             //->rightjoin('ordentrabajo_tarea',function ($join) {
                                 //$join->on('ordentrabajo_tarea.ordentrabajo_id', 'movimientoordentrabajo.ordentrabajo_id') ;
                                 //$join->whereNotIn('ordentrabajo_tarea.tarea_id', [33,32]) ;
                             //})
-                            ->paginate(800);
+        
+        $all = $all->paginate(800);
+
+        return $all;
+    }
+
+    public function allSinFiltrar($id = null)
+    {
+        $all = $this->model->select('movimientoordentrabajo.id as id',
+                                    'ordentrabajo.codigo as codigo',
+                                    'tarea.nombre as nombretarea',
+                                    'operacion.nombre as nombreoperacion',
+                                    'empleado.nombre as nombreempleado',
+                                    'movimientoordentrabajo.fecha as fecha',
+                                    'movimientoordentrabajo.estado as estado')
+                            ->join('ordentrabajo', 'ordentrabajo.id', 'movimientoordentrabajo.ordentrabajo_id')
+                            ->join('tarea', 'tarea.id', 'movimientoordentrabajo.tarea_id')
+                            ->join('operacion', 'operacion.id', 'movimientoordentrabajo.operacion_id')
+                            ->join('empleado', 'empleado.id', 'movimientoordentrabajo.empleado_id');
+
+        if ($id)
+            $all = $all->where('movimientoordentrabajo.ordentrabajo_id', $id);
+
+        $all = $all->orderBy('movimientoordentrabajo.id', 'desc')->get();
+
         return $all;
     }
 

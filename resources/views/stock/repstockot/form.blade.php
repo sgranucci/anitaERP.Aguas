@@ -3,7 +3,20 @@
 	<select name="mventa_id" id="mventa_id" data-placeholder="Marca de Venta" class="col-lg-3 form-control required" data-fouc required>
 		<option value="">-- Seleccionar marca --</option>
 		@foreach($mventa_query as $key => $value)
-			@if( (int) $value->id == (int) old('mventa_id', $pedido->mventa_id ?? ''))
+			@if( (int) $value->id == 0)
+				<option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
+			@else
+				<option value="{{ $value->id }}">{{ $value->nombre }}</option>    
+			@endif
+		@endforeach
+	</select>
+</div>
+<div class="form-group row">
+	<label for="deposito" class="col-lg-3 col-form-label requerido">Depósito</label>
+	<select name="deposito_id" id="deposito_id" data-placeholder="Depósito de stock" class="col-lg-3 form-control required" data-fouc required>
+		<option value="">-- Seleccionar depósito --</option>
+		@foreach($deposito_query as $key => $value)
+			@if( (int) $value->id == (int) 0)
 				<option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
 			@else
 				<option value="{{ $value->id }}">{{ $value->nombre }}</option>    

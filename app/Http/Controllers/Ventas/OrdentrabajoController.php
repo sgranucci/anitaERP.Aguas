@@ -80,7 +80,7 @@ class OrdentrabajoController extends Controller
 			$filtros['filter_column'][0]['value'] = 'Z';
 		}
 		// Aplica los filtros si es que hay definidos
-		if ($filtros != '' && $filtros['filter_column'] ?? '')
+		if ($filtros != '' && isset($filtros['filter_column']) ?? '')
 		{
 			$query = [];
 			$ordentrabajo_query = $this->ordentrabajoService->leeOrdenestrabajoPendientes();
@@ -105,9 +105,11 @@ class OrdentrabajoController extends Controller
 								$flPendiente = true;
 							if ($tarea->tarea_id != config('consprod.TAREA_FACTURADA') &&
 								$tarea->tarea_id != config('consprod.TAREA_TERMINADA') &&
+								$tarea->tarea_id != config('consprod.TAREA_TERMINADA_STOCK') &&
 								$tarea->tarea_id != config('consprod.TAREA_PENDIENTE_FABRICACION'))
 								$cantidadTarea++;
-							if ($tarea->tarea_id == config('consprod.TAREA_TERMINADA'))
+							if ($tarea->tarea_id == config('consprod.TAREA_TERMINADA') ||
+								$tarea->tarea_id == config('consprod.TAREA_TERMINADA_STOCK'))
 								$flTerminada = true;
 							if ($tarea->tarea_id == config('consprod.TAREA_FACTURADA'))
 								$flFacturada = true;
@@ -307,6 +309,7 @@ class OrdentrabajoController extends Controller
 				$data[] = [	
 						'id'=>$item->id, 
 						'codigo'=>$item->pedido_id, 
+						'pedidocombinacion_id' => $item->id,
 						'descuentopie' => $item->pedidos->descuento,
 						'cliente'=>$ot->clientes->nombre, 
 						'cliente_id'=>$ot->clientes->id,

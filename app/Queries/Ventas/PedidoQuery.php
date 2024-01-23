@@ -172,6 +172,7 @@ class PedidoQuery implements PedidoQueryInterface
                                 $desdematerialcapellada_id, $hastamaterialcapellada_id)
     {
         $pedido = Capeart::select('capeart.*',
+                                'pedido.id as pedido_id',
                                 'pedido.fecha',
                                 'pedido.cliente_id',
                                 'pedido_combinacion.id as pedido_combinacion_id',
@@ -209,7 +210,7 @@ class PedidoQuery implements PedidoQueryInterface
                         ->leftjoin('ordentrabajo', 'ordentrabajo.id', 'ordentrabajo_combinacion_talle.ordentrabajo_id')
                         ->join('articulo', 'articulo.id', 'pedido_combinacion.articulo_id')
                         ->join('combinacion', 'combinacion.id', 'pedido_combinacion.combinacion_id')
-                        ->leftjoin('materialcapellada', 'materialcapellada.articulo_id', 'capeart.material_id')
+                        ->leftjoin('materialcapellada', 'materialcapellada.id', 'capeart.material_id')
                         ->join('color', 'color.id', 'capeart.color_id')
                         ->join('linea', 'linea.id', 'articulo.linea_id')
                         ->join('talle', 'talle.id', 'pedido_combinacion_talle.talle_id')
@@ -246,6 +247,7 @@ class PedidoQuery implements PedidoQueryInterface
     {
         $pedido = Avioart::select('avioart.*',
                                 'pedido_combinacion.*',
+                                'pedido.id as pedido_id',
                                 'pedido.*',
                                 'pedido_combinacion.id as pedido_combinacion_id',
                                 'pedido_combinacion_talle.talle_id as talle_id',
@@ -280,7 +282,7 @@ class PedidoQuery implements PedidoQueryInterface
                         ->leftjoin('ordentrabajo', 'ordentrabajo.id', 'ordentrabajo_combinacion_talle.ordentrabajo_id')
                         ->join('articulo', 'articulo.id', 'pedido_combinacion.articulo_id')
                         ->join('combinacion', 'combinacion.id', 'pedido_combinacion.combinacion_id')
-                        ->leftjoin('materialavio', 'materialavio.articulo_id', 'avioart.material_id')
+                        ->leftjoin('materialavio', 'materialavio.id', 'avioart.material_id')
                         ->join('color', 'color.id', 'avioart.color_id')
                         ->join('linea', 'linea.id', 'articulo.linea_id')
                         ->join('talle', 'talle.id', 'pedido_combinacion_talle.talle_id')

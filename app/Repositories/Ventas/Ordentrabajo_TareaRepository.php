@@ -83,9 +83,9 @@ class Ordentrabajo_TareaRepository implements Ordentrabajo_TareaRepositoryInterf
     	$ordentrabajo_tarea = $this->model->where('ordentrabajo_id', $id)->with("tareas");
 
 		if ($tarea_id)
-			$ordentrabajo_tarea = $ordentrabajo_tarea->where('tarea_id', $tarea_id)->get();
+			$ordentrabajo_tarea = $ordentrabajo_tarea->where('tarea_id', $tarea_id)->orderBy('desdefecha')->get();
 		else
-			$ordentrabajo_tarea = $ordentrabajo_tarea->get();
+			$ordentrabajo_tarea = $ordentrabajo_tarea->orderBy('desdefecha')->get();
 
 		return $ordentrabajo_tarea;
     }
@@ -263,7 +263,7 @@ class Ordentrabajo_TareaRepository implements Ordentrabajo_TareaRepositoryInterf
 					->where('ordentrabajo_tarea.hastafecha', '=', null);
 			break;
 		default:
-			$data = $data->whereBetween('ordentrabajo_tarea.desdefecha', [$desdefecha, $hastafecha]);
+			$data = $data->whereBetween('ordentrabajo_tarea.hastafecha', [$desdefecha, $hastafecha]);
 		}
 
 		if ($desdearticulo != '' && $hastaarticulo != '')

@@ -82,3 +82,16 @@
 		<input type="text" name="listasprecio" id="listasprecio" class="form-control" value="1,2,3,4,5">
 	</div>
 </div>
+<div class="form-group row">
+	<label for="nofactura" class="col-lg-3 col-form-label requerido">Facturable</label>
+	<select id="nofactura" name="nofactura" class="col-lg-3 form-control">
+		<option value="">-- Seleccionar --</option>
+		@foreach($nofactura_enum as $key => $value)
+			@if($value['id'] == 0)
+				<option value="{{ $value['id'] }}" selected="select">{{ $value['nombre'] }}</option>    
+			@else
+				<option value="{{ $value['id'] }}">{{ $value['nombre'] }}</option>    
+			@endif
+		@endforeach
+	</select>
+</div>

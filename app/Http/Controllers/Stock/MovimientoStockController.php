@@ -103,7 +103,6 @@ class MovimientoStockController extends Controller
     {
         can('editar-movimientos-de-stock');
     	$movimientostock = $this->movimientoStockService->leeMovimientoStock($id);
-
 		$this->armarTablasVista($deposito_query,
                             $mventa_query, $articulo_query, $modulo_query, 
                             $listaprecio_query, $articuloall_query, $articuloxsku_query, 

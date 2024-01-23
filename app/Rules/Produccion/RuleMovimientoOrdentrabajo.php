@@ -42,7 +42,7 @@ class RuleMovimientoOrdentrabajo implements Rule
       {
         case 'ordenestrabajo':
             $cc = $this->movimientoOrdentrabajoService->controlSecuencia($value, 
-                                                      $this->operacion_id, $this->tarea_id,
+                                                      $this->operacion_id, $this->tarea_id, 0,
                                                       $this->movimiento_id);
             if ($cc['resultado'] == 0)
               $this->ordenesConProblemas = $cc['ordenestrabajo'];

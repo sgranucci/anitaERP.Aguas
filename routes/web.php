@@ -394,6 +394,16 @@ Route::get('stock/precio/crearimportacionprecio', 'Stock\PrecioController@crearI
 Route::post('stock/importarprecio', 'Stock\PrecioController@importar')->name('importar_precio');
 
 /* 
+ * Tienda nube
+ */
+
+ Route::get('stock/crearimportaciontiendanube', 'Stock\TiendaNubeController@crearImportacion')->name('crear_importacion_tiendanube');
+ Route::post('stock/importartiendanube', 'Stock\TiendaNubeController@importar')->name('importar_tiendanube');
+ Route::get('ventas/crearimportacionfacturastiendanube', 'Ventas\FacturanteController@crearImportacion')->name('crear_importacion_facturas_tiendanube');
+ Route::post('ventas/listarfacturastiendanube', 'Ventas\FacturanteController@listarComprobanteFull')->name('listar_facturas_tiendanube');
+ Route::get('ventas/generarfacturastiendanube/{desdefecha}/{hastafecha}', 'Ventas\FacturanteController@generarFacturasTiendaNube')->name('generar_facturas_tiendanube');
+
+/* 
  * Unidades de medida
  */
 
@@ -545,6 +555,7 @@ Route::get('stock/product/datos-tecnicos/edit/{id}', 'Stock\ArticuloController@e
 Route::put('stock/product/update/{id}/{filtros?}', 'Stock\ArticuloController@actualizar')->name('product.update');
 Route::delete('stock/product/delete/{id}', 'Stock\ArticuloController@delete')->name('product.delete');
 Route::post('stock/product/limpiafiltro', 'Stock\ArticuloController@limpiafiltro')->name('product.limpiafiltro');
+Route::post('stock/product/consultaarticulo', 'Stock\ArticuloController@consultaArticulo')->name('consulta_articulo');
 
 Route::get('stock/leercombinaciones/{id}', 'Stock\CombinacionController@leerCombinaciones')->name('leer_combinaciones');
 Route::get('stock/leercombinacionesactivas/{id}', 'Stock\CombinacionController@leerCombinacionesActivas')->name('leer_combinaciones_activas');
@@ -789,6 +800,18 @@ Route::get('ventas/estadoot/{id}/{pedido_combinacion_id?}', 'Ventas\Ordentrabajo
 Route::get('ventas/controlaordentrabajostock/{id}/{articulo_id}/{combinacion_id}', 'Ventas\OrdentrabajoController@controlaOtStock')->name('controla_ordetrabajo_stock');
 Route::post('ventas/ordenestrabajo/limpiafiltro', 'Ventas\OrdentrabajoController@limpiafiltro')->name('ordentrabajo.limpiafiltro');
 
+/*
+ * Comprobantes de venta
+ */
+
+Route::get('ventas/factura', 'Ventas\FacturacionController@index')->name('factura');
+Route::get('ventas/factura/crear', 'Ventas\FacturacionController@crear')->name('crear_factura');
+Route::post('ventas/factura', 'Ventas\FacturacionController@guardar')->name('guardar_factura');
+Route::get('ventas/factura/{id}/editar', 'Ventas\FacturacionController@editar')->name('editar_factura');
+Route::delete('ventas/factura/{id}', 'Ventas\FacturacionController@eliminar')->name('eliminar_factura');
+Route::get('ventas/listafactura/{id}', 'Ventas\FacturacionController@listar')->name('listar_factura');
+
+
 /* PRODUCCION */
 
 /* 
@@ -834,9 +857,11 @@ Route::post('produccion/movimientoordentrabajo', 'Produccion\MovimientoOrdentrab
 Route::get('produccion/movimientoordentrabajo/{id}/editar', 'Produccion\MovimientoOrdentrabajoController@editar')->name('editar_movimientoordentrabajo');
 Route::put('produccion/movimientoordentrabajo/{id}', 'Produccion\MovimientoOrdentrabajoController@actualizar')->name('actualizar_movimientoordentrabajo');
 Route::delete('produccion/movimientoordentrabajo/{id}', 'Produccion\MovimientoOrdentrabajoController@eliminar')->name('eliminar_movimientoordentrabajo');
+Route::get('produccion/consultamovimientoordentrabajo/{id}', 'Produccion\MovimientoOrdentrabajoController@index')->name('consultamovimientoordentrabajo');
 
 // Llamadas desde movimientos de OT
 Route::get('produccion/controlsecuencia/{ots}/{operacion}/{tarea}', 'Produccion\MovimientoOrdentrabajoController@controlSecuencia')->name('control_secuencia');
+Route::get('produccion/ctrlsecuencia/{ots}/{operacion}/{tarea}/{pedido}', 'Produccion\MovimientoOrdentrabajoController@ctrlSecuencia')->name('ctrl_secuencia');
 
 // Llamadas desde consulta de OT
 Route::post('produccion/empacarTarea', 'Produccion\MovimientoOrdentrabajoController@empacarTarea')->name('empacar_tarea');

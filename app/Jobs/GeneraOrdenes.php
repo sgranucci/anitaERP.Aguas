@@ -100,6 +100,70 @@ class GeneraOrdenes implements ShouldQueue
         $indicadoresService->acumFechaLectura = "01-01-2001";
         $indicadoresService->cantLectura = 0;
 
+        $indicadoresService->acumFlBuscaEntrada = $indicadoresService->acumFlAbrePosicion = false;
+        $indicadoresService->acumOff0 = $indicadoresService->acumOff1oA = -1;
+        $indicadoresService->acumFlAcista = false;
+        $indicadoresService->acumFlBajista = false;
+        $indicadoresService->flAbc = false;
+        $indicadoresService->flAbCd = false;
+        $indicadoresService->fl3Drives = false;
+        $indicadoresService->flShark = false;
+        $indicadoresService->flW4 = false;
+        $indicadoresService->flSp = false;
+        $indicadoresService->flInertia = false;
+        $indicadoresService->flVolatilidad = false;
+
+        $indicadoresService->acumFlAnulacionAbcAlcistaActiva = false;
+        $indicadoresService->acumFlAnulacionAbcBajistaActiva = false;
+        $indicadoresService->acumFlAnulacionAbCdAlcistaActiva = false;
+        $indicadoresService->acumFlAnulacionAbCdBajistaActiva = false;
+
+        $indicadoresService->acumIdSenial = $indicadoresService->acumIdTrade = 0;
+        $indicadoresService->cantidadActivaContratos = $indicadoresService->totalContratos;
+        $indicadoresService->acumFlCerroPorTiempoAlcista = false;
+        $indicadoresService->acumFlCerroPorTiempoBajista = false;
+        $indicadoresService->acumFlCierraPorTiempo = false;
+        $indicadoresService->acumProfitAndLoss = 0;
+        $indicadoresService->pivotes = [];
+        $indicadoresService->flSpAlcista = false;
+        $indicadoresService->tgtSpAlcista1 = 0;
+        $indicadoresService->ventanaSpAlcista = 0;
+
+        $indicadoresService->flSpBajista = false;
+        $indicadoresService->tgtSpBajista1 = 0;
+        $indicadoresService->ventanaSpBajista = 0;
+        $indicadoresService->flEmpiezaOperacion = false;
+        
+        // Variables de calculo de swing
+        $indicadoresService->acumTendencia = 'Indefinida';
+        $indicadoresService->acumBnMinActual = $indicadoresService->acumBnMaxActual = $indicadoresService->acumMaximoActual = 0;
+        $indicadoresService->acumMinimoActual = 0;
+        $indicadoresService->acumBnMaximo = $indicadoresService->acumBnMinimo = $indicadoresService->acumBnMaximoAnterior = 0;
+        $indicadoresService->acumBnMinimoAnterior = 0;
+
+        $indicadoresService->ultimoMaximoBajista = 0;
+        $indicadoresService->ultimoMinimoBajista = 0;
+        $indicadoresService->ultimoMaximoAlcista = 0;
+        $indicadoresService->ultimoMinimoAlcista = 0;
+        $indicadoresService->offsetD = 0;
+        $indicadoresService->offsetC = 0;
+        $indicadoresService->offsetB = 0;
+        $indicadoresService->offsetA = 0;
+        $indicadoresService->offsetU = 0;
+        $indicadoresService->offsetO = 0;
+        $indicadoresService->offsetMaximoCW4 = 0;
+        $indicadoresService->offsetMinimoTW4 = 0;
+        $indicadoresService->offsetMaximoDW4 = 0;
+        $indicadoresService->offsetMinimoUW4 = 0;
+        $indicadoresService->offsetMaximoOW4 = 0;
+        $indicadoresService->offsetMinimoCW4 = 0;
+        $indicadoresService->offsetMaximoTW4 = 0;
+        $indicadoresService->offsetMinimoDW4 = 0;
+        $indicadoresService->offsetMaximoUW4 = 0;
+        $indicadoresService->offsetMinimoOW4 = 0;
+        $indicadoresService->acumFlAnulacionW4AlcistaActiva = false;
+        $indicadoresService->acumFlAnulacionW4BajistaActiva = false;
+
         $dataPrueba = DB::connection('trade')->table('trade.lecturas')
             ->select('id',
                     'fechalectura',

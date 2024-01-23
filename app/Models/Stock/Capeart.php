@@ -27,7 +27,7 @@ class Capeart extends Model
 
     public function materiales()
     {
-        return $this->belongsTo(Articulo::class, 'material_id');
+        return $this->belongsTo(Materialcapellada::class, 'material_id');
     }
 
     public function colores()

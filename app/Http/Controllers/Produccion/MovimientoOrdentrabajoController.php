@@ -35,11 +35,13 @@ class MovimientoOrdentrabajoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index($id = null)
     {
         can('listar-movimientos-orden-trabajo');
-        
-		$datas = $this->movimientoOrdentrabajoService->leeMovimientoOrdenTrabajo();
+        if ($id)
+            $datas = $this->movimientoOrdentrabajoService->leeMovimientoOrdenTrabajoPorOt($id);
+        else
+            $datas = $this->movimientoOrdentrabajoService->leeMovimientoOrdenTrabajo();
 		$estado_enum = $this->movimientoOrdentrabajoService->estadoEnum();
 
         return view('produccion.movimientoordentrabajo.index', compact('datas', 'estado_enum'));
@@ -178,6 +180,12 @@ class MovimientoOrdentrabajoController extends Controller
         return $this->movimientoOrdentrabajoService->controlSecuencia($ordenestrabajo, $operacion_id, $tarea_id);
     }
 
+    // Control de secuencia de fabricacion 
+    public function ctrlSecuencia($ordenestrabajo, $operacion_id, $tarea_id, $pedido_combinacion_id)
+    {
+        return $this->movimientoOrdentrabajoService->controlSecuencia($ordenestrabajo, $operacion_id, $tarea_id, $pedido_combinacion_id);
+    }
+    
 	/*
 	 * Arma tablas de select para enviar a vista
 	 */

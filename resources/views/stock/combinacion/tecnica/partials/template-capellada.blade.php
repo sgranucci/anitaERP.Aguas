@@ -4,7 +4,7 @@
 			<select name="materiales[]" class="form-control">
        			<option value="">-- Elija medida/talle --</option>
                 	@foreach ($capelladas as $material)
-                		<option value="{{ $material->id }}"> {{ $material->descripcion }} </option>
+                		<option value="{{ $material->id }}"> {{ $material->nombre }} </option>
                 	@endforeach
             </select>
        	</td>

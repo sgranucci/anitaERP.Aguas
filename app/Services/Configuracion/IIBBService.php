@@ -57,7 +57,6 @@ class IIBBService
 			$minimoNeto = explode(",", env("ANITA_MINIMO_NETO_IIBB"));
 			$minimaPercepcion = explode(",", env("ANITA_MINIMA_PERCEPCION_IIBB"));
 			$percepcionesIIBB = [];
-	
 			for ($i = 0; $i < count($provinciasPercepcion); $i++)
 			{
 				if ($totalNeto >= $minimoNeto[$i])
@@ -68,8 +67,11 @@ class IIBBService
 						$tasa = $tasasDescarte[$i];
 
 					$importePercepcion = $totalNeto * $tasa / 100.;
-		
-					if ($importePercepcion >= $minimaPercepcion[$i])
+					
+					//if ($i == 1)
+					//	dd($totalNeto.' '.$minimoNeto[$i].' '.$importePercepcion.' '.$minimaPercepcion[$i].' '.$i.' '.$tasa);
+
+					if ($importePercepcion >= $minimaPercepcion[$i] && $importePercepcion != 0)
 					{
 						$provincia = Provincia::where("jurisdiccion",$provinciasPercepcion[$i])->first();
 

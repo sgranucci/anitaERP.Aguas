@@ -137,7 +137,7 @@ class OrdentrabajoService
 
 		$ordentrabajo_stock_id = null;
 		$lote_id = null;
-		if ($ordentrabajo_stock_codigo > 0)
+		if ($ordentrabajo_stock_codigo > 0 && $checkOtStock == 'on')
 		{
 			$ot = $this->ordentrabajoQuery->leeOrdenTrabajoPorCodigo($ordentrabajo_stock_codigo);
 			if ($ot)
@@ -154,6 +154,11 @@ class OrdentrabajoService
 			else // Asigna el codigo de lote ingresado
 				$ordentrabajo_stock_id = $ordentrabajo_stock_codigo;
 		}
+
+		// Si asigna un lote de stock pero no es una OT de stock, la asigna al lote cargado
+		if ($ordentrabajo_stock_codigo > 0 && $checkOtStock != 'on')
+			$ordentrabajo_stock_id = $ordentrabajo_stock_codigo;
+
 		// Recorre cada id de linea de pedido
 		DB::beginTransaction();
 	
@@ -356,7 +361,8 @@ class OrdentrabajoService
 							$dataArticuloMovimiento = [
 									'fecha' => Carbon::now(),
 									'fechajornada' => Carbon::now(),
-									'tipotransaccion_id' => $ordentrabajo_stock_codigo > 0? 
+									'tipotransaccion_id' => $ordentrabajo_stock_codigo > 0 && $checkOtStock == 'on' &&
+														$cliente->id != config("consprod.CLIENTE_STOCK") ? 
 														config("consprod.TIPOTRANSACCION_CONSUME_OT") :
 														config("consprod.TIPOTRANSACCION_ALTA_PRODUCCION"),
 									'pedido_combinacion_id' => $ids[$i],
@@ -400,7 +406,7 @@ class OrdentrabajoService
 								// Crea tarea de OT terminada
 								if ($checkOtStock == 'on')
 								{
-									$data['tarea_id'] = config("consprod.TAREA_TERMINADA"); // Ot terminada
+									$data['tarea_id'] = config("consprod.TAREA_TERMINADA_STOCK"); // Ot terminada
 									$data['desdefecha'] = Carbon::now();
 									$data['hastafecha'] = Carbon::now();
 									$data['empleado_id'] = null;
@@ -412,8 +418,16 @@ class OrdentrabajoService
 										$ordentrabajo = $this->ordentrabajo_tareaRepository->create($data);
 									else
 									{
-										$tarea_32 = $this->ordentrabajo_tareaRepository->findPorOrdentrabajoId($ordentrabajo_id, 32);
+										$tarea_32 = $this->ordentrabajo_tareaRepository->findPorOrdentrabajoId($ordentrabajo_id, 
+											config("consprod.TAREA_TERMINADA"));
 		
+										if ($tarea_32 && count($tarea_32) > 0)
+											$ordentrabajo = $this->ordentrabajo_tareaRepository->update($data, $tarea_32->id);
+
+											
+										$tarea_32 = $this->ordentrabajo_tareaRepository->findPorOrdentrabajoId($ordentrabajo_id, 
+											config("consprod.TAREA_TERMINADA_STOCK"));
+	
 										if ($tarea_32 && count($tarea_32) > 0)
 											$ordentrabajo = $this->ordentrabajo_tareaRepository->update($data, $tarea_32->id);
 									}
@@ -426,6 +440,12 @@ class OrdentrabajoService
 								{
 									$tarea_32 = $this->ordentrabajo_tareaRepository->findPorOrdentrabajoId($ordentrabajo_id, 
 										config("consprod.TAREA_TERMINADA"));
+
+									if ($tarea_32 && count($tarea_32) > 0)
+										$this->ordentrabajo_tareaRepository->delete($tarea_32->id, $nro_orden);
+
+									$tarea_32 = $this->ordentrabajo_tareaRepository->findPorOrdentrabajoId($ordentrabajo_id, 
+										config("consprod.TAREA_TERMINADA_STOCK"));
 
 									if ($tarea_32 && count($tarea_32) > 0)
 										$this->ordentrabajo_tareaRepository->delete($tarea_32->id, $nro_orden);
@@ -1222,7 +1242,7 @@ class OrdentrabajoService
 					if ($item->clientes->tipossuspensioncliente->id ?? 0 > 0)
 					{
 						$tiposuspension = $item->clientes->tipossuspensioncliente->nombre;
-						$descCliente = substr($item->clientes->nombre,0,9).' '.$tiposuspension;
+						$descCliente = substr($item->clientes->nombre,0,20).' '.substr($tiposuspension, 0, 8);
 					}
 					else
 						$descCliente = $item->clientes->nombre;
@@ -1279,7 +1299,7 @@ class OrdentrabajoService
 					if ($copia > 1)
 					{
 						$reporte .= "printform\n";
-						$this->listaOt($reporte, $nombreQR);
+						$this->listaOt($reporte, $nombreQR, $data['tipoemision']);
 						$reporte = '';
 					}
 
@@ -1316,7 +1336,7 @@ class OrdentrabajoService
 				// Trae el titulo de la copia
 				$copiaot = Copiaot::traeCopia($data['tipoemision']);
 				$tituloCopia = '';
-				
+
 				if ($copiaot && $copia <= count($copiaot))
 					$tituloCopia = $copiaot[$copia-1];
 
@@ -1723,7 +1743,7 @@ class OrdentrabajoService
 				// $nombreQR .= $nombreQR . ';STOCK';
 			}
 			//dd($reporte);
-			$this->listaOt($reporte, $nombreQR);
+			$this->listaOt($reporte, $nombreQR, $data['tipoemision']);
 		}
 
         return redirect()->back()->with('status','Las ordenes seleccionadas no existen');
@@ -1902,9 +1922,12 @@ class OrdentrabajoService
 			{
 				// Lee el material
 				$descripcionMaterial = '';
-			 	$material = Articulo::find($itemMaterial->material_id);
+			 	$material = MaterialCapellada::find($itemMaterial->material_id);
 				if ($material)
-					$descripcionMaterial = rtrim(substr($material->descripcion,0,15),' ');
+					$descripcionMaterial = rtrim(substr($material->nombre,0,15),' ');
+			 	//$material = Articulo::find($itemMaterial->material_id);
+				//if ($material)
+				//	$descripcionMaterial = rtrim(substr($material->descripcion,0,15),' ');
 
 				// Lee el color
 				$descripcionColor = '';
@@ -1944,9 +1967,12 @@ class OrdentrabajoService
 			{
 				// Lee el articulo
 				$descripcionMaterial = '';
-			 	$material = Articulo::find($itemMaterial->material_id);
+				$material = MaterialAvio::find($itemMaterial->material_id);
 				if ($material)
-					$descripcionMaterial = rtrim(substr($material->descripcion,0,15),' ');
+					$descripcionMaterial = rtrim(substr($material->nombre,0,15),' ');
+			 	//$material = Articulo::find($itemMaterial->material_id);
+				//if ($material)
+				//	$descripcionMaterial = rtrim(substr($material->descripcion,0,15),' ');
 
 				// Lee el color
 				$descripcionColor = '';
@@ -2014,7 +2040,7 @@ class OrdentrabajoService
 		return $strSalida;
 	}
 
-	private function listaOt($reporte, $nombreQR)
+	private function listaOt($reporte, $nombreQR, $tipoEmision)
 	{
 		// Arma nombre de archivo
 		$nombreReporte = "tmp/emisionOT-" . Str::random(10) . '.txt';
@@ -2029,6 +2055,9 @@ class OrdentrabajoService
 
 		$cmd = sprintf($seteosalida->salidas->comando, $path, $nombreQR);
 		//system($comando);
+
+		if ($tipoEmision == 'STOCK')
+			$cmd = $cmd.' STOCK';
 
 		$process = new Process($cmd);
 		$process->run();
@@ -2298,11 +2327,33 @@ class OrdentrabajoService
 	{
 		$ordentrabajo_tarea = $this->ordentrabajo_tareaRepository->findPorOrdentrabajoId($ordentrabajo_id);
 
-		$nombretarea = '';
+		$nombretarea = ''; $idTarea = 0;
 		foreach ($ordentrabajo_tarea as $tarea)
 		{
 			if ($tarea->pedido_combinacion_id == $pedido_combinacion_id || $tarea->pedido_combinacion_id == 0)
+			{
 				$nombretarea = $tarea->tareas->nombre;
+				$idTarea = $tarea->tareas->id;
+			}
+		}
+		// Busca si es boletas juntas para verificar tareas globales o individuales
+		if ($idTarea != config("consprod.TAREA_EMPAQUE") &&
+		    $idTarea != config("consprod.TAREA_FACTURADA"))
+		{
+			$pedido_combinacion = $this->pedido_combinacionRepository->findPorOrdenTrabajoId($ordentrabajo_id);
+			if (count($pedido_combinacion) > 1) // Si es boleta junta
+			{
+				$nombretarea = ''; $idTarea = 0;
+				foreach ($ordentrabajo_tarea as $tarea)
+				{
+					if ($tarea->tareas->id != config("consprod.TAREA_EMPAQUE") &&
+						$tarea->tareas->id != config("consprod.TAREA_FACTURADA"))
+					{
+						$nombretarea = $tarea->tareas->nombre;
+						$idTarea = $tarea->tareas->id;
+					}
+				}
+			}
 		}
 	}
 
@@ -2358,7 +2409,9 @@ class OrdentrabajoService
 			{
 				if ($pedido_combinacion_id ? $tareaOt->pedido_combinacion_id == $pedido_combinacion_id || $tareaOt->pedido_combinacion_id == null : true)
 				{
-					if ($tareaOt->tarea_id == config("consprod.TAREA_TERMINADA") || $tareaOt->tarea_id == config("consprod.TAREA_EMPAQUE"))
+					if ($tareaOt->tarea_id == config("consprod.TAREA_TERMINADA") ||
+						$tareaOt->tarea_id == config("consprod.TAREA_TERMINADA_STOCK") ||
+						$tareaOt->tarea_id == config("consprod.TAREA_EMPAQUE"))
 						$flTareaTerminada = true;
 
 					if ($tareaOt->tarea_id == config("consprod.TAREA_FACTURADA"))

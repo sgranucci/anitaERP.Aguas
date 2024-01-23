@@ -47,7 +47,7 @@ class PrecioService
 		if ($talle_id)
 		{
 			$talle = Talle::select('nombre', 'id')->whereIn('id', $array_talle)->get();
-			
+
 			// Lee el articulo
 			$articulo = Articulo::select('linea_id')->where('id', $articulo_id)->first();
 
@@ -59,7 +59,6 @@ class PrecioService
 				if ($linea)
 					$tiponumeracion_id = $linea->tiponumeracion_id;
 			}
-	
 			foreach($talle as $value)
 			{
 				$lista = $this->asignaListaPrecio($value->nombre, $tiponumeracion_id);
@@ -68,14 +67,13 @@ class PrecioService
 					$fecha = $fechavigencia;
 				else
 					$fecha = date('Y-m-d', strtotime($fechavigencia));
-			
+				
 				$precio = Precio::with('listaprecios')
 								->where('articulo_id',$articulo_id)
 								->where('listaprecio_id',$lista)
 								->where('fechavigencia', '<=', $fecha)
 								->orderBy('fechavigencia', 'desc')
 								->first();
-
 				if ($precio)
 				{
 					$precio_talle = $precio->precio;
@@ -99,6 +97,7 @@ class PrecioService
 				  					];
 			}
 		}
+
 		return($array_precio);
 	}
 
@@ -167,7 +166,8 @@ class PrecioService
 
 	public function generaDatosRepListaPrecio($estado, $mventa_id,
 											$desdearticulo_id, $hastaarticulo_id,
-											$desdecategoria_id, $hastacategoria_id, $listasprecio)
+											$desdecategoria_id, $hastacategoria_id, $listasprecio,
+											$nofactura)
 	{
 		$listasPrecio_id = explode(',', $listasprecio);
 
@@ -177,6 +177,7 @@ class PrecioService
 								'articulo.descripcion as descripcion', 
 								'articulo.categoria_id as categoria_id',
 								'articulo.mventa_id as mventa_id',
+								'articulo.nofactura as nofactura',
 								'mventa.nombre as marca',
 								'categoria.nombre as categoria',
 								'precio.listaprecio_id as listaprecio_id', 
@@ -186,6 +187,9 @@ class PrecioService
 				->join('mventa', 'mventa.id', 'articulo.mventa_id')
 				->join('categoria', 'categoria.id', 'articulo.categoria_id')
 				->whereBetween('articulo_id', [$desdearticulo_id, $hastaarticulo_id]);
+
+		if ($nofactura != "2")
+			$precios = $precios->where('nofactura', $nofactura);
 		
 		if ($mventa_id > 0)
 			$precios = $precios->where('articulo.mventa_id', $mventa_id);
@@ -210,6 +214,7 @@ class PrecioService
 		}
 		else
 			$query = $precios->get();
+
 		$data = [];
 		$anterSku = '';
 		foreach($query as $articulo)
@@ -249,6 +254,17 @@ class PrecioService
 								'precio' => $articulo['precio'],
 								'fechavigencia' => $articulo['fechavigencia']
 						];
+		}
+		if ($anterSku != '')
+		{
+			$data[] = [
+				'articulo_id' => $articulo_id,
+				'sku' => $sku,
+				'descripcion' => $descripcion,
+				'marca' => $marca,
+				'categoria' => $categoria,
+				'precios' => $precios
+			];
 		}
 		return($data);
 	}

@@ -30,7 +30,7 @@ class ListaPrecioExport implements FromView, WithColumnFormatting, WithMapping, 
 	use Exportable;
 	private $desdearticulo_id, $hastaarticulo_id,
 			$desdecategoria_id, $hastacategoria_id,
-			$estado, $mventa_id, $listasprecio;
+			$estado, $mventa_id, $listasprecio, $nofactura;
 
 	protected $dates = ['fecha'];
     private $precioService;
@@ -89,7 +89,7 @@ class ListaPrecioExport implements FromView, WithColumnFormatting, WithMapping, 
 		$data = $this->precioService->generaDatosRepListaPrecio($this->estado, $this->mventa_id,
 				$this->desdearticulo_id, $this->hastaarticulo_id,
 				$this->desdecategoria_id, $this->hastacategoria_id,
-				$this->listasprecio);
+				$this->listasprecio, $this->nofactura);
 
 		// Genera listas de precio
 		$listas = explode(',', $this->listasprecio);
@@ -108,13 +108,27 @@ class ListaPrecioExport implements FromView, WithColumnFormatting, WithMapping, 
 			}
 		}
 
+		$txtNoFactura = "";
+		switch($this->nofactura)
+		{
+			case 0:
+				$txtNoFactura = "Articulos facturables";
+				break;
+			case 1:
+				$txtNoFactura = "Articulos no facturables";
+				break;
+			case 2:
+				$txtNoFactura = "Articulos facturables y no facturables";
+		}
+
 		return view('exports.stock.reportelistaprecio.reportelistaprecio', 
 					['data' => $data, 
 					'estado' => $this->estado,
 					'nombremarca' => $nombremarca,
 					'desdearticulo' => $desdeArticulo, 'hastaarticulo' => $hastaArticulo, 
 					'desdecategoria' => $desdeCategoria, 'hastacategoria' => $hastaCategoria,
-					'listasprecio' => $listasPrecio
+					'listasprecio' => $listasPrecio,
+					'nofactura' => $txtNoFactura
 					]);
 	}
 
@@ -194,7 +208,7 @@ class ListaPrecioExport implements FromView, WithColumnFormatting, WithMapping, 
 	public function parametros($estado, $mventa_id,
 							$desdearticulo_id, $hastaarticulo_id,
 							$desdecategoria_id, $hastacategoria_id,
-							$listasprecio)
+							$listasprecio, $nofactura)
 	{
 		$this->estado = $estado;
 		$this->mventa_id = $mventa_id;
@@ -203,6 +217,7 @@ class ListaPrecioExport implements FromView, WithColumnFormatting, WithMapping, 
 		$this->desdecategoria_id = $desdecategoria_id;
 		$this->hastacategoria_id = $hastacategoria_id;
 		$this->listasprecio = $listasprecio;
+		$this->nofactura = $nofactura;
 		
 		return $this;
 	}

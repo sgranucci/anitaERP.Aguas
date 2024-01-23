@@ -8,6 +8,7 @@ return [
 	"TAREA_CORTADO_DE_FORRO" => "14",
 	"TAREA_TERMINADA" => "32",
 	"TAREA_FACTURADA" => "33",
+	"TAREA_TERMINADA_STOCK" => "39",
 	"TAREA_ESTADO_PRODUCCION" => "P",
 	"TAREA_ESTADO_TERMINADA" => "T",
 	"TAREA_ESTADO_FACTURADA" => "F",
@@ -27,12 +28,13 @@ return [
 	"HASTA_INTERVALO4" => "47",
 	"HASTA_MEDIDA_CHICO" => "35",
 	"CLIENTE_STOCK" => "620",
+	"NOMBRE_CLIENTE_STOCK" => "STOCK",
 	"TIPOTRANSACCION_CONSUME_OT" => "4",
 	"TIPOTRANSACCION_ALTA_PRODUCCION" => "3",
 	"SECUENCIA_TAREAS" => [
 							'30' => ['1', '6'],
 							'34' => ['30'],
-							'33' => ['34', '32'],
+							'33' => ['34', '32', '39'],
 							'32' => ['34']
 						]
 	];

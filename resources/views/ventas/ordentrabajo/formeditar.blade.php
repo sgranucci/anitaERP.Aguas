@@ -76,6 +76,7 @@
     			<tr>
     				<th>Cliente</th>
     				<th>Pedido</th>
+					<th>Item ID</th>
     				<th>Art&iacute;culo</th>
 					<th>Combinaci&oacute;n</th>
     				<th style="width: 10%;">Pares</th>
@@ -97,6 +98,9 @@
 								<input type="text" name="codigos[]" class="form-control codigo" value="{{ $ordentrabajoitem['codigo'] }}" readonly>
 								<input type="hidden" name="descuentopies[]" class="form-control descuentopie" value="{{ $ordentrabajoitem['descuentopie'] }}">
 							</td>
+							<td>
+								<input type="text" name="idpedido[]" class="form-control idpedido" value="{{ $ordentrabajoitem['pedidocombinacion_id'] }}" readonly>
+							</td>							
 							<td>
 								<input type="hidden" name="articulo_ids[]" class="form-control articulo_id" value="{{ $ordentrabajoitem['articulo_id'] }}">
 								<input type="text" name="articulos[]" class="form-control articulo" value="{{ $ordentrabajoitem['articulo'] }}" readonly>
@@ -143,6 +147,11 @@
 					<th style="width: 20%;">Empleado</th>
     				<th style="width: 12%;">Inicio</th>
     				<th style="width: 12%;">Fin</th>
+					<div class="card-tools">
+						<a href="{{route('consultamovimientoordentrabajo', ['id' => $ordentrabajo->id])}}" class="btn btn-outline-info btn-sm">
+							<i class="fa fa-fw fa-file"></i> Ver movimientos
+						</a>
+                	</div>
     			</tr>
     		</thead>
     		<tbody id="tbody-tareas">

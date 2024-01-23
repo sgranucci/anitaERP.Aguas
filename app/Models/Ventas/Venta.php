@@ -5,6 +5,9 @@ namespace App\Models\Ventas;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Ventas\Tipotransaccion;
+use App\Models\Ventas\Puntoventa;
+use App\Models\Ventas\Cliente;
 
 class Venta extends Model
 {
@@ -23,6 +26,22 @@ class Venta extends Model
     ];
 
     protected $table = 'venta';
+
+    public function tipotransacciones()
+    {
+        return $this->hasOne(TipoTransaccion::class, 'id', 'tipotransaccion_id');
+    }
+
+    public function puntoventas()
+    {
+        return $this->hasOne(Puntoventa::class, 'id', 'puntoventa_id');
+    }
+
+    public function clientes()
+    {
+        return $this->hasOne(Cliente::class, 'id', 'cliente_id')
+                    ->with("condicionivas");
+    }
 
 }
 

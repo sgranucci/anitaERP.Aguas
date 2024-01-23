@@ -65,11 +65,25 @@ class MovimientoOrdentrabajoService
 		return $movimientoOrdentrabajo;
 	}
 
+	public function leeMovimientoOrdenTrabajoPorOt($id)
+	{
+		$movimientoOrdentrabajo = $this->movimientoordentrabajoRepository->allSinFiltrar($id);
+
+		return $movimientoOrdentrabajo;
+	}
+
 	public function guardaMovimientoOrdenTrabajo($data, $funcion, $id = null)
 	{
 		$usuario_id = Auth::user()->id;
 		$tipooperacionEnum = $this->operacionRepository->tipooperacionEnum(); 
 		$estadoEnum = self::estadoEnum(); 
+
+		// Valida que no se cargue TERMINADA_STOCK 
+		if ($data['operacion_id'] == config('consprod.TAREA_TERMINADA_STOCK'))
+		{
+			throw new ModelNotFoundException("No puede cargar tarea terminada stock");
+			return 0;
+		}
 
 		$codigos_ot = explode(',', $data['ordenestrabajo']);
 		// Recorre cada id de ordenes de trabajo
@@ -94,11 +108,24 @@ class MovimientoOrdentrabajoService
 				$sku = '';
 				$articulo_id = 0;
 				$cantidad = 0;
+				$flBoletaJunta = false;
 				if (count($ordentrabajo_combinacion_talle) > 0)
 				{
-					$sku = $ordentrabajo_combinacion_talle[0]->pedido_combinacion_talles->pedidos_combinacion->articulos->sku;
-					$articulo_id = $ordentrabajo_combinacion_talle[0]->pedido_combinacion_talles->pedidos_combinacion->articulos->articulo_id;
-					$pedido_combinacion_id = $ordentrabajo_combinacion_talle[0]->pedido_combinacion_talles->pedidos_combinacion->id;
+					$sku = $ordentrabajo_combinacion_talle[0]->pedido_combinacion_talles
+									->pedidos_combinacion->articulos->sku;
+					$articulo_id = $ordentrabajo_combinacion_talle[0]
+									->pedido_combinacion_talles->pedidos_combinacion->articulos->articulo_id;
+					// Cuenta las OT para ver si son boletas juntas 
+					$arrayOt = [];
+					foreach($ordentrabajo_combinacion_talle as $otitem)
+					{
+						if (!in_array($otitem->ordentrabajo_id, $arrayOt))
+							$arrayOt[] = $otitem->ordentrabajo_id;
+					}
+					if (count($arrayOt) > 1)
+						$flBoletaJunta = true;
+					$pedido_combinacion_id = $ordentrabajo_combinacion_talle[0]
+											->pedido_combinacion_talles->pedidos_combinacion->id;
 
 					foreach ($ordentrabajo_combinacion_talle as $item)
 						$cantidad += $item->pedido_combinacion_talles->cantidad;
@@ -121,6 +148,11 @@ class MovimientoOrdentrabajoService
 					if (count($ordentrabajo_tarea) > 0 && $ordentrabajo_tarea->contains('tarea_id',
 						config('consprod.TAREA_TERMINADA')))
 						throw new ModelNotFoundException("No puede grabar con OT ya terminada");
+
+					if (count($ordentrabajo_tarea) > 0 && $ordentrabajo_tarea->contains('tarea_id',
+						config('consprod.TAREA_TERMINADA_STOCK')))
+						throw new ModelNotFoundException("No puede grabar con OT ya terminada de Stock");
+						
 					// Filtra tarea_id
 					$ordentrabajo_tarea_filtrada = $this->ordentrabajo_tareaRepository
 												->findPorOrdentrabajoId($ordentrabajo->id, $data['tarea_id']);
@@ -163,12 +195,17 @@ class MovimientoOrdentrabajoService
 
 					if ($accion != '')
 					{
+						if ($flBoletaJunta)
+							$pci = null;
+						else
+							$pci = $pedido_combinacion_id;
+
 						$dataTarea = array(
 							'ordentrabajo_id' => $ordentrabajo->id,
 							'tarea_id' => $data['tarea_id'],
 							'operacion_id' => $data['operacion_id'],
 							'empleado_id' => $data['empleado_id'],
-							'pedido_combinacion_id' => $pedido_combinacion_id,
+							'pedido_combinacion_id' => $pci,
 							'fecha' => $data['fecha'],
 							'estado' => $estadoEnum['A'],
 							'usuario_id' => $usuario_id,
@@ -189,6 +226,7 @@ class MovimientoOrdentrabajoService
 								$dataTarea['hastafecha'] = null;
 								
 								if ($data['tarea_id'] === Config::get("consprod.TAREA_TERMINADA") ||
+									$data['tarea_id'] === Config::get("consprod.TAREA_TERMINADA_STOCK") ||
 									$data['tarea_id'] === Config::get("consprod.TAREA_CORTADO_DE_FORRO"))
 									$dataTarea['hastafecha'] = $dataTarea['fecha'];
 
@@ -210,6 +248,7 @@ class MovimientoOrdentrabajoService
 									$dataTarea['hastafecha'] = $dataTarea['fecha'];
 								}
 								if ($data['tarea_id'] == Config::get("consprod.TAREA_TERMINADA") ||
+									$data['tarea_id'] == Config::get("consprod.TAREA_TERMINADA_STOCK") ||
 									$data['tarea_id'] == Config::get("consprod.TAREA_CORTADO_DE_FORRO"))
 									$dataTarea['hastafecha'] = $dataTarea['desdefecha'];
 
@@ -244,7 +283,8 @@ class MovimientoOrdentrabajoService
 									$dataTarea['hastafecha'] = $dataTarea['fecha'];
 							}
 
-							if ($data['tarea_id'] == Config::get("consprod.TAREA_TERMINADA"))
+							if ($data['tarea_id'] == Config::get("consprod.TAREA_TERMINADA") ||
+								$data['tarea_id'] == Config::get("consprod.TAREA_TERMINADA_STOCK"))
 								$dataTarea['hastafecha'] = $dataTarea['desdefecha'];
 
 							$item_tarea = $this->ordentrabajo_tareaRepository->update($dataTarea, $ordentrabajo_tarea_filtrada[0]->id);
@@ -434,14 +474,88 @@ class MovimientoOrdentrabajoService
 		
 		Storage::disk('local')->put($nombreReporte, $reporte);
 		$path = Storage::path($nombreReporte);
-		system("lp -darmado ".$path);
+		system("lp -dcalidad ".$path);
 
 		Storage::disk('local')->delete($nombreReporte);
+		// Agrega listado de OT asociadas por lote de stock
+		if ($request['cliente'] == Config::get("consprod.NOMBRE_CLIENTE_STOCK"))
+		{
+			// Lee la OT
+			$ot = $this->ordentrabajoRepository->find($data['ordentrabajo_id']);
+
+			// Trae las OT
+			if ($ot)
+			{
+				$otStock = $this->ordentrabajo_combinacion_talleRepository->findPorOrdentrabajoStockId($ot->codigo);
+
+				$anterOrdenTrabajo_id = 0;
+				$totalPares = 0;
+				foreach($otStock as $ot)
+				{
+					if ($ot->ordentrabajo_id != $anterOrdenTrabajo_id)
+					{
+						if ($anterOrdenTrabajo_id != 0)
+						{
+							$reporte .= chr(27).chr(33).chr(32);
+							$reporte .= "\nTotal pares: ".$totalPares."\n\n\n\n\n\n\n\n\n\n\n\n\n";
+							$reporte .= chr(27).chr(33).chr(2)."\n";
+							
+							Storage::disk('local')->put($nombreReporte, $reporte);
+							$path = Storage::path($nombreReporte);
+							system("lp -dcalidad ".$path);
+					
+							Storage::disk('local')->delete($nombreReporte);
+							//dd($reporte);
+						}
+						$reporte = "";
+						$nombreReporte = "tmp/OTstock-" . $ot->ordentrabajo_id . '.txt';
+						$reporte = chr(27).chr(33).chr(2);
+						$reporte .= "ORDEN DE TRABAJO NRO. ".$ot->ordentrabajo_id."\n";
+						$reporte .= "ASOCIADA A LA OT DE STOCK NRO. ".$data['ordentrabajo_id']."\n";
+						
+						$reporte .= "PEDIDO NRO: ".$ot->pedido_combinacion_talles->pedidos_combinacion->pedido_id."\n";
+			
+						// Lee el cliente
+						$cliente = $this->clienteRepository->find($ot->cliente_id);
+
+						if ($cliente)
+						{
+							$reporte .= chr(27).chr(33).chr(32).$cliente->nombre."\n\n";
+						}
+			
+						$reporte .= "Articulo: \n";
+						$reporte .= chr(27).chr(33).chr(32).$request['articulo']."\n";
+				
+						$reporte .= chr(27).chr(33).chr(2)."SKU: ".$request['sku']."\n\n";
+						$reporte .= "Combinacion: ".$request['combinacion']."\n\n";
+			
+						$reporte .= "MEDIDAS\n";
+
+						$anterOrdenTrabajo_id = $ot->ordentrabajo_id;
+						$totalPares = 0;
+					}
+
+					$reporte .= "Talle: ".$ot->pedido_combinacion_talles->talles->nombre.
+								" Cantidad: ".$ot->pedido_combinacion_talles->cantidad."\n";
+					$totalPares += $ot->pedido_combinacion_talles->cantidad;
+				}
+
+				$reporte .= chr(27).chr(33).chr(32);
+				$reporte .= "\nTotal pares: ".$totalPares."\n\n\n\n\n\n\n\n\n\n\n\n\n";
+				$reporte .= chr(27).chr(33).chr(2)."\n";
+				
+				Storage::disk('local')->put($nombreReporte, $reporte);
+				$path = Storage::path($nombreReporte);
+				system("lp -dcalidad ".$path);
+		
+				Storage::disk('local')->delete($nombreReporte);
+			}
+		}
 	}
 
 	// Control de secuencia de fabricacion
 
-	public function controlSecuencia($ordenestrabajo, $operacion_id, $tarea_id, $movimiento_id = null)
+	public function controlSecuencia($ordenestrabajo, $operacion_id, $tarea_id, $pedido_combinacion_id, $movimiento_id = null)
 	{
 		$arrayOrdenesTrabajo = explode(',', $ordenestrabajo);
 		$secuenciaTareas = Config::get("consprod.SECUENCIA_TAREAS");
@@ -485,7 +599,8 @@ class MovimientoOrdentrabajoService
 				foreach ($tareas as $tarea)
 				{
 					// Si la tarea ya esta cargada verifica si le falta el fin
-					if ($tarea_id == $tarea->tarea_id)
+					if ($tarea_id == $tarea->tarea_id && 
+						($pedido_combinacion_id != 0 ? $tarea->pedido_combinacion_id == $pedido_combinacion_id : true))
 					{
 						if ($tarea->hastafecha != null)
 							$flTareaYaCargada = true;

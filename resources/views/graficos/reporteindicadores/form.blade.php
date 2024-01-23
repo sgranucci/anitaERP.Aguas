@@ -80,6 +80,19 @@
 	</select>
 	
 </div>
+<div class="form-group row">
+	<label for="filtrosmatematicos" class="col-lg-3 col-form-label requerido">Filtros matemáticos:</label>
+	<select name="filtrosmatematicos" class="col-lg-3 form-control" required>
+		<option value="">-- Elija si va o no con filtros --</option>
+		@foreach($filtrosMatematicos_enum as $value => $filtroMatematico)
+			@if ($value == 'S')
+				<option value="{{ $value }}" selected>{{ $filtroMatematico }}</option>    
+			@else
+				<option value="{{ $value }}">{{ $filtroMatematico }}</option>    
+			@endif
+		@endforeach
+	</select>
+</div>
 <div class="row">
 	<div class="col-sm-6">
 		<div class="form-group row">

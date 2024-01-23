@@ -43,8 +43,10 @@ use Illuminate\Support\Str;
 use App\Http\Requests\ValidacionArticulo;
 use App\Http\Requests\ValidacionArticuloTecnica;
 use App\Http\Requests\ValidacionArticuloContaduria;
+use App\Mail\Stock\AltaArticulo;
 use App\ApiAnita;
 use Carbon\Carbon;
+use Mail;
 
 class ArticuloController extends Controller
 {
@@ -103,7 +105,9 @@ class ArticuloController extends Controller
         $inactive = ( $combinaciones > 0 )?true:false;
         $usosArticulos = Usoarticulo::all();
 
-        $art_query = Articulo::select('articulo.id as id', 'sku as stkm_articulo', 'descripcion as stkm_desc', 'unidadmedida.nombre as stkm_unidad_medida', 'categoria.nombre as stkm_agrupacion', 'mventa.nombre as stkm_marca', 'linea.nombre as stkm_linea', 'usoarticulo_id')
+        $art_query = Articulo::select('articulo.id as id', 'sku as stkm_articulo', 'descripcion as stkm_desc', 
+					'unidadmedida.nombre as stkm_unidad_medida', 'categoria.nombre as stkm_agrupacion', 'mventa.nombre as stkm_marca', 'linea.nombre as stkm_linea', 
+					'usoarticulo_id', 'nofactura')
                     ->leftJoin('categoria','articulo.categoria_id','=','categoria.id')
                     ->leftJoin('unidadmedida','articulo.unidadmedida_id','=','unidadmedida.id')
                     ->leftJoin('mventa','articulo.mventa_id','=','mventa.id')
@@ -412,6 +416,9 @@ class ArticuloController extends Controller
 	{
         can('crear-articulos-disenio');
 
+		$mventa = Mventa::where('id', $request->mventa_id)->first();
+		$linea = Linea::where('id', $request->linea_id)->first();
+
 		// Crea el articulo
         $articulo = Articulo::create($request->all());
 
@@ -447,6 +454,11 @@ class ArticuloController extends Controller
 		// Graba anita
 		$Articulo = new Articulo();
         $Articulo->guardarAnita($producto);
+
+		// Envia correo de alta del articulo a Laura 
+		$receivers = "laura@ferli.com.ar";
+
+        Mail::to($receivers)->send(new AltaArticulo($request->all()));
 
         return redirect()->route('products.index')->with('status', 'Producto creado');
     }
@@ -504,10 +516,16 @@ class ArticuloController extends Controller
                 
         		$ctamae = Cuentacontable::orderBy('codigo')->get();
         		$codimp = Impuesto::all();
-
 				$tarea_query = Tarea::all();
+
+				$nofactura_enum = [
+					['id' => '0', 'nombre'  => 'Facturable'],
+					['id' => '1', 'nombre'  => 'No facturable'],
+						 ];
 				
-                return view('stock.product.contaduria.edit',compact('producto','id', 'categoria', 'marca','linea','compfondo','forro','usosArticulos','tipoCorte','punteras','ctamae','codimp','capellada','unidadmedida','filtros','tarea_query'));
+                return view('stock.product.contaduria.edit',compact('producto','id', 'categoria', 'marca','linea',
+													'compfondo','forro','usosArticulos','tipoCorte','punteras','ctamae','codimp',
+													'capellada','unidadmedida','filtros','tarea_query','nofactura_enum'));
         }else{
 
             return view('stock.product.diseno.edit',compact('producto','id', 'categoria', 'subcategoria', 'marca','linea','compfondo','forro','usosArticulos','tipoCorte','punteras','capellada','unidadmedida','filtros'));    
@@ -601,6 +619,7 @@ class ArticuloController extends Controller
 			// Actualiza articulos costos
 			$tareas_id = $request->input('tareas_id', []);
 			$costos = $request->input('costos', []);
+			$fechavigencia = $request->input('fechasvigencia', []);
 
 			$this->articulo_costoRepository->deletePorArticulo($request->id);
 			for ($i = 0; $i < count($tareas_id); $i++)
@@ -608,7 +627,8 @@ class ArticuloController extends Controller
 				if ($tareas_id[$i])
 					$articulo_costo = $this->articulo_costoRepository->create(['articulo_id' => $id,
 																			'tarea_id' => $tareas_id[$i],
-																			'costo' => $costos[$i]
+																			'costo' => $costos[$i],
+																			'fechavigencia' => $fechavigencia[$i]
 																			]);
 			}
 			DB::commit();
@@ -651,5 +671,53 @@ class ArticuloController extends Controller
             abort(404);
         }
     }
+
+	public function consultaArticulo(Request $request)
+	{
+		$columns = ['articulo.id', 'sku', 'descripcion', 'mventa.nombre', 'linea.nombre'];
+		$columnsOut = ['articulo_id', 'sku', 'descripcion', 'nombremarca', 'nombrelinea'];
+
+		$query = Articulo::select('articulo.id as articulo_id', 'sku', 'descripcion', 
+				'mventa.nombre as nombremarca', 'linea.nombre as nombrelinea')
+				->leftJoin('mventa','articulo.mventa_id','=','mventa.id')
+				->leftJoin('linea','articulo.linea_id','=','linea.id');
+
+		$consulta = $request->consulta;
+
+		/* Filtrado */
+		$cont = count($columns);
+		if ($consulta != null) 
+		{
+			$query = $query->where($columns[0], "LIKE", '%'. $consulta . '%');
+
+			for ($i = 1; $i < $cont; $i++) {
+				$query = $query->orWhere($columns[$i], "LIKE", '%'. $consulta . '%');
+			}
+		}
+		$query = $query->get();
+
+		$output = [];
+		$output['data'] = '';	
+		if (count($query) > 0)
+		{
+			foreach ($query as $row)
+			{
+				$output['data'] .= '<tr>';
+				for ($i = 0; $i < $cont; $i++)
+				{
+					$output['data'] .= '<td class="'.$columnsOut[$i].'">' . $row[$columnsOut[$i]] . '</td>';	
+				}
+				$output['data'] .= '<td><a class="btn btn-warning btn-sm eligeconsulta">Elegir</a></td>';
+				$output['data'] .= '</tr>';
+			}
+		}
+		else
+		{
+			$output['data'] .= '<tr>';
+			$output['data'] .= '<td>Sin resultados</td>';
+			$output['data'] .= '</tr>';
+		}
+		return(json_encode($output, JSON_UNESCAPED_UNICODE));
+	}
 }
 

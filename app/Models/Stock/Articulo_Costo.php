@@ -9,8 +9,9 @@ use App\Models\Produccion\Tarea;
 
 class Articulo_Costo extends Model
 {
-    protected $fillable = ['articulo_id', 'tarea_id', 'costo'];
+    protected $fillable = ['articulo_id', 'tarea_id', 'costo', 'fechavigencia'];
     protected $table = 'articulo_costo';
+    protected $dates = ['fechavigencia'];
 	
     public function articulos()
     {

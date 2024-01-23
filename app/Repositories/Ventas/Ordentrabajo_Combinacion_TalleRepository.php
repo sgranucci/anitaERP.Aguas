@@ -134,6 +134,14 @@ class Ordentrabajo_Combinacion_TalleRepository implements Ordentrabajo_Combinaci
 		return $ordentrabajo_combinacion_talle;
     }
 
+	public function findPorOrdentrabajoStockId($ordentrabajo_stock_id)
+    {
+		$ordentrabajo_combinacion_talle = $this->model->with('pedido_combinacion_talles')
+											->where('ordentrabajo_stock_id',$ordentrabajo_stock_id)->get();
+
+		return $ordentrabajo_combinacion_talle;
+    }
+
 	public function sincronizarConAnita()
 	{
 		ini_set('max_execution_time', '300');

@@ -39,6 +39,28 @@ class IndicadoresService
     public $acumFecha;
     public $acumFechaInicioRango;
     public $acumHoraInicio;
+    public $acumFlBuscaEntrada, $acumFlAbrePosicion;
+    public $acumOff0, $acumOff1oA;
+    public $acumFlAcista, $acumFlBajista;
+    public $acumFlAnulacionAbcAlcistaActiva;
+    public $acumflAnulacionAbcBajistaActiva;
+    public $acumFlAnulacionAbCdAlcistaActiva;
+    public $acumflAnulacionAbCdBajistaActiva;
+    public $acumIdSenial, $acumIdTrade;
+    public $acumFlCerroPorTiempoAlcista, $acumFlCerroPorTiempoBajista, $acumFlCierraPorTiempo;
+    public $acumValorEntrada, $acumStopLoss;
+    public $acumQVentanaEntrada, $acumPuntoEntrada;
+    public $acumT1, $acumT2, $acumT3, $acumT4;
+    public $acumOffAbrePosicion;
+    public $acumTipoOperacion;
+    public $acumProfitAndLoss;
+    public $acumTendencia, $acumBnMinActual, $acumBnMaxActual, $acumMaximoActual, $acumMinimoActual;
+    public $acumBnMaximo, $acumBnMinimo, $acumBnMaximoAnterior, $acumBnMinimoAnterior;
+    public $ultimoMaximoAlcista;
+    public $ultimoMinimoAlcista;
+    public $ultimoMaximoBajista;
+    public $ultimoMinimoBajista;
+    public $flSinFiltros;
     
     private $flBatch;
     private $k1, $k2;
@@ -56,7 +78,29 @@ class IndicadoresService
     private $offsetMaximoC;
     private $offsetMinimoB;
     private $offsetMaximoA;
-    private $offsetAbcd;
+    private $offsetD;
+    private $offsetCAbc;
+    private $offsetCAbCd;
+    private $offsetBAbc;
+    private $offsetBAbCd;
+    private $offsetAAbc;
+    private $offsetAAbCd;
+    private $offsetMaximoCW4;
+    private $offsetMinimoTW4;
+    private $offsetMaximoDW4;
+    private $offsetMinimoUW4;
+    private $offsetMaximoOW4;
+    private $offsetMinimoCW4;
+    private $offsetMaximoTW4;
+    private $offsetMinimoDW4;
+    private $offsetMaximoUW4;
+    private $offsetMinimoOW4;
+    private $acumFlAnulacionW4AlcistaActiva;
+    private $acumFlAnulacionW4BajistaActiva;
+    private $offsetU;
+    private $offsetO;
+    private $offsetAbCd;
+    private $offsetAbc;
     private $offset3Drives;
     private $offsetShark;
     private $offsetW4, $q = 0;
@@ -65,18 +109,20 @@ class IndicadoresService
     private $pivotes = [];
     private $administracionPosicion;
     private $tiempo;
-    private $flAbc;
-    private $flAbCd;
-    private $fl3Drives;
-    private $flShark;
-    private $flW4;
-    private $flSp;
-    private $flVolatilidad, $flInertia;
+    public $flVolatilidad, $flInertia;
+    public $flSpAlcista;
+    public $tgtSpAlcista1;
+    public $ventanaSpAlcista;
+    public $flSpBajista;
+    public $tgtSpBajista1;
+    public $ventanaSpBajista;
+    public $flAnulaCandidato;
+    public $flEmpiezaOperacion;
 
 	public function calculaIndicadores($desdefecha, $hastafecha, $desdehora, $hastahora, $especie, $calculobase, 
                                         $mmcorta, $mmlarga, $compresion, $largovma, $largocci, $largoxtl,
                                         $umbralxtl, $calculobase_enum, $swingSize, $filtroSetup, 
-                                        $totalContratos, $administracionposicion, $tiempo)
+                                        $totalContratos, $administracionposicion, $tiempo, $filtrosMatematicos)
 	{
         ini_set('memory_limit', '512M');
         ini_set('max_execution_time', '2400');
@@ -102,6 +148,69 @@ class IndicadoresService
         $this->valorTicker = 12.5;
         $this->administracionPosicion = $administracionposicion;
         $this->tiempo = $tiempo;
+        $this->flSinFiltros = ($filtrosMatematicos == 'S' ? false : true);
+
+        $this->acumFlBuscaEntrada = $this->acumFlAbrePosicion = false;
+        $this->acumOff0 = $this->acumOff1oA = -1;
+        $this->acumFlAcista = false;
+        $this->acumFlBajista = false;
+        $this->flInertia = false;
+        $this->flVolatilidad = false;
+        $this->acumFlAnulacionAbcAlcistaActiva = false;
+        $this->acumFlAnulacionAbcBajistaActiva = false;
+        $this->acumFlAnulacionAbCdAlcistaActiva = false;
+        $this->acumFlAnulacionAbCdBajistaActiva = false;
+        $this->acumIdSenial = $this->acumIdTrade = 0;
+        $this->cantidadActivaContratos = $this->totalContratos;
+        $this->acumFlCerroPorTiempoAlcista = false;
+        $this->acumFlCerroPorTiempoBajista = false;
+        $this->acumFlCierraPorTiempo = false;
+        $this->acumTipoOperacion = '';
+        $this->acumProfitAndLoss = 0.;
+        $this->pivotes = [];
+
+        $this->offsetMaximoCW4 = 0;
+        $this->offsetMinimoTW4 = 0;
+        $this->offsetMaximoDW4 = 0;
+        $this->offsetMinimoUW4 = 0;
+        $this->offsetMaximoOW4 = 0;
+        $this->offsetMinimoCW4 = 0;
+        $this->offsetMaximoTW4 = 0;
+        $this->offsetMinimoDW4 = 0;
+        $this->offsetMaximoUW4 = 0;
+        $this->offsetMinimoOW4 = 0;
+        $this->acumFlAnulacionW4AlcistaActiva = false;
+        $this->acumFlAnulacionW4BajistaActiva = false;
+
+        $this->flSpAlcista = false;
+        $this->tgtSpAlcista1 = 0;
+        $this->ventanaSpAlcista = 0;
+
+        $this->flSpBajista = false;
+        $this->tgtSpBajista1 = 0;
+        $this->ventanaSpBajista = 0;
+        $this->flAnulaCandidato = true;
+        $this->flEmpiezaOperacion = false;
+
+        $this->ultimoMaximoBajista = 0;
+        $this->ultimoMinimoBajista = 0;
+        $this->ultimoMaximoAlcista = 0;
+        $this->ultimoMinimoAlcista = 0;
+
+        $this->offsetD = 0;
+        $this->offsetCAbc = 0;
+        $this->offsetBAbc = 0;
+        $this->offsetAAbc = 0;
+        $this->offsetCAbCd = 0;
+        $this->offsetBAbCd = 0;
+        $this->offsetAAbCd = 0;
+        $this->offsetU = 0;
+        $this->offsetO = 0;
+        
+        // Variables de calculo de swing
+        $this->acumTendencia = 'Indefinida';
+        $this->acumBnMinActual = $this->acumBnMaxActual = $this->acumMaximoActual = $this->acumMinimoActual = 0;
+        $this->acumBnMaximo = $this->acumBnMinimo = $this->acumBnMaximoAnterior = $this->acumBnMinimoAnterior = 0;
 
         switch($compresion)
         {
@@ -151,6 +260,7 @@ class IndicadoresService
 						 'volume')
                 ->where('especie', $this->especie)
 				->whereBetween('chartTime', [$desde_fecha, $hasta_fecha])
+                ->orderBy('fechaLectura')
                 ->get();
 
         // Procesa compresion
@@ -271,6 +381,15 @@ class IndicadoresService
                                     
                     $cantLectura = 0;
                     $low = $high = $totVolume = $open = $close = 0;
+
+                    if ($item >= $this->swingSize)
+                    {
+                        // Calcula pivots
+                        //$this->calculaPivot();
+
+                        // Calcula volumen por swing y Tgt hit
+                        $this->calculaSwingTgtBatch($item-2);
+                    }
                 }
 
                 $fecha = $lectura->fecha;
@@ -316,10 +435,10 @@ class IndicadoresService
         }
 
         // Calcula pivots
-        $this->calculaPivot();
+        //$this->calculaPivot();
 
         // Calcula volumen por swing y Tgt hit
-        $this->calculaSwingTgt();
+        //$this->calculaSwingTgt();
        
         return ['indicadores' => $this->datas, 'operaciones' => $this->operaciones];
     }
@@ -508,299 +627,225 @@ class IndicadoresService
         }
     }
     
-    private function calculaPivot()
+    private function calculaPivot($i)
     {
-        $trend = 0;
-        $maxRango = 0;
-        $minRango = 99999999999;
-        $nroMin = $nroMax = 0;
-        $bnMin = $bnMax = 0;
-        $bnMinOriginal = 0;
-        $pivot3 = $pivot2 = $pivot1 = 0;
-        $cswing = 1;
-        $flMax = false; $barrasDesdeMinimo = 0;
-        $n = $this->swingSize;
-        $bnMinActual = $bnMaxActual = 0;
-        $bnMinAnterior = $bnMaxAnterior = 0;
-        $this->pivotes = [];
-        for ($i = $n - 1; $i < count($this->datas); $i++)
+        if ($this->acumTendencia == 'Indefinida')
         {
-            $maxRango = 0;
-            $minRango = 999999999999;
-            $offMin = $offMax = -1;
-            for ($j = $i - $n + 1; $j <= $i; $j++)
+            if ($this->controlaRango($i, $this->datas[$i]['high'], 'Maximo'))
+            {
+                // Cambia tendencia y nuevo maximo
+                $this->acumTendencia = 'Alcista';
+                $this->datas[$i]['tendencia'] = 1;
+                $this->datas[$i]['trendBars'] = 1;
+
+                $this->cambiaNuevoCandidato($i, 'Maximo');
+                $this->pivotes[] = $this->datas[$i]['provMax'];
+            }
+            elseif ($this->controlaRango($i, $this->datas[$i]['low'], 'Minimo'))
+            {
+                // Cambia tendencia y nuevo minimo
+                $this->acumTendencia = 'Bajista';
+                $this->datas[$i]['tendencia'] = -1;
+                $this->datas[$i]['trendBars'] = 1;
+
+                $this->cambiaNuevoCandidato($i, 'Minimo');
+                $this->pivotes[] = $this->datas[$i]['provMin'];
+            }
+        }
+        else
+        {
+            if ($this->acumTendencia == 'Bajista')
+            {
+                if ($this->datas[$i]['low'] <= $this->acumMinimoActual)
+                {
+                    // Controla si tambien es el maximo del rango
+                    if ($this->controlaRango($i, $this->datas[$i]['high'], 'Maximo'))
+                    {
+                        // Cambia tendencia y nuevo maximo
+                        $this->acumTendencia = 'Alcista';
+                        $this->datas[$i]['tendencia'] = 1;
+                        $this->datas[$i]['trendBars'] = 1;
+
+                        $this->cambiaNuevoCandidato($i, 'Maximo');
+
+                        // Pasa ultimo minimo a definitivo
+                        $this->convierteDefinitivo($this->acumBnMinActual, $i, 'Minimo');
+                    }
+                    else
+                    {
+                        // Nuevo minimo
+                        $this->cambiaNuevoCandidato($i, 'Minimo');
+                        $this->datas[$i]['trendBars'] = $this->datas[$i-1]['trendBars'] + 1;
+                        $this->datas[$i]['tendencia'] = $this->datas[$i-1]['tendencia'];
+                    }
+                }
+                else
+                {
+                    // Controla si es el maximo del rango
+                    if ($this->controlaRango($i, $this->datas[$i]['high'], 'Maximo'))
+                    {
+                        // Cambia tendencia y nuevo maximo
+                        $this->acumTendencia = 'Alcista';
+                        $this->datas[$i]['tendencia'] = 1;
+                        $this->datas[$i]['trendBars'] = 1;
+
+                        $this->cambiaNuevoCandidato($i, 'Maximo');
+
+                        // Pasa ultimo maximo a definitivo
+                        $this->convierteDefinitivo($this->acumBnMinActual, $i, 'Minimo');
+                    }
+                    else
+                    {
+                        $this->datas[$i]['trendBars'] = $this->datas[$i-1]['trendBars'] + 1;
+                        $this->datas[$i]['tendencia'] = $this->datas[$i-1]['tendencia'];
+                    }
+                }
+            }
+            elseif ($this->acumTendencia == 'Alcista')
+            {
+                if ($this->datas[$i]['high'] >= $this->acumMaximoActual)
+                {
+                    // Controla si tambien es el minimo del rango
+                    if ($this->controlaRango($i, $this->datas[$i]['low'], 'Minimo'))
+                    {
+                        // Cambia tendencia y nuevo minimo
+                        $this->acumTendencia = 'Bajista';
+                        $this->datas[$i]['tendencia'] = -1;
+                        $this->datas[$i]['trendBars'] = 1;
+
+                        $this->cambiaNuevoCandidato($i, 'Minimo');
+
+                        // Pasa ultimo maximo a definitivo
+                        $this->convierteDefinitivo($this->acumBnMaxActual, $i, 'Maximo');
+                    }
+                    else
+                    {
+                        // Nuevo maximo
+                        $this->cambiaNuevoCandidato($i, 'Maximo'); 
+
+                        $this->datas[$i]['trendBars'] = $this->datas[$i-1]['trendBars'] + 1;
+                        $this->datas[$i]['tendencia'] = $this->datas[$i-1]['tendencia'];
+                    }
+                }
+                else
+                {
+                    // Controla si es el minimo del rango
+                    if ($this->controlaRango($i, $this->datas[$i]['low'], 'Minimo'))
+                    {
+                        // Cambia tendencia y nuevo maximo
+                        $this->acumTendencia = 'Bajista';
+                        $this->datas[$i]['tendencia'] = -1;
+                        $this->datas[$i]['trendBars'] = 1;
+
+                        $this->cambiaNuevoCandidato($i, 'Minimo');
+
+                        // Pasa ultimo maximo a definitivo
+                        $this->convierteDefinitivo($this->acumBnMaxActual, $i, 'Maximo');
+                    }
+                    else
+                    {
+                        $this->datas[$i]['trendBars'] = $this->datas[$i-1]['trendBars'] + 1;
+                        $this->datas[$i]['tendencia'] = $this->datas[$i-1]['tendencia'];
+                    }
+                }
+            }
+        }
+    }
+
+    private function controlaRango($i, $valor, $opcion)
+    {
+        $n = $this->swingSize;
+        $maxRango = 0;
+        $minRango = 999999999999;
+
+        // Encuentra maximo o minimo
+        for ($j = $i - $n + 1; $j <= $i; $j++)
+        {
+            if ($opcion == 'Maximo')
             {
                 if ($this->datas[$j]['high'] > $maxRango)
-                {
                     $maxRango = $this->datas[$j]['high'];
-                    $offMax = $j;
-                }
+            }
+            if ($opcion == 'Minimo')
+            {
                 if ($this->datas[$j]['low'] < $minRango)
-                {
                     $minRango = $this->datas[$j]['low'];
-                    $offMin = $j;
-                }
             }
+        }
 
-            $low = $this->datas[$i]['low'];
-            $high = $this->datas[$i]['high'];
-            $volumen = $this->datas[$i]['volume'];
-            $minimoActual = $minRango;
-            $maximoActual = $maxRango;
+        $cc = false;
+        if ($opcion == 'Maximo')
+        {
+            if ($valor == $maxRango)
+                $cc = true;
+        }
+        elseif ($opcion == 'Minimo')
+        {
+            if ($valor == $minRango)
+                $cc = true;
+        }
 
-            // Calcula maximos y minimos candidatos
-            if ($low <= $minimoActual && $i > $n)  
-            {
-                // Fija nuevo minimo
-                $minimoActual = $low;
+        return ($cc);
+    }
 
-                // Busca ultimo minimo en swingsize
-                for ($j = $i - $n + 1; $j <= $i; $j++)
-                {
-                    if ($minimoActual < $this->datas[$j]['low']) // Cambio <= por < CAMBIO  
-                    {
-                        //if ($i == 67)
-                        //{
-                        //    dd('low'.$low.' '.$minimoActual.' '.$this->datas[$j]['low'].' '.$bnMaxActual.' '.$bnMaxAnterior);
-                        //}
-                        $this->datas[$i]['provMin'] = $minimoActual;
-                        $bnMinActual = $i;
+    private function cambiaNuevoCandidato($i, $tipoValor)
+    {
+        if ($tipoValor == 'Maximo')
+        {
+            $this->datas[$i]['provMax'] = $this->datas[$i]['high'];
+            $this->acumBnMaxActual = $i;
+            $this->acumMaximoActual = $this->datas[$i]['high'];
+        }
+        else
+        {
+            $this->datas[$i]['provMin'] = $this->datas[$i]['low'];
+            $this->acumBnMinActual = $i;
+            $this->acumMinimoActual = $this->datas[$i]['low'];
+        }
+    }
 
-                        // Pone el ultimo minimo candidato como definitivo
-                        if (abs($bnMaxActual - $bnMaxAnterior) >= $n)
-                        {                        
-                            // Pone el ultimo maximo candidato como definitivo
-                            $this->datas[$bnMaxActual]['max'] = $this->datas[$bnMaxActual]['provMax'];
-                            $bnMaxAnterior = $bnMaxActual;
-                            for ($r = $bnMaxActual+1; $r <= $i; $r++)      // CAMBIO
-                            {
-                                if ($this->datas[$r]['high'] == $this->datas[$bnMaxActual]['provMax'])
-                                {
-                                    $this->datas[$r]['max'] = $this->datas[$r]['high'];
-                                    $this->datas[$r]['provMax'] = $this->datas[$r]['high'];
+    private function convierteDefinitivo($i, $off, $tipoValor)
+    {
+        if ($tipoValor == 'Maximo')
+        {
+            $this->acumBnMaximoAnterior = $this->acumBnMaximo;
+            $this->datas[$i]['max'] = $this->datas[$i]['provMax'];
+            $this->acumBnMaximo = $i;
+            
+            $this->calculaBarras($this->acumBnMinimoAnterior, $i);
 
-                                    // Busca el ultimo minimo para sacar cantidad de velas
-                                    for ($k = $r, $offMin = 0; $k >= 0; $k--)
-                                    {
-                                        if ($this->datas[$k]['min'] != 0)
-                                        {
-                                            $this->datas[$r]['swingBars'] = abs($k-$r);
-                                            $offMin = $k;
-                                        }
-                                        if ($this->datas[$k]['max'] != 0 && $offMin != 0)
-                                        {
-                                            $this->datas[$r]['swingBarsPrev'] = abs($k-$offMin);
-                                            break;
-                                        }
-                                    }
-                                    $this->datas[$bnMaxActual]['max'] = 0;
-                                    $bnMaxAnterior = $bnMaxActual;
-                                    $bnMaxActual = $r;
-                                }
-                                else   
-                                    break;
-                            } // CAMBIO
-                            $this->datas[$bnMinAnterior+1]['barras'] = 1;
+            // Calcula pivotes
+            $this->calculaPivotes($this->acumBnMaximo, $off, 0, $this->datas[$this->acumBnMaximo]['max'], 
+                                $this->acumBnMinimo, $this->acumBnMaximo, 'MAXIMO');            
 
-                            // Calcula barras
-                            for ($b = $bnMinAnterior+2; $b <= $bnMaxActual; $b++)
-                                $this->datas[$b]['barras'] = $this->datas[$b-1]['barras'] + 1;
+            $this->datas[$i]['swingBarsPrev'] = $this->datas[$this->acumBnMinimo]['swingBars'];
+        }
+        else
+        {
+            $this->acumBnMinimoAnterior = $this->acumBnMinimo;
+            $this->datas[$i]['min'] = $this->datas[$i]['provMin'];
+            $this->acumBnMinimo = $i;
 
-                            // Actualiza swingbars
-                            $this->calculaSwingSize($bnMinAnterior, $this->datas[$bnMinAnterior]['barras'], 'MAXIMO');
+            $this->calculaBarras($this->acumBnMaximoAnterior, $i);
 
-                            // Calcula pivotes
-                            $this->calculaPivotes($bnMaxActual, $i, 0, $this->datas[$bnMaxActual]['max'], 
-                                $bnMinActual, $bnMaxActual, 'MAXIMO');
-                        }
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                if ($high >= $maximoActual && $i > $n)   
-                {
-                    $maximoActual = $high;
+            // Calcula pivotes
+            $this->calculaPivotes($this->acumBnMinimo, $off, $this->datas[$this->acumBnMinimo]['min'], 0, 
+                                $this->acumBnMinimo, $this->acumBnMaximo, 'MINIMO');
 
-                    // Busca ultimo maximo en swingsize
-                    for ($j = $i - $n + 1; $j <= $i; $j++)
-                    {
-                        if ($maximoActual > $this->datas[$j]['high']) // Cambio >= por >     CAMBIO
-                        {
-                            $this->datas[$i]['provMax'] = $maximoActual;
-                            $bnMaxActual = $i;
+            $this->datas[$i]['swingBarsPrev'] = $this->datas[$this->acumBnMaximo]['swingBars'];                                
+        }
+        $this->datas[$i]['swingBars'] = abs($this->acumBnMinimo-$this->acumBnMaximo);
+    }
 
-                            // Pone el ultimo minimo candidato como definitivo
-                            if (abs($bnMinActual - $bnMinAnterior) >= $n)
-                            {
-                                $this->datas[$bnMinActual]['min'] = $this->datas[$bnMinActual]['provMin'];
-                                $bnMinAnterior = $bnMinActual;
-                                for ($r = $bnMinActual+1; $r <= $i; $r++)      // CAMBIO
-                                {
-                                    if ($this->datas[$r]['low'] == $this->datas[$bnMinActual]['provMin'])
-                                    {
-                                        $this->datas[$r]['min'] = $this->datas[$r]['low'];
-                                        $this->datas[$r]['provMin'] = $this->datas[$r]['low'];
+    private function calculaBarras($desde, $hasta)
+    {
+        $this->datas[$desde + 1]['barras'] = 1;
+        $barras = 1;
 
-                                        // Busca el ultimo minimo para sacar cantidad de velas
-                                        for ($k = $r, $offMax = 0; $k >= 0; $k--)
-                                        {
-                                            if ($this->datas[$k]['max'] != 0)
-                                            {
-                                                $this->datas[$r]['swingBars'] = abs($k-$r);
-                                                $offMin = $k;
-                                            }
-                                            if ($this->datas[$k]['min'] != 0 && $offMin != 0)
-                                            {
-                                                $this->datas[$r]['swingBarsPrev'] = abs($k-$offMax);
-                                                break;
-                                            }
-                                        }
-                                        $this->datas[$bnMinActual]['min'] = 0;
-                                        $bnMinAnterior = $bnMinActual;
-                                        $bnMinActual = $r;
-                                    }
-                                    else   
-                                        break;
-                                } // CAMBIO
-                                $this->datas[$bnMaxAnterior+1]['barras'] = 1;
-
-                                // Calcula barras
-                                for ($b = $bnMaxAnterior+2; $b <= $i; $b++)
-                                    $this->datas[$b]['barras'] = $this->datas[$b-1]['barras'] + 1;
-
-                                // Actualiza swingbars
-                                $this->calculaSwingSize($bnMaxAnterior, $this->datas[$bnMaxAnterior]['barras'], 'MINIMO');
-
-                                // Calcula pivotes
-                                $this->calculaPivotes($bnMinActual, $i, $this->datas[$bnMinActual]['min'], 0, 
-                                    $bnMinActual, $bnMaxActual, 'MINIMO');
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // Cuenta los high y low del rango
-            if ($i > $n)
-            {
-                for ($j = $i; $j >= $i - $n + 1; $j--)
-                {
-                    if ($this->datas[$j]['high'] == $maxRango)
-                        $nroMax++;                  
-                    if ($this->datas[$j]['low'] == $minRango)
-                        $nroMin++;
-                }
-            }
-        
-            switch($trend)
-            {
-            case 0:
-                if ($low == $minRango)
-                {
-                    $minimo = $low;
-                    $bnMin = $i;
-                    $trend = -1;
-                    $pivot0 = $minimo;
-                    $this->pivotes[] = $minimo;
-                    $barras = 1;
-                    
-                    // Asigna valores
-                    $this->datas[$i]['tendencia'] = $trend;
-                    $this->datas[$i]['pivot0'] = $pivot0;
-                    $this->datas[$i]['trendBars'] = $barras;
-                    $this->datas[$i]['volumen'] = $volumen;
-                }
-                elseif ($high == $maxRango)
-                {
-                    $maximo = $high;
-                    $bnMax = $i;
-                    $pivot0 = $maximo;
-                    $this->pivotes[] = $maximo;
-                    $trend = 1;
-                    $barras = 1;
-
-                    // Asigna valores
-                    $this->datas[$i]['tendencia'] = $trend;
-                    $this->datas[$i]['pivot0'] = $pivot0;
-                    $this->datas[$i]['trendBars'] = $barras;
-                    $this->datas[$i]['volumen'] = $volumen;
-                }
-                break;
-            case 1:
-                if ($low == $minRango && $nroMin == 1)
-                {
-                    $minimo = $low;
-
-                    // Asigna valores
-                    $this->datas[$i]['volumen'] = $volumen;
-                    $trend = -1;
-                    $this->datas[$i]['tendencia'] = $trend;
-
-                    $barras = 1;
-                    $this->datas[$i]['trendBars'] = $barras;
-                }
-
-                if ($high >= $maximo && $trend == $this->datas[$i-1]['tendencia'])
-                {
-                    $this->datas[$i]['volumen'] = $volumen + $this->datas[$i-1]['volumen'];
-                    $maximo = $high;
-                    $bnMax = $i;
-
-                    $this->datas[$i]['tendencia'] = $trend;
-                    $barras++;
-                    $this->datas[$i]['trendBars'] = $barras;
-                }
-                else
-                {
-                    if ($trend == $this->datas[$i-1]['tendencia'])
-                    {
-                        $barras++;
-                        $this->datas[$i]['trendBars'] = $barras;
-                        $this->datas[$i]['volumen'] = $volumen + $this->datas[$i-1]['volumen'];
-                    }
-                    $this->datas[$i]['tendencia'] = $trend;
-                }
-                break;
-            case -1:
-                if ($high == $maxRango && $nroMax == 1)
-                {
-                    $maximo = $high;
-                    $this->datas[$i]['volumen'] = $volumen;
-                    //$this->datas[$i]['max'] = $maximo;
-                    //$this->datas[$i]['provMax'] = $maximo;
-                    $trend = 1;
-                    $this->datas[$i]['tendencia'] = $trend;
-                    $barras = 1;
-                    $this->datas[$i]['trendBars'] = $barras;
-                }
-
-                if ($low <= $minimo && $trend == $this->datas[$i-1]['tendencia'])
-                {
-                    $this->datas[$i]['volumen'] = $volumen + $this->datas[$i-1]['volumen'];
-
-                    $minimo = $low;
-
-                    $this->datas[$i]['tendencia'] = $trend;
-                    $barras++;
-                    $this->datas[$i]['trendBars'] = $barras;
-                }
-                else
-                {
-                    if ($trend == $this->datas[$i-1]['tendencia'])
-                    {
-                        $barras++;
-                        $this->datas[$i]['trendBars'] = $barras;
-                        $this->datas[$i]['volumen'] = $volumen + $this->datas[$i-1]['volumen'];
-                    }
-                    $this->datas[$i]['tendencia'] = $trend;
-                }
-                break;
-            }
-            $nroMax = 0;
-            $nroMin = 0;
+        for ($i = $desde + 2; $i <= $hasta; $i++)
+        {
+            $this->datas[$i]['barras'] = $this->datas[$i - 1]['barras'] + 1;
+            $barras = $this->datas[$i]['barras'];
         }
     }
 
@@ -825,7 +870,7 @@ class IndicadoresService
 
     private function calculaPivotes($i, $offRet, $minimo, $maximo, $bnMin, $bnMax, $swing)
     {
-        if ($bnMin != 0 && $bnMax != 0)
+        if (($swing == 'MINIMO' && $bnMin != 0) || ($swing == 'MAXIMO' && $bnMax != 0))
         {
             if ($swing == 'MINIMO')
                 $off = $bnMin;
@@ -840,7 +885,11 @@ class IndicadoresService
 
                 $this->datas[$off][$key] = $this->pivotes[$p];
             }
-        
+
+            // Si hay 5 pivotes inicia operaciones
+            if (count($this->pivotes) >= 5)
+                $this->flEmpiezaOperacion = true;
+
             if (count($this->pivotes) >= 3)
             {
                 $pivot0 = $this->pivotes[0]; $pivot1 = $this->pivotes[1]; $pivot2 = $this->pivotes[2];
@@ -899,6 +948,22 @@ class IndicadoresService
         }
     }
 
+	private function calculaProvRet($off, $valor)
+	{
+		if (isset($this->pivotes[1]))
+		{
+        	$cswingProv = $this->pivotes[0] - $valor;
+    		$cswing = $this->pivotes[1] - $this->pivotes[0];
+	
+    		if ($cswing != 0)
+    			$retrocesoProv = ABS($cswingProv / $cswing);
+    		else
+    			$retrocesoProv = 0;
+	
+    		$this->datas[$off]['provRet'] = $retrocesoProv;
+		}
+	}
+
     private function apilaPivotes($valor)
     {
         if ($valor != $this->pivotes[0])
@@ -915,824 +980,985 @@ class IndicadoresService
         }
     }
 
-    private function calculaSwingTgt()
+    private function calculaSwingTgtBatch($i)
     {
         $n = $this->swingSize;
-        $flBuscaEntrada = $flAbrePosicion = false;
-        $off0 = $off1oA = -1;
-        $flAlcista = false;
-        $flBajista = false;
-        $this->flAbc = false;
-        $this->flAbCd = false;
-        $this->fl3Drives = false;
-        $this->flShark = false;
-        $this->flW4 = false;
-        $this->flSp = false;
-        $this->flInertia = false;
-        $this->flVolatilidad = false;
-        $flAnulacionAlcistaActiva = false;
-        $flAnulacionBajistaActiva = false;
-        $idSenial = $idTrade = 0;
-        $this->cantidadActivaContratos = $this->totalContratos;
-        $flCerroPorTiempoAlcista = false;
-        $flCerroPorTiempoBajista = false;
-        $flCierraPorTiempo = false;
-        for ($i = $n - 1; $i < count($this->datas); $i++)
+        
+        // Calcula pivotes y swing
+        if ($i > $n)
+            $this->calculaPivot($i);
+
+        $fechaActual = date('Y-m-d', ceil($this->datas[$i]['fecha']/1000));
+        if ($fechaActual < "2023-03-12" || $fechaActual >= "2023-11-05")
+            $flDayLight = true;
+        else
         {
-            $fechaActual = date('Y-m-d', ceil($this->datas[$i]['fecha']/1000));
-            if ($fechaActual < "2023-03-12" || $fechaActual >= "2023-11-05")
-                $flDayLight = true;
+            if ($fechaActual >= "2023-03-12" && $fechaActual < "2023-11-05")
+                $flDayLight = false;
+        }
+
+        $pivot = $this->datas[$i]['swingBars'];
+        $volumen = $this->datas[$i]['volume'];
+        if ($pivot == 0 && $i > 0)
+            $this->datas[$i]['volumenPorSwing'] = $volumen + $this->datas[$i-1]['volumenPorSwing'];
+        else    
+            $this->datas[$i]['volumenPorSwing'] = $volumen;
+
+        // Calcula zona
+        $zonaFinal = 'NN ';
+        if ($this->datas[$i]['provRet'] != 0)
+        {
+            $zonas = [];
+            $zonas[] = $this->calculaZona($this->datas[$i]['open'], $i);
+            $zonas[] = $this->calculaZona($this->datas[$i]['high'], $i);
+            $zonas[] = $this->calculaZona($this->datas[$i]['low'], $i);
+            $zonas[] = $this->calculaZona($this->datas[$i]['close'], $i);
+        
+            foreach ($zonas as $zona)
+            {
+                if ($zona != 'NN ')
+                    $zonaFinal = $zona;
+            }
+        }
+        $this->datas[$i]['zona'] = $zonaFinal;
+
+        // Chequea reestablecimiento del proceso en caso de corte por administracion por tiempo
+        if ($this->acumFlCerroPorTiempoBajista && $this->datas[$i]['provMax'] != 0)
+            $this->acumFlCerroPorTiempoBajista = false;
+
+        if ($this->acumFlCerroPorTiempoAlcista && $this->datas[$i]['provMin'] != 0)
+            $this->acumFlCerroPorTiempoAlcista = false;
+
+        // Si tiene posicion abierta chequea contra ordenes hijas SL y PT
+        if ($this->acumFlAbrePosicion)
+        {
+            $this->datas[$i]['e'] = $this->acumValorEntrada;
+            $this->datas[$i]['t1'] = $this->datas[$this->OffAbrePosicion]['t1'];
+            $this->datas[$i]['t2'] = $this->datas[$this->OffAbrePosicion]['t2'];
+            $this->datas[$i]['t3'] = $this->datas[$this->OffAbrePosicion]['t3'];
+            $this->datas[$i]['t4'] = $this->datas[$this->OffAbrePosicion]['t4'];
+            $this->datas[$i]['p'] = '1';
+            $this->datas[$i]['evento'] = $this->datas[$i-1]['evento'];
+
+            // Redefine si es alcista o bajista
+            if ($this->datas[$i]['evento'] == 'Compra')
+            {
+                $this->acumFlAcista = true;
+                $this->acumFlBajista = false;
+            }
             else
             {
-                if ($fechaActual >= "2023-03-12" && $fechaActual < "2023-11-05")
-                    $flDayLight = false;
+                $this->acumFlAcista = false;
+                $this->acumFlBajista = true; 
             }
+            $this->datas[$i]['stoploss'] = $this->acumStopLoss;
 
-            $pivot = $this->datas[$i]['swingBars'];
-            $volumen = $this->datas[$i]['volume'];
-            if ($pivot == 0 && $i > 0)
-                $this->datas[$i]['volumenPorSwing'] = $volumen + $this->datas[$i-1]['volumenPorSwing'];
-            else    
-                $this->datas[$i]['volumenPorSwing'] = $volumen;
-
-            // Calcula zona
-            $zonaFinal = 'NN ';
-            if ($this->datas[$i]['provRet'] != 0)
+            // Mueve SL si hay cambio de dirección de señal
+            // Si encuentra un minimo definitivo es señal contraria
+            if (($this->acumFlAcista ? $this->datas[$i]['provMax'] != 0 : $this->datas[$i]['provMin'] != 0))
             {
-                $zonas = [];
-                $zonas[] = $this->calculaZona($this->datas[$i]['open'], $i);
-                $zonas[] = $this->calculaZona($this->datas[$i]['high'], $i);
-                $zonas[] = $this->calculaZona($this->datas[$i]['low'], $i);
-                $zonas[] = $this->calculaZona($this->datas[$i]['close'], $i);
-            
-                foreach ($zonas as $zona)
-                {
-                    if ($zona != 'NN ')
-                        $zonaFinal = $zona;
-                }
-            }
-            $this->datas[$i]['zona'] = $zonaFinal;
+                $contratoActivo = $this->cantidadActivaContratos;
+                $this->acumProfitAndLoss = $this->calculaProfitAndLoss($this->acumIdTrade, $contratoActivo, 
+                                                                        $this->datas[$i]['close']);
 
-            // Chequea reestablecimiento del proceso en caso de corte por administracion por tiempo
-            if ($flCerroPorTiempoBajista && $this->datas[$i]['max'] != 0)
-                $flCerroPorTiempoBajista = false;
-            if ($flCerroPorTiempoAlcista && $this->datas[$i]['min'] != 0)
-                $flCerroPorTiempoAlcista = false;
-
-            // Chequea por fin de anulacion por ABC/AB=CD
-            if (($flAnulacionAlcistaActiva) && !$flAbrePosicion)
-            {
-                if ($this->fl3Drives)
-                    $flAnulacionAlcistaActiva = Self::verificaAnulacionActiva3Drives($i, 'BAJISTA');
-
-                if ($this->flShark)
-                    $flAnulacionAlcistaActiva = Self::verificaAnulacionActivaShark($i, 'BAJISTA');
-
-                if ($this->flW4)
-                    $flAnulacionAlcistaActiva = Self::verificaAnulacionActivaW4($i, 'BAJISTA');
-
-                if ($this->flSp)
-                    $flAnulacionAlcistaActiva = Self::verificaAnulacionActivaSp($i, 'BAJISTA');
-                else
-                    $flAnulacionAlcistaActiva = Self::verificaAnulacionActiva($i, 'BAJISTA');
-            }
-
-            if ($flAnulacionBajistaActiva && !$flAbrePosicion)
-            {
-                if ($this->fl3Drives)
-                    $flAnulacionBajistaActiva = Self::verificaAnulacionActiva3Drives($i, 'ALCISTA');
-
-                if ($this->flShark)
-                    $flAnulacionBajistaActiva = Self::verificaAnulacionActivaShark($i, 'ALCISTA');
-
-                if ($this->flW4)
-                    $flAnulacionBajistaActiva = Self::verificaAnulacionActivaW4($i, 'ALCISTA');
-
-                if ($this->flSp)
-                    $flAnulacionBajistaActiva = Self::verificaAnulacionActivaSp($i, 'ALCISTA');
-                else
-                    $flAnulacionBajistaActiva = Self::verificaAnulacionActiva($i, 'ALCISTA');
-            }
-
-            // Si tiene posicion abierta chequea contra ordenes hijas SL y PT
-            if ($flAbrePosicion)
-            {
-                $this->datas[$i]['e'] = $open;
-                $this->datas[$i]['t1'] = $this->datas[$offAbrePosicion]['t1'];
-                $this->datas[$i]['t2'] = $this->datas[$offAbrePosicion]['t2'];
-                $this->datas[$i]['t3'] = $this->datas[$offAbrePosicion]['t3'];
-                $this->datas[$i]['t4'] = $this->datas[$offAbrePosicion]['t4'];
-                $this->datas[$i]['p'] = '1';
-                $this->datas[$i]['evento'] = $this->datas[$i-1]['evento'];
-
-                // Redefine si es alcista o bajista
-                if ($this->datas[$i]['evento'] == 'Compra')
-                {
-                    $flAlcista = true;
-                    $flBajista = false;
-                }
-                else
-                {
-                    $flAlcista = false;
-                    $flBajista = true; 
-                }
-                $this->datas[$i]['stoploss'] = $stopLoss;
-
-                // Mueve SL si hay cambio de dirección de señal
-                // Si encuentra un minimo definitivo es señal contraria
-                if (($flAlcista ? $this->datas[$i]['provMax'] != 0 : $this->datas[$i]['provMin'] != 0))
-                {
-                    $contratoActivo = $this->cantidadActivaContratos;
-                    $profitAndLoss = $this->calculaProfitAndLoss($idTrade, $contratoActivo, $this->datas[$i]['close']);
-
-                    // Si viene ganando mueve SL a BE + 1 o si no a ultimo minimo o maximo
-                    if ($profitAndLoss > 0)
-                    {
-                        $contratoActivo = $this->totalContratos - $this->cantidadActivaContratos + 1;
-
-                        if ($contratoActivo <= 2) // Si estoy en el 2do. contrato activo
-                        {
-                            $stopLoss = $this->datas[$offAbrePosicion]['e']; 
-                            $stopLoss = ($flAlcista ? $stopLoss + $this->ticker : $stopLoss - $this->ticker);
-                            $this->datas[$i]['entrada'] .= "Mueve SL por señal contraria en posicion con ganancia ".$profitAndLoss." a BE";
-                        }
-                        else // Si no se mueve al target anterior
-                        {
-                            $stopLoss = $this->tgt[$contratoActivo-2];
-                            $this->datas[$i]['entrada'] .= "Mueve SL por señal contraria en posicion con ganancia ".$profitAndLoss." a TGT ".$stopLoss;
-                        }
-
-                        $this->datas[$i]['stoploss'] = $stopLoss;
-                    }
-                    else
-                    {
-                        // Busca ultimo minimo o maximo
-                        if ($flAlcista)
-                        {
-                            for ($r = $i; $r > 0 && $this->datas[$r]['min'] == 0; $r--)
-                            {
-                            }
-                            $nuevoStopLoss = $this->datas[$r]['min'];
-                        }
-                        else
-                        {
-                            for ($r = $i; $r > 0 && $this->datas[$r]['max'] == 0; $r--)
-                            {
-                            }
-                            $nuevoStopLoss = $this->datas[$r]['max'];
-                        }
-                        $stopLoss = $nuevoStopLoss;
-                        if ($flAlcista)
-                            $this->datas[$i]['stoploss'] = $stopLoss;
-                        else
-                            $this->datas[$i]['stoploss'] = $stopLoss;
-
-                        $this->datas[$i]['entrada'] .= "Mueve SL por señal contraria en posicion con perdida ".$profitAndLoss." a ultimo ".
-                                                        ($flAlcista?"minimo ":"maximo");
-                    }
-                    $this->datas[$i]['entrada'] .= " SL=".$this->datas[$i]['stoploss'];
-                }
-
-                // controla administracion por tiempo
-                if ($this->administracionPosicion == 'B')
-                {
-                    // Cierra en la siguiente vela si dio cierre por tiempo con perdida
-                    if ($flCierraPorTiempo)
-                    {
-                        $this->datas[$i]['p'] = '0';
-                        $this->datas[$i]['evento'] = 'NM';
-                        $flAbrePosicion = false;
-                        $this->datas[$i]['entrada'] .= "Cierra NM por administracion por tiempo con perdida de ".$profitAndLoss;
-
-                        $flCierraPorTiempo = false;
-                    }
-                    $horaInicio = new \DateTime($this->datas[$i]['horainicio']);
-                    $horaFin = new \DateTime($this->operaciones[$idTrade-1]['desdeHora']);
-
-                    $diferencia = $horaInicio->diff($horaFin);
-                    $diferenciaMinutos = ($diferencia->h * 60) + $diferencia->i;
-                    if ($diferenciaMinutos >= intval($this->tiempo))
-                    {
-                        $contratoActivo = $this->cantidadActivaContratos;
-                        $profitAndLoss = $this->calculaProfitAndLoss($idTrade, $contratoActivo, $this->datas[$i]['close']);
-
-                        // Si esta perdiendo cierra
-                        if ($profitAndLoss < 0)
-                            $flCierraPorTiempo = true;
-                        else // Si gana va a BE + 1
-                        {
-                            $stopLoss = $this->datas[$offAbrePosicion]['e']; 
-                            $stopLoss = ($flAlcista ? $stopLoss + $this->ticker : $stopLoss - $this->ticker);
-                            $this->datas[$i]['entrada'] .= "Mueve SL por administracion por tiempo con ganancia ".$profitAndLoss." a BE + - 1";
-                        }
-                        if ($flAlcista)
-                            $flCerroPorTiempoAlcista = true;
-                        else
-                            $flCerroPorTiempoBajista = true;
-                    }
-                }
-
-                // Controla si cumple eventos de cierre (TGT Hit / SL)
-                $mpc = $mpf = 0;
-                $this->controlaCierreTgtSl($i, $flAlcista, $flBajista, $flAbrePosicion, $idTrade, $mpc, $mpf);
-
-                // Chequea cierre de posicion por fuera de hora (NO MERCADO)
-                if ($flAbrePosicion)
-                {
-                    if ($this->datas[$i]['horainicio'] >= ($flDayLight ? '18:00:00' : '17:00:00'))
-                    {
-                        $this->datas[$i]['p'] = '0';
-                        $this->datas[$i]['evento'] = 'NM';
-                        $flAbrePosicion = false;
-                    }
-                }
-
-                // Si esta en tgt hit y tiene mas contratos cambia el SL
-                if (substr($this->datas[$i]['evento'], 0, 7) == 'Tgt Hit' && $this->cantidadActivaContratos > 0 &&
-                    $this->totalContratos > 1)
+                // Si viene ganando mueve SL a BE + 1 o si no a ultimo minimo o maximo
+                if ($this->acumProfitAndLoss > 0)
                 {
                     $contratoActivo = $this->totalContratos - $this->cantidadActivaContratos + 1;
-                    if ($contratoActivo == 2) // Si estoy en el 2do. contrato activo
+
+                    if ($contratoActivo <= 2) // Si estoy en el 2do. contrato activo
                     {
-                        $stopLoss = $this->datas[$offAbrePosicion]['e'];
-                        $stopLoss = ($flAlcista ? $stopLoss + $this->ticker : $stopLoss - $this->ticker);
+                        $this->acumStopLoss = $this->datas[$this->OffAbrePosicion]['e']; 
+                        $this->acumStopLoss = ($this->acumFlAcista ? 
+                                                $this->acumStopLoss + $this->ticker : $this->acumStopLoss - $this->ticker);
+                        $this->datas[$i]['entrada'] .= "Mueve SL por señal contraria en posicion con ganancia ".$this->acumProfitAndLoss." a BE";
                     }
                     else // Si no se mueve al target anterior
-                        $stopLoss = $this->tgt[$contratoActivo-2];
-                    $this->datas[$i]['entrada'] = 'Mueve SL por alcanzar TGT Contrato activo='.$contratoActivo.
-                                                    ' Contratos restantes='.$this->cantidadActivaContratos.
-                                                    ' nuevo SL '.$stopLoss.' TGT contrato='.$this->tgt[$contratoActivo];
-                }
-                // Chequea para cerrar swing
-                if (!$flAbrePosicion)
-                {
-            		// Si hay mas de 1 contrato continua abierta la posicion
-                	if ($this->cantidadActivaContratos > 0 && substr($this->datas[$i]['evento'], 0, 7) == 'Tgt Hit')
-                		$flAbrePosicion = true;
-                    else
                     {
-                        $off1oA = -1;
-                        $this->cierraPosicion($i, $flAlcista, $flBajista, $offAbrePosicion,
-                    						$idSenial, $idTrade, $this->cantidadActivaContratos, $tipoOperacion, $mpc, $mpf);
+                        $this->acumStopLoss = $this->tgt[$contratoActivo-2];
+                        $this->datas[$i]['entrada'] .= "Mueve SL por señal contraria en posicion con ganancia ".$this->acumProfitAndLoss." a TGT ".$this->acumStopLoss;
                     }
-                }
-			}
 
-            // Sigue una vela mas con la entrada habilitada para disparar gatillo 
-            if ($flBuscaEntrada)
-            {
-                // Controla ventana de tiempo para entrada
-                $qVentanaEntrada++;
-                $flAbrePosicionEntrada = false;
-				$valorIngreso = 0;
-                if ($qVentanaEntrada < 6)
-                {
-                    // Abre posicion si la vela pasa por el punto de entrada
-                    if ($flAlcista)
-                    {
-                        if ($this->datas[$i]['high'] >= $entrada &&
-                            $this->datas[$i]['low'] <= $entrada)
-                        {
-                            $this->datas[$i]['entrada'] .= 
-								" ABRE POSICION ALCISTA POR PASAR POR PUNTO DE ENTRADA ".$entrada." Vela nro.".$qVentanaEntrada;
-
-                            $flAbrePosicionEntrada = true;
-                        	if ($this->datas[$i]['open'] >= $entrada)
-								$valorIngreso = $this->datas[$i]['open'];
-
-							if ($this->datas[$i]['close'] >= $entrada)
-								$valorIngreso = $this->datas[$i]['close']; 
-
-                            if ($this->datas[$i]['high'] >= $entrada)
-                            	$valorIngreso = $this->datas[$i]['high'];
-
-                            if ($this->datas[$i]['low'] >= $entrada)
-                            	$valorIngreso = $this->datas[$i]['low'];
-                        }
-                        else
-                        {
-                            if ($this->datas[$i]['open'] >= $stopLoss ||
-                                $this->datas[$i]['close'] >= $stopLoss ||
-                                $this->datas[$i]['high'] >= $stopLoss ||
-                                $this->datas[$i]['low'] >= $stopLoss)
-                            {
-                                $this->datas[$i]['entrada'] .= " CIERRA VENTANA ALCISTA POR STOP LOSS ".$stopLoss;
-                                $flBuscaEntrada = false;
-                                $qVentanaEntrada = 6;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // Si la vela esta entre la entrada ingresa
-                        if ($this->datas[$i]['high'] >= $entrada &&
-                            $this->datas[$i]['low'] <= $entrada)
-                        {
-                            $this->datas[$i]['entrada'] .= 
-								" ABRE POSICION BAJISTA POR PASAR POR PUNTO DE ENTRADA ".$entrada." Vela nro.".$qVentanaEntrada;
-
-                            $flAbrePosicionEntrada = true;
-
-                        	if ($this->datas[$i]['open'] <= $entrada)
-								$valorIngreso = $this->datas[$i]['open'];
-
-							if ($this->datas[$i]['close'] <= $entrada)
-								$valorIngreso = $this->datas[$i]['close']; 
-
-                            if ($this->datas[$i]['high'] <= $entrada)
-                            	$valorIngreso = $this->datas[$i]['high'];
-
-                            if ($this->datas[$i]['low'] <= $entrada)
-                            	$valorIngreso = $this->datas[$i]['low'];
-                        }
-                        else
-                        {
-                            if ($this->datas[$i]['open'] >= $stopLoss ||
-                                $this->datas[$i]['close'] >= $stopLoss ||
-                                $this->datas[$i]['high'] >= $stopLoss ||
-                                $this->datas[$i]['low'] >= $stopLoss)
-                            {
-                                $this->datas[$i]['entrada'] .= " CIERRA VENTANA BAJISTA POR STOP LOSS ".$stopLoss;
-                                $flBuscaEntrada = false;
-                                $qVentanaEntrada = 6;
-                            }
-                        }
-                    }
+                    $this->datas[$i]['stoploss'] = $this->acumStopLoss;
                 }
                 else
                 {
-                    $this->datas[$i]['entrada'] .= " CIERRA VENTANA DE PUNTO DE ENTRADA ".$entrada;
-                    $flBuscaEntrada = false;
+                    // Busca ultimo minimo o maximo
+                    if ($this->acumFlAcista)
+                    {
+                        for ($r = $i; $r > 0 && $this->datas[$r]['min'] == 0; $r--)
+                        {
+                        }
+                        $nuevoStopLoss = $this->datas[$r]['min'];
+                    }
+                    else
+                    {
+                        for ($r = $i; $r > 0 && $this->datas[$r]['max'] == 0; $r--)
+                        {
+                        }
+                        $nuevoStopLoss = $this->datas[$r]['max'];
+                    }
+                    $this->acumStopLoss = $nuevoStopLoss;
+                    if ($this->acumFlAcista)
+                        $this->datas[$i]['stoploss'] = $this->acumStopLoss;
+                    else
+                        $this->datas[$i]['stoploss'] = $this->acumStopLoss;
+
+                    $this->datas[$i]['entrada'] .= "Mueve SL por señal contraria en posicion con perdida ".$this->acumProfitAndLoss." a ultimo ".
+                                                    ($this->acumFlAcista?"minimo ":"maximo");
+                }
+                $this->datas[$i]['entrada'] .= " SL=".$this->datas[$i]['stoploss'];
+            }
+
+            // controla administracion por tiempo
+            if ($this->administracionPosicion == 'B')
+            {
+                // Cierra en la siguiente vela si dio cierre por tiempo con perdida
+                if ($this->acumFlCierraPorTiempo)
+                {
+                    $this->datas[$i]['p'] = '0';
+                    $this->datas[$i]['evento'] = 'NM';
+                    $this->acumFlAbrePosicion = false;
+                    $this->datas[$i]['entrada'] .= "Cierra NM por administracion por tiempo con perdida de ".$this->acumProfitAndLoss;
+
+                    $this->acumFlCierraPorTiempo = false;
+                }
+                $horaInicio = new \DateTime($this->datas[$i]['horainicio']);
+                $horaFin = new \DateTime($this->operaciones[$this->acumIdTrade-1]['desdeHora']);
+
+                $diferencia = $horaInicio->diff($horaFin);
+                $diferenciaMinutos = ($diferencia->h * 60) + $diferencia->i;
+                if ($diferenciaMinutos >= intval($this->tiempo))
+                {
+                    $contratoActivo = $this->cantidadActivaContratos;
+                    $this->acumProfitAndLoss = $this->calculaProfitAndLoss($this->acumIdTrade, $contratoActivo, $this->datas[$i]['close']);
+
+                    // Si esta perdiendo cierra
+                    if ($this->acumProfitAndLoss < 0)
+                    {
+                        $this->acumFlCierraPorTiempo = true;
+                        $this->datas[$i]['entrada'] .= "Cierra por tiempo ";
+                    }
+                    else // Si gana va a BE + 1
+                    {
+                        $this->acumStopLoss = $this->datas[$this->OffAbrePosicion]['e']; 
+                        $this->acumStopLoss = ($this->acumFlAcista ? 
+                                                $this->acumStopLoss + $this->ticker : $this->acumStopLoss - $this->ticker);
+                        $this->datas[$i]['entrada'] .= "Mueve SL por administracion por tiempo con ganancia ".
+                                                        $this->acumProfitAndLoss." a BE + - 1";
+                    }
+                    if ($this->acumFlAcista)
+                        $this->acumFlCerroPorTiempoAlcista = true;
+                    else
+                        $this->acumFlCerroPorTiempoBajista = true;
+                }
+            }
+
+            // Controla si cumple eventos de cierre (TGT Hit / SL)
+            $mpc = $mpf = 0;
+            $this->controlaCierreTgtSl($i, $this->acumFlAcista, $this->acumFlBajista, $this->acumFlAbrePosicion, 
+                                        $this->acumIdTrade, $mpc, $mpf);
+
+            // Chequea cierre de posicion por fuera de hora (NO MERCADO)
+            if ($this->acumFlAbrePosicion)
+            {
+                if ($this->datas[$i]['horainicio'] >= ($flDayLight ? '18:00:00' : '17:00:00'))
+                {
+                    $this->datas[$i]['p'] = '0';
+                    $this->datas[$i]['evento'] = 'NM';
+                    $this->acumFlAbrePosicion = false;
+                }
+            }
+
+            // Si esta en tgt hit y tiene mas contratos cambia el SL
+            if (substr($this->datas[$i]['evento'], 0, 7) == 'Tgt Hit' && $this->cantidadActivaContratos > 0 &&
+                $this->totalContratos > 1)
+            {
+                $contratoActivo = $this->totalContratos - $this->cantidadActivaContratos + 1;
+                if ($contratoActivo == 2) // Si estoy en el 2do. contrato activo
+                {
+                    $this->acumStopLoss = $this->datas[$this->OffAbrePosicion]['e'];
+                    $this->acumStopLoss = ($this->acumFlAcista ? $this->acumStopLoss + $this->ticker : 
+                                            $this->acumStopLoss - $this->ticker);
+                }
+                else // Si no se mueve al target anterior
+                    $this->acumStopLoss = $this->tgt[$contratoActivo-2];
+                $this->datas[$i]['entrada'] = 'Mueve SL por alcanzar TGT Contrato activo='.$contratoActivo.
+                                                ' Contratos restantes='.$this->cantidadActivaContratos.
+                                                ' nuevo SL '.$this->acumStopLoss.' TGT contrato='.
+                                                $this->tgt[$contratoActivo];
+            }
+            // Chequea para cerrar swing
+            if (!$this->acumFlAbrePosicion)
+            {
+                // Si hay mas de 1 contrato continua abierta la posicion
+                if ($this->cantidadActivaContratos > 0 && substr($this->datas[$i]['evento'], 0, 7) == 'Tgt Hit')
+                    $this->acumFlAbrePosicion = true;
+                else
+                {
+                    $this->acumOff1oA = -1;
+                    $this->cierraPosicion($i, $this->acumFlAcista, $this->acumFlBajista, $this->OffAbrePosicion,
+                                        $this->acumIdSenial, $this->acumIdTrade, $this->cantidadActivaContratos, 
+                                        $this->acumTipoOperacion, $mpc, $mpf);
+                }
+            }
+        }
+
+        if ($this->datas[$i]['provMax'] != 0 || $this->datas[$i]['provMin'] != 0) 
+			$this->calculaProvRet($i, $this->datas[$i]['provMax'] != 0. ? $this->datas[$i]['provMax'] : $this->datas[$i]['provMin']);
+
+        // Sigue una vela mas con la entrada habilitada para disparar gatillo 
+        if ($this->acumFlBuscaEntrada)
+        {
+            // Controla ventana de tiempo para entrada
+            $this->acumQVentanaEntrada++;
+            $this->acumFlAbrePosicionEntrada = false;
+            if ($this->acumQVentanaEntrada < 6)
+            {
+                // Abre posicion si la vela pasa por el punto de entrada
+                if ($this->acumFlAcista)
+                {
+                    if ($this->datas[$i]['high'] >= $this->acumPuntoEntrada &&
+                        $this->datas[$i]['low'] <= $this->acumPuntoEntrada)
+                    {
+                        $this->datas[$i]['entrada'] .= 
+                            " ABRE POSICION ALCISTA POR PASAR POR PUNTO DE ENTRADA ".$this->acumPuntoEntrada.
+                            " Vela nro.".$this->acumQVentanaEntrada;
+
+                        $this->acumFlAbrePosicionEntrada = true;
+                    }
+                    else
+                    {
+                        if ($this->datas[$i]['open'] >= $this->acumStopLoss ||
+                            $this->datas[$i]['close'] >= $this->acumStopLoss ||
+                            $this->datas[$i]['high'] >= $this->acumStopLoss ||
+                            $this->datas[$i]['low'] >= $this->acumStopLoss)
+                        {
+                            $this->datas[$i]['entrada'] .= " CIERRA VENTANA ALCISTA POR STOP LOSS ".$this->acumStopLoss;
+                            $this->acumFlBuscaEntrada = false;
+                            $this->acumQVentanaEntrada = 6;
+                        }
+                    }
                 }
 
-                // calcula riesgo retorno
-                if ($flAbrePosicionEntrada)
+                if ($this->acumFlBajista)
                 {
-                    $retorno = 0;
-                    $riesgo = 0;
-                    $rrr = 0;
-                    if ($flAlcista)
+                    // Si la vela esta entre la entrada ingresa
+                    if ($this->datas[$i]['high'] >= $this->acumPuntoEntrada &&
+                        $this->datas[$i]['low'] <= $this->acumPuntoEntrada)
                     {
-                        $retorno = $t1 - $this->datas[$i]['open'];
-                        $riesgo = $this->datas[$i]['open'] - $stopLoss;
+                        $this->datas[$i]['entrada'] .= 
+                            " ABRE POSICION BAJISTA POR PASAR POR PUNTO DE ENTRADA ".$this->acumPuntoEntrada.
+                            " Vela nro.".$this->acumQVentanaEntrada;
+
+                        $this->acumFlAbrePosicionEntrada = true;
+                    }
+                    else
+                    {
+                        if ($this->datas[$i]['open'] >= $this->acumStopLoss ||
+                            $this->datas[$i]['close'] >= $this->acumStopLoss ||
+                            $this->datas[$i]['high'] >= $this->acumStopLoss ||
+                            $this->datas[$i]['low'] >= $this->acumStopLoss)
+                        {
+                            $this->datas[$i]['entrada'] .= " CIERRA VENTANA BAJISTA POR STOP LOSS ".$this->acumStopLoss;
+                            $this->acumFlBuscaEntrada = false;
+                            $this->acumQVentanaEntrada = 6;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                $this->datas[$i]['entrada'] .= " CIERRA VENTANA DE PUNTO DE ENTRADA ".$this->acumPuntoEntrada;
+                $this->acumFlBuscaEntrada = false;
+            }
+
+            // calcula riesgo retorno
+            if ($this->acumFlAbrePosicionEntrada)
+            {
+                $retorno = 0;
+                $riesgo = 0;
+                $rrr = 0;
+                if ($this->acumFlAcista)
+                {
+                    $retorno = $this->acumT1 - $this->datas[$i]['open'];
+                    $riesgo = $this->datas[$i]['open'] - $this->acumStopLoss;
+                    if ($riesgo != 0)
+                        $rrr = $retorno / $riesgo;
+                    else   
+                        $rrr = 0;
+                }
+                else
+                {
+                    if ($this->acumFlBajista)
+                    {
+                        $retorno = $this->datas[$i]['open'] - $this->acumT1;
+                        $riesgo = $this->acumStopLoss - $this->datas[$i]['open'];
                         if ($riesgo != 0)
-                            $rrr = $retorno / $riesgo;
-                        else   
+                            $rrr = abs($retorno) / abs($riesgo);
+                        else    
                             $rrr = 0;
                     }
-                    else
-                    {
-                        if ($flBajista)
-                        {
-                            $retorno = $this->datas[$i]['open'] - $t1;
-                            $riesgo = $stopLoss - $this->datas[$i]['open'];
-                            if ($riesgo != 0)
-                                $rrr = abs($retorno) / abs($riesgo);
-                            else    
-                                $rrr = 0;
-                        }
-                    }
-                    if ($retorno != 0)
-                        $this->datas[$i]['entrada'] .= ' Retorno '.$retorno.' Riesgo '.$riesgo.' RRR '.$rrr.' SL '.$stopLoss;
-
-                    if (// $rrr >= 1.5 && No usa mas por RRR >= 1.5
-                        $this->datas[$i]['horainicio'] >= '04:00:00' &&
-                        $this->datas[$i]['horainicio'] <= ($flDayLight ? '17:00:00' : '16:00:00'))
-                    {
-                        // Redondea T1
-                        //$t1 = redondear($t1, 2, $this->ticker*100);
-
-                        $open = $this->datas[$i]['open'];
-
-						// Asigna valor de entrada segun filtro open-high-close-low
-                		if ($flAbrePosicionEntrada)
-							$open = $entrada;
-
-                        if (!$flAbrePosicion)
-                        {
-                            $flAbrePosicion = true;
-
-                            $flBuscaEntrada = false;
-                            $qVentanaEntrada = 6;
-
-                            $this->datas[$i]['e'] = $open;
-                            $this->datas[$i]['stoploss'] = $stopLoss;
-                            $this->datas[$i]['t1'] = $t1;
-                            $this->datas[$i]['t2'] = $t2;
-                            $this->datas[$i]['t3'] = $t3;
-                            $this->datas[$i]['t4'] = $t4;
-                            $this->datas[$i]['p'] = '1';
-                            $this->datas[$i]['evento'] = ($flAlcista ? 'Compra' : 'Vende');
-                            $offAbrePosicion = $i;
-                            $this->buscaUltimoPivot($i);
-                            $this->cantidadActivaContratos = $this->totalContratos;
-
-                            // Arma tabla de operaciones
-                            $riesgoPuntos = abs($open-$stopLoss);
-                            $riesgoTicks = round($riesgoPuntos/$this->ticker, 0);
-                            $riesgoPesos = $riesgoTicks * $this->valorTicker;
-                            $retornoPuntos = abs($open-$t1);
-                            $retornoTicks = round($retornoPuntos/$this->ticker, 0);
-                            $retornoPesos = $retornoTicks * $this->valorTicker;
-                            if ($riesgoTicks != 0)
-                                $rrr = $retornoTicks / $riesgoTicks;
-                            
-                            if ($flAlcista)
-                                $direccion = 1;
-                            else
-                                $direccion = -1;
-
-                            if ($this->datas[$i]['swingBarsPrev'] != 0)
-                                $relacionVelas = ($this->datas[$i]['swingBars']-1) / $this->datas[$i]['swingBarsPrev'];
-                            else    
-                                $relacionVelas = 0;
-
-                            // Si no tiene swingbarsprev busca el anterior swingbars 
-                            if ($this->datas[$i]['swingBarsPrev'] == 0)
-                            {
-                                // Traigo el swingbars del ultimo pivot real
-                                for ($r = $i, $contraSwingBars = 0; $r > 0 && 
-                                    $this->datas[$r]['min'] == 0 && $this->datas[$r]['max'] == 0; $r--)
-                                {
-                                    $contraSwingBars++;
-                                }
-                                $swingBars = $this->datas[$r]['swingBars'];
-                            }
-                            else
-                            {
-                                $swingBars = $this->datas[$i]['swingBarsPrev'];
-                                $contraSwingBars = $this->datas[$i]['swingBars']-1;
-                            }
-
-                            if ($swingBars != 0)
-                                $relacionVelas = $contraSwingBars / $swingBars;
-                            else    
-                                $relacionVelas = 0;
-
-                            $tipoOperacion = ($flAlcista ? "Buy to Open" : "Sell to Open");
-                            $this->armaTablaOperaciones($this->datas[$i]['fecha'],
-                                                        ++$idTrade, 
-                                                        $direccion,
-                                                        $this->cantidadActivaContratos,  
-                                                        $this->datas[$i]['horainicio'], 
-                                                        $open,
-                                                        $this->datas[$i]['stoploss'],
-                                                        $t1, $t2, $t3, $t4,
-                                                        $rrr,
-                                                        $swingBars,
-                                                        $contraSwingBars,
-                                                        $relacionVelas,
-                                                        $this->datas[$i-1]['provRet'],
-                                                        $riesgoTicks,
-                                                        $retornoTicks,
-                                                        '', '', '', $tipoOperacion, $i);
-
-                            // Chequea cierre de operacion por si es en la misma vela de apertura
-                            // Controla si cumple eventos de cierre (TGT Hit / SL)
-                            $mpc = $mpf = 0;
-                            $this->controlaCierreTgtSl($i, $flAlcista, $flBajista, $flAbrePosicion, $idTrade, $mpc, $mpf);
-
-                            // Chequea cierre de posicion por fuera de hora (NO MERCADO)
-                            if ($flAbrePosicion)
-                            {
-                                if ($this->datas[$i]['horainicio'] >= ($flDayLight ? '18:00:00' : '17:00:00'))
-                                {
-                                    $this->datas[$i]['p'] = '0';
-                                    $this->datas[$i]['evento'] = 'NM';
-                                    $flAbrePosicion = false;
-                                }
-                            }
-
-                            // Si esta en tgt hit y tiene mas contratos cambia el SL
-                            if (substr($this->datas[$i]['evento'], 0, 7) == 'Tgt Hit' && $this->cantidadActivaContratos > 0 &&
-                                $this->totalContratos > 1)
-                            {
-                                $contratoActivo = $this->totalContratos - $this->cantidadActivaContratos + 1;
-                                if ($contratoActivo == 2) // Si estoy en el 2do. contrato activo
-                                {
-                                    $stopLoss = $this->datas[$offAbrePosicion]['e'];
-                                    $stopLoss = ($flAlcista ? $stopLoss + $this->ticker : $stopLoss - $this->ticker);
-                                }
-                                else // Si no se mueve al target anterior
-                                    $stopLoss = $this->tgt[$contratoActivo-2];
-                                $this->datas[$i]['entrada'] = 'Mueve SL por alcanzar TGT Contrato activo='.$contratoActivo.
-                                                                ' Contratos restantes='.$this->cantidadActivaContratos.
-                                                                ' nuevo SL '.$stopLoss.' TGT contrato='.$this->tgt[$contratoActivo];
-                            }
-                            // Chequea para cerrar swing
-                            if (!$flAbrePosicion)
-                            {
-                                // Si hay mas de 1 contrato continua abierta la posicion
-                                if ($this->cantidadActivaContratos > 0 && substr($this->datas[$i]['evento'], 0, 7) == 'Tgt Hit')
-                                    $flAbrePosicion = true;
-                                else
-                                {
-                                    $off1oA = -1;
-                                    $this->cierraPosicion($i, $flAlcista, $flBajista, $offAbrePosicion,
-                                                        $idSenial, $idTrade, $this->cantidadActivaContratos, $tipoOperacion, $mpc, $mpf);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            $stopLoss = $open;
-                            $stopLoss = ($flAlcista ? $stopLoss + $this->ticker : $stopLoss - $this->ticker);
-                            $this->datas[$i]['stoploss'] = $stopLoss;
-                            $this->datas[$i]['entrada'] .= 'BE por SP contrario '.$this->datas[$i]['stoploss'];
-
-                            // Normaliza flags de sentido del setup
-                            if ($flAlcista)
-                            {
-                                $flAlcista = false;
-                                $flBajista = true;
-                            }
-                            else
-                            {
-                                $flAlcista = true;
-                                $flBajista = false;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // Si es un pivot analiza nuevamente
-                        if ($this->datas[$i]['provRet'] >= 0.382 && $this->datas[$i]['provRet'] <= 1)
-                        {
-                            $flAbrePosicion = false;
-                            $this->datas[$i]['entrada'] .= ' Encuentra un nuevo pivot';
-                        }
-                        else
-                        {
-                            $flAbrePosicion = false;
-                        }
-                    }
-                    $flBuscaEntrada = false;
                 }
-            }
+                if ($retorno != 0)
+                    $this->datas[$i]['entrada'] .= ' Retorno '.$retorno.' Riesgo '.$riesgo.' RRR '.
+                                                    $rrr.' SL '.$this->acumStopLoss;
 
-            // Si no esta con posicion abierta va chequeando cada vela para ver si encuentra setup
-            // solo de los puntos candidatos
-            if (($this->filtroSetup != 'T' ? !$flAbrePosicion : true) &&
-                $this->datas[$i]['provRet'] >= 0.382 && $this->datas[$i]['provRet'] <= 1 &&
-                $this->datas[$i]['horainicio'] >= '04:00:00' &&
-                $this->datas[$i]['horainicio'] <= ($flDayLight ? '17:00:00' : '16:00:00') &&
-                !$flCerroPorTiempoAlcista && !$flCerroPorTiempoBajista && 
-                !$flBuscaEntrada)
-            {
-                // Calcula filtros de inertia y volatilidad
-                $this->calculaFiltrosVolatilidadInertia($i, $flAlcista ? "ALCISTA" : "BAJISTA");
-
-                if (!$this->flVolatilidad && !$this->flInertia)
+                if (($this->flSinFiltros ? $rrr >= 1.5 : true) && 
+                    $this->datas[$i]['horainicio'] >= '04:00:00' &&
+                    $this->datas[$i]['horainicio'] <= ($flDayLight ? '17:00:00' : '16:00:00'))
                 {
-                    $minimoActual = $this->datas[$i]['low'];
-                    $maximoActual = $this->datas[$i]['high'];
+                    $this->acumValorEntrada = $this->datas[$i]['open'];
 
-                    // Define si el candidato es alcista o bajista 
-                    $off0 = $off1oA = -1;
-                    
-                    if (!$flAbrePosicion)
-                        $flBajista = $flAlcista = false;
-                    $retroceso = $relacionVelas = 0;
-                    if ($minimoActual == $this->datas[$i]['provMin'] && 
-                        !$flAnulacionAlcistaActiva &&
-                        ($this->filtroSetup == 'A' || $this->filtroSetup == 'T')) // Alcista
+                    // Asigna valor de entrada segun filtro open-high-close-low
+                    if ($this->acumFlAbrePosicionEntrada)
+                        $this->acumValorEntrada = $this->acumPuntoEntrada;
+
+                    if (!$this->acumFlAbrePosicion)
                     {
-                        if (!$flAbrePosicion)
-                            self::buscaMinMaxAlcista($i, $off1oA, $off0, $stopLoss, $maximo1oA);
-                        // Si viene con posicion abierta en mismo sentido descarta
-                        if ($flAbrePosicion && $flAlcista) 
-                            $off0 = $off1oA = -1;
-                        else
-                        {
-                            $flBajista = false;
-                            $flAlcista = true;
-                        }
+                        $this->acumFlAbrePosicion = true;
 
-                        // Si obtiene maximo y minimo calcula valores para verificar gatillo
-                        if ($off1oA != -1 && $off0 != -1)
-                        {
-                            $flAnulacionAlcistaActiva = false;
+                        $this->acumFlBuscaEntrada = false;
+                        $this->acumQVentanaEntrada = 6;
 
-                            // Si esta en un punto maximo o minimo busca criterios de anulacion
-                            if ($this->datas[$i]['max'] != 0)
-                                $this->calculaFiltros($i, $flAnulacionAlcistaActiva, 
-                                                    $flAnulacionBajistaActiva, 'BAJISTA');
-                            if (!$flAnulacionAlcistaActiva)
-                            {
-                                $recorrido1oA = $maximo1oA - $stopLoss;
-                                $recorrido2oB = $maximo1oA - $minimoActual;
-                                $retroceso = $recorrido2oB / $recorrido1oA;
+                        $this->datas[$i]['e'] = $this->acumValorEntrada;
+                        $this->datas[$i]['stoploss'] = $this->acumStopLoss;
+                        $this->datas[$i]['t1'] = $this->acumT1;
+                        $this->datas[$i]['t2'] = $this->acumT2;
+                        $this->datas[$i]['t3'] = $this->acumT3;
+                        $this->datas[$i]['t4'] = $this->acumT4;
+                        $this->datas[$i]['p'] = '1';
+                        $this->datas[$i]['evento'] = ($this->acumFlAcista ? 'Compra' : 'Vende');
+                        $this->OffAbrePosicion = $i;
+                        $this->buscaUltimoPivot($i);
+                        $this->cantidadActivaContratos = $this->totalContratos;
 
-                                $barras1oA = $off1oA - $off0;
-                                $barras2oB = $i - $off1oA;
-                                $relacionVelas = $barras2oB / $barras1oA;
-
-                                $t1 = Round((($recorrido1oA * 0.618) + $minimoActual)/$this->ticker,0)*$this->ticker;
-                                $t2 = Round((($recorrido1oA) + $minimoActual)/$this->ticker,0)*$this->ticker;
-                                $t3 = Round((($recorrido1oA * 1.618) + $minimoActual)/$this->ticker,0)*$this->ticker;
-                                $t4 = Round((($recorrido1oA * 2.618) + $minimoActual)/$this->ticker,0)*$this->ticker;
-                                $entrada = (abs($t1 - $stopLoss) * 0.4) + $stopLoss;
-                                $entrada = Round($entrada/$this->ticker,0) * $this->ticker;
-                                $qVentanaEntrada = 0;
-
-                                // Descarta si el punto de entrada es menor al low
-                                if ($entrada < $this->datas[$i]['low'])
-                                    $off0 = $off1oA = -1;
-                            }
-                            else
-                                $off0 = $off1oA = -1; // Descarta
-                        }
-                    }
-                    if ($maximoActual == $this->datas[$i]['provMax'] &&
-                        !$flAnulacionBajistaActiva &&
-                        ($this->filtroSetup == 'B' || $this->filtroSetup == 'T')) // Bajista
-                    {
-                        if (!$flAbrePosicion)
-                            self::buscaMinMaxBajista($i, $off1oA, $off0, $stopLoss, $minimo);
+                        // Arma tabla de operaciones
+                        $riesgoPuntos = abs($this->acumValorEntrada-$this->acumStopLoss);
+                        $riesgoTicks = round($riesgoPuntos/$this->ticker, 0);
+                        $riesgoPesos = $riesgoTicks * $this->valorTicker;
+                        $retornoPuntos = abs($this->acumValorEntrada-$this->acumT1);
+                        $retornoTicks = round($retornoPuntos/$this->ticker, 0);
+                        $retornoPesos = $retornoTicks * $this->valorTicker;
+                        if ($riesgoTicks != 0)
+                            $rrr = $retornoTicks / $riesgoTicks;
                         
-                        // Si viene con posicion abierta en mismo sentido descarta
-                        if ($flAbrePosicion && $flBajista) 
-                            $off0 = $off1oA = -1;
+                        if ($this->acumFlAcista)
+                            $direccion = 1;
+                        else
+                            $direccion = -1;
+
+                        if ($this->datas[$i]['swingBarsPrev'] != 0)
+                            $relacionVelas = ($this->datas[$i]['swingBars']-1) / $this->datas[$i]['swingBarsPrev'];
+                        else    
+                            $relacionVelas = 0;
+
+                        // Si no tiene swingbarsprev busca el anterior swingbars 
+                        if ($this->datas[$i]['swingBarsPrev'] == 0)
+                        {
+                            // Traigo el swingbars del ultimo pivot real
+                            for ($r = $i, $contraSwingBars = 0; $r > 0 && 
+                                $this->datas[$r]['min'] == 0 && $this->datas[$r]['max'] == 0; $r--)
+                            {
+                                $contraSwingBars++;
+                            }
+                            $swingBars = $this->datas[$r]['swingBars'];
+                        }
                         else
                         {
-                            $flBajista = true;
-                            $flAlcista = false;
+                            $swingBars = $this->datas[$i]['swingBarsPrev'];
+                            $contraSwingBars = $this->datas[$i]['swingBars']-1;
                         }
 
-                        // Si obtiene maximo y minimo calcula valores para verificar gatillo
-                        if ($off1oA != -1 && $off0 != -1)
+                        if ($swingBars != 0)
+                            $relacionVelas = $contraSwingBars / $swingBars;
+                        else    
+                            $relacionVelas = 0;
+
+                        $this->acumTipoOperacion = ($this->acumFlAcista ? "Buy to Open" : "Sell to Open");
+                        $this->armaTablaOperaciones($this->datas[$i]['fecha'],
+                                                    ++$this->acumIdTrade, 
+                                                    $direccion,
+                                                    $this->cantidadActivaContratos,  
+                                                    $this->datas[$i]['horainicio'], 
+                                                    $this->acumValorEntrada,
+                                                    $this->datas[$i]['stoploss'],
+                                                    $this->acumT1, $this->acumT2, $this->acumT3, $this->acumT4,
+                                                    $rrr,
+                                                    $swingBars,
+                                                    $contraSwingBars,
+                                                    $relacionVelas,
+                                                    $this->datas[$i-1]['provRet'],
+                                                    $riesgoTicks,
+                                                    $retornoTicks,
+                                                    '', '', '', $this->acumTipoOperacion, $i);
+
+                        // Chequea cierre de operacion por si es en la misma vela de apertura
+                        // Controla si cumple eventos de cierre (TGT Hit / SL)
+                        $mpc = $mpf = 0;
+                        $this->controlaCierreTgtSl($i, $this->acumFlAcista, $this->acumFlBajista, 
+                                                    $this->acumFlAbrePosicion, $this->acumIdTrade, $mpc, $mpf);
+
+                        // Chequea cierre de posicion por fuera de hora (NO MERCADO)
+                        if ($this->acumFlAbrePosicion)
                         {
-                            $flAnulacionBajistaActiva = false;
-
-                            // Si esta en un punto maximo o minimo busca criterios de anulacion
-                            if ($this->datas[$i]['min'] != 0)
-                                $this->calculaFiltros($i, $flAnulacionAlcistaActiva, 
-                                                        $flAnulacionBajistaActiva, 'ALCISTA');
-
-                            if (!$flAnulacionBajistaActiva)
+                            if ($this->datas[$i]['horainicio'] >= ($flDayLight ? '18:00:00' : '17:00:00'))
                             {
-                                $recorrido1oA = $stopLoss - $minimo;
-                                $recorrido2oB = $maximoActual - $minimo;
-                                if ($recorrido1oA != 0)
-                                    $retroceso = $recorrido2oB / $recorrido1oA;
-                                else   
-                                    $retroceso = 0;
-
-                                $barras1oA = $off0 - $off1oA;
-                                $barras2oB = $i - $off0;
-                                if ($barras1oA != 0)
-                                    $relacionVelas = $barras2oB / $barras1oA;
-                                else
-                                    $relacionVelas = 0;
-
-                                $t1 = Round(($maximoActual - ($recorrido1oA * 0.618))/$this->ticker,0)*$this->ticker;
-                                $t2 = Round(($maximoActual - ($recorrido1oA * 1.))/$this->ticker,0)*$this->ticker;
-                                $t3 = Round(($maximoActual - ($recorrido1oA * 1.618))/$this->ticker,0)*$this->ticker;
-                                $t4 = Round(($maximoActual - ($recorrido1oA * 2.618))/$this->ticker,0)*$this->ticker;
-
-                                $entrada = $stopLoss - (abs($stopLoss - $t1) * 0.4);
-                                $entrada = Round($entrada/$this->ticker,0) * $this->ticker;
-                                $qVentanaEntrada = 0;
-
-                                // Descarta si el punto de entrada es menor al low
-                                if ($entrada > $this->datas[$i]['high'])
-                                    $off0 = $off1oA = -1;
+                                $this->datas[$i]['p'] = '0';
+                                $this->datas[$i]['evento'] = 'NM';
+                                $this->acumFlAbrePosicion = false;
                             }
+                        }
+
+                        // Si esta en tgt hit y tiene mas contratos cambia el SL
+                        if (substr($this->datas[$i]['evento'], 0, 7) == 'Tgt Hit' && $this->cantidadActivaContratos > 0 &&
+                            $this->totalContratos > 1)
+                        {
+                            $contratoActivo = $this->totalContratos - $this->cantidadActivaContratos + 1;
+                            if ($contratoActivo == 2) // Si estoy en el 2do. contrato activo
+                            {
+                                $this->acumStopLoss = $this->datas[$this->OffAbrePosicion]['e'];
+                                $this->acumStopLoss = ($this->acumFlAcista ? $this->acumStopLoss + $this->ticker : 
+                                                        $this->acumStopLoss - $this->ticker);
+                            }
+                            else // Si no se mueve al target anterior
+                                $this->acumStopLoss = $this->tgt[$contratoActivo-2];
+                            $this->datas[$i]['entrada'] = 'Mueve SL por alcanzar TGT Contrato activo='.$contratoActivo.
+                                                            ' Contratos restantes='.$this->cantidadActivaContratos.
+                                                            ' nuevo SL '.$this->acumStopLoss.' TGT contrato='.
+                                                            $this->tgt[$contratoActivo];
+                        }
+                        // Chequea para cerrar swing
+                        if (!$this->acumFlAbrePosicion)
+                        {
+                            // Si hay mas de 1 contrato continua abierta la posicion
+                            if ($this->cantidadActivaContratos > 0 && substr($this->datas[$i]['evento'], 0, 7) == 'Tgt Hit')
+                                $this->acumFlAbrePosicion = true;
                             else
-                                $off0 = $off1oA = -1; // Descarta
+                            {
+                                $this->acumOff1oA = -1;
+                                $this->cierraPosicion($i, $this->acumFlAcista, $this->acumFlBajista, 
+                                                    $this->OffAbrePosicion,$this->acumIdSenial, $this->acumIdTrade, 
+                                                    $this->cantidadActivaContratos, $this->acumTipoOperacion, $mpc, $mpf);
+                            }
                         }
                     }
-                    
-                    // Si obtiene maximo y minimo verifica gatillo
-                    if ($off1oA != -1 && $off0 != -1)
+                    else
                     {
-                        if ($retroceso >= 0.382 && $relacionVelas <= 1)
+                        $this->acumStopLoss = $this->acumValorEntrada;
+                        $this->acumStopLoss = ($this->acumFlAcista ? $this->acumStopLoss + $this->ticker : 
+                                            $this->acumStopLoss - $this->ticker);
+                        $this->datas[$i]['stoploss'] = $this->acumStopLoss;
+                        $this->datas[$i]['entrada'] .= 'BE por SP contrario '.$this->datas[$i]['stoploss'];
+
+                        // Normaliza flags de sentido del setup
+                        if ($this->acumFlAcista)
                         {
-                            $flBuscaEntrada = true;
-
-                            $this->datas[$i]['entrada'] .= ' Retroceso '.$retroceso.' RV '.$relacionVelas.' T1 '.$t1.' Entrada '.$entrada;
-
-                            if (!$flAbrePosicion)
-                            {
-                                $zonaOpen = $this->calculaZona($this->datas[$i]['open'], $i);
-                                $zonaHigh = $this->calculaZona($this->datas[$i]['high'], $i);
-                                $zonaLow = $this->calculaZona($this->datas[$i]['low'], $i);
-                                $zonaClose = $this->calculaZona($this->datas[$i]['close'], $i);
-                            }
+                            $this->acumFlAcista = false;
+                            $this->acumFlBajista = true;
                         }
-                        $this->datas[$i]['extT1'] = $t1;
-                        $this->datas[$i]['extT2'] = $t2;
-                        $this->datas[$i]['extT3'] = $t3;
-                        $this->datas[$i]['extT4'] = $t4;
+                        else
+                        {
+                            $this->acumFlAcista = true;
+                            $this->acumFlBajista = false;
+                        }
                     }
                 }
                 else
-                    $this->datas[$i]['entrada'] .= ' Volatilidad '.$this->flVolatilidad.' Inertia '.$this->flInertia;
-            }
-
-            $sp = $this->datas[$i]['setup'];
-            if ($sp != '' && !$flBuscaEntrada)
-            {
-                $t1 = $this->datas[$i]['extT1'];
-                $t2 = $this->datas[$i]['extT2'];
-                $t3 = $this->datas[$i]['extT3'];
-                $t4 = $this->datas[$i]['extT4'];
-            
-                $t1Hit = $t2Hit = $t3Hit = $t4Hit = 0;
-
-                switch($sp)
                 {
-                case 'HL':
-                case 'LL':
-                case 'DB':
-                    $columna = 'high';
-                    break;
-                case 'LH':
-                case 'HH':
-                case 'DT':
-                    $columna = 'low';
-                    break;
-                }
-
-                for ($j = $i + 1; $j < count($this->datas); $j++)
-                {
-                    $spCtrl = $this->datas[$j]['setup'];
-                    $extremo = $this->datas[$j][$columna];
-                    if ($columna == 'high')
+                    // Si es un pivot analiza nuevamente
+                    if ($this->datas[$i]['provRet'] >= 0.382 && $this->datas[$i]['provRet'] <= 1)
                     {
-                        if ($t1Hit == 0 && $t1 <= $extremo)
-                        {
-                            $t1Hit = 1;
-                            $this->datas[$i]['t1Hit'] = $j - $i;
-                        }
-                        elseif ($t2Hit == 0 && $t2 <= $extremo)
-                        {
-                            $t2Hit = 1;
-                            $this->datas[$i]['t2Hit'] = $j - $i;
-                        }
-                        elseif ($t3Hit == 0 && $t3 <= $extremo)
-                        {
-                            $t3Hit = 1;
-                            $this->datas[$i]['t3Hit'] = $j - $i;
-                        }
-                        elseif ($t4Hit == 0 && $t4 <= $extremo)
-                        {
-                            $t4Hit = 1;
-                            $this->datas[$i]['t4Hit'] = $j - $i;
-                        }
+                        $this->acumFlAbrePosicion = false;
+                        $this->datas[$i]['entrada'] .= ' Encuentra un nuevo pivot';
                     }
                     else
                     {
-                        if ($columna == 'low')
+                        $this->acumFlAbrePosicion = false;
+                    }
+                }
+                $this->acumFlBuscaEntrada = false;
+            }
+        }
+
+        // Controla para desactivar SP alcista
+        if ($this->flSpAlcista && $i > $this->ventanaSpAlcista)
+        {
+            $this->datas[$i]['entrada'] .= " Anula ventana alcista ".$this->ventanaSpAlcista." offset ".$i;
+
+            $this->flSpAlcista = false;
+            $this->tgtSpAlcista1 = 0;
+            $this->ventanaSpAlcista = 0;
+        }
+
+        // Controla para desactivar SP bajista
+        if ($this->flSpBajista && $i > $this->ventanaSpBajista)
+        {
+            $this->datas[$i]['entrada'] .= " Anula ventana bajista ".$this->ventanaSpBajista." offset ".$i;
+
+            $this->flSpBajista = false;
+            $this->tgtSpBajista1 = 0;
+            $this->ventanaSpBajista = 0;
+        }
+
+        if ($this->flSpBajista)
+            $this->datas[$i]['filtroActivo'] .= " SBLANCA";
+
+        if ($this->flSpAlcista)
+            $this->datas[$i]['filtroActivo'] .= " SROJA";
+
+        if ($this->acumFlAnulacionAbcBajistaActiva)
+            $this->datas[$i]['filtroActivo'] .= ' ABC BLANCA';
+
+        if ($this->acumFlAnulacionAbcAlcistaActiva)
+            $this->datas[$i]['filtroActivo'] .= ' ABC ROJA';
+
+        if ($this->acumFlAnulacionAbCdBajistaActiva)
+            $this->datas[$i]['filtroActivo'] .= ' AB=CD BLANCA';
+
+        if ($this->acumFlAnulacionAbCdAlcistaActiva)
+            $this->datas[$i]['filtroActivo'] .= ' AB=CD ROJA';
+
+        if ($this->acumFlAnulacionW4BajistaActiva)
+            $this->datas[$i]['filtroActivo'] .= ' W4 BLANCA';
+
+        if ($this->acumFlAnulacionW4AlcistaActiva)
+            $this->datas[$i]['filtroActivo'] .= ' W4 ROJA';
+
+        // Busca señal alcista o bajista
+        $this->flAnulaCandidato = false;
+        if (($this->datas[$i]['provMax'] != 0 || $this->datas[$i]['provMin'] != 0) && $this->flEmpiezaOperacion)
+        {
+            // Busca ultimo maximo / minimo
+            $this->buscaUltimoMaximo($i, $offMax, $maximo);
+            $this->buscaUltimoMinimo($i, $offMin, $minimo);
+
+            // Marca setup
+            if ($this->datas[$i]['provMax'] != 0)
+            {
+                $this->marcaSetup($offMax, $offMin, 'ALCISTA');
+            }
+            if ($this->datas[$i]['provMin'] != 0)
+            {
+                $this->marcaSetup($offMax, $offMin, 'BAJISTA');
+            }
+
+            // Busca si provmax es menor al ultimo maximo
+            if ($this->datas[$i]['provMax'] < $maximo && $this->datas[$i]['provMax'] != 0)
+            {
+                // Inicia señal de anulacion alcista
+                if (!$this->flSpAlcista)
+                {
+                    $this->datas[$i]['filtroActivo'] .= " SROJA";
+                    $this->flSpAlcista = true;
+                }
+                $recorrido1oA = abs($maximo - $minimo);
+                $this->tgtSpAlcista1 = Round(($this->datas[$i]['provMax'] - ($recorrido1oA * 0.618))/$this->ticker,0)*$this->ticker;
+                $this->ventanaSpAlcista = $i + (abs($offMax-$offMin) * 2);
+                $this->stopLossSpAlcista = $maximo;
+                $this->ultimoMaximoAlcista = $this->datas[$i]['provMax'];
+                $this->ultimoMinimoAlcista = $minimo;
+
+                $this->datas[$i]['entrada'] .= ' Abre anulacion alcista TGT 1 '.$this->tgtSpAlcista1.' Ventana '.$this->ventanaSpAlcista.
+                                        ' maximo '.$maximo.' minimo '.$minimo.' offset '.$i;
+            }
+
+            // Busca si provmin es mayor al ultimo minimo
+            if ($this->datas[$i]['provMin'] > $minimo && $this->datas[$i]['provMin'] != 0)
+            {
+                // Inicia señal de anulacion bajista
+                if (!$this->flSpBajista)
+                {
+                    $this->datas[$i]['filtroActivo'] .= " SBLANCA";
+                    $this->flSpBajista = true;
+                }
+                $recorrido1oA = abs($maximo - $minimo);
+                $this->tgtSpBajista1 = Round(($this->datas[$i]['provMin'] - ($recorrido1oA * 0.618))/$this->ticker,0)*$this->ticker;
+                $this->ventanaSpBajista = $i + (abs($offMax-$offMin) * 2);
+                $this->stopLossSpBajista = $minimo;
+                $this->ultimoMaximoBajista = $maximo;
+                $this->ultimoMinimoBajista = $this->datas[$i]['low'];
+
+                $this->datas[$i]['entrada'] .= ' Abre anulacion bajista TGT 1 '.$this->tgtSpBajista1.' Ventana '.$this->ventanaSpBajista.
+                                            ' maximo '.$maximo.' minimo '.$minimo.' offset '.$i;
+            }
+
+            // Si esta en un punto maximo o minimo busca criterios de anulacion
+            if ($this->datas[$i]['provMax'] != 0)
+                $this->calculaFiltros($i, 'ALCISTA');
+
+            // Si esta en un punto maximo o minimo busca criterios de anulacion
+            if ($this->datas[$i]['provMin'] != 0)
+                $this->calculaFiltros($i, 'BAJISTA');
+
+            // Si tiene setup alcista activo controla provmax que entre en TGT 1 y tiempo de velas
+            if ($this->flSpBajista && $this->datas[$i]['provMax'] != 0)
+            {
+                // Controlo si el provmax esta en la ventana o cae dentro del TGT 1
+                //if (($this->datas[$i]['provMax'] < $this->tgtSpBajista1 && $i <= $this->ventanaSpBajista) || 
+					//$this->datas[$i]['provMax'] >= $maximo)
+                {
+                    $this->datas[$i]['entrada'] .= ' Anula ProvMax TGT 1 '.$this->tgtSpBajista1.' Ventana '.$this->ventanaSpBajista.
+                                                ' maximo '.$maximo.' offset '.$i;
+                    $this->flAnulaCandidato = true;
+                }
+            }
+            if (!$this->flAnulaCandidato && ($this->acumFlAnulacionAbCdBajistaActiva ||
+                $this->acumFlAnulacionAbcBajistaActiva))
+            {
+                if ($this->acumFlAnulacionAbCdBajistaActiva)
+                    $this->datas[$i]['entrada'] .= ' Anula ProvMax por AB=CD Bajista Activa';
+                else
+                    $this->datas[$i]['entrada'] .= ' Anula ProvMax por ABC Bajista Activa';
+                $this->flAnulaCandidato = true;
+            }
+
+            if (!$this->flAnulaCandidato && $this->acumFlAnulacionW4BajistaActiva)
+            {
+                $this->datas[$i]['entrada'] .= ' Anula ProvMax por W4 Bajista Activa';
+                $this->flAnulaCandidato = true;
+            }
+
+            // Si tiene setup bajista activo controla provmax que entre en TGT 1 y tiempo de velas
+            if ($this->flSpAlcista && $this->datas[$i]['provMin'] != 0)
+            {
+                // Controlo si el provmax esta en la ventana o cae dentro del TGT 1
+                //if (($this->datas[$i]['provMin'] > $this->tgtSpAlcista1 && $i <= $this->ventanaSpAlcista) ||
+					//$this->datas[$i]['provMin'] <= $minimo)
+                {
+                    $this->datas[$i]['entrada'] .= ' Anula ProvMin TGT 1 '.$this->tgtSpAlcista1.' Ventana '.$this->ventanaSpAlcista.
+                                                    ' minimo '.$minimo.' offset '.$i;
+                    $this->flAnulaCandidato = true;
+                }
+            }
+
+            if (!$this->flAnulaCandidato && ($this->acumFlAnulacionAbCdAlcistaActiva ||
+                $this->acumFlAnulacionAbcAlcistaActiva))
+            {
+                if ($this->acumFlAnulacionAbCdAlcistaActiva)
+                    $this->datas[$i]['entrada'] .= ' Anula ProvMax por AB=CD Alcista Activa';
+                else
+                    $this->datas[$i]['entrada'] .= ' Anula ProvMax por ABC Alcista Activa';
+                $this->flAnulaCandidato = true;
+            }
+
+            if (!$this->flAnulaCandidato && $this->acumFlAnulacionW4AlcistaActiva)
+            {
+                $this->datas[$i]['entrada'] .= ' Anula ProvMax por W4 Alcista Activa';
+                $this->flAnulaCandidato = true;
+            }
+        }
+        else
+        {
+            $this->flAnulaCandidato = true;
+        }
+        // anula SBLANCA
+        if (($this->datas[$i]['low'] < $this->ultimoMinimoBajista || $i > $this->ventanaSpBajista ||
+            $this->datas[$i]['high'] > $this->ultimoMaximoBajista) && $this->flSpBajista)
+        {
+            $this->flSpBajista = false;
+            $this->tgtSpBajista1 = 0;
+
+            if ($this->datas[$i]['high'] > $this->ultimoMaximoBajista)
+                $this->datas[$i]['entrada'] .= ' Cierra SBLANCA por max > a ult_maximo '.$this->ultimoMaximoBajista;
+            if ($this->datas[$i]['low'] < $this->ultimoMinimoBajista)
+                $this->datas[$i]['entrada'] .= ' Cierra SBLANCA por min < min_inicio '.$this->ultimoMinimoBajista;
+            if ($i > $this->ventanaSpBajista)
+                $this->datas[$i]['entrada'] .= ' Cierra SBLANCA por superar tiempo de ventana';
+
+            $this->ventanaSpBajista = 0;
+            $this->ultimoMaximoBajista = 0;
+            $this->ultimoMinimoBajista = 0;
+        }
+        // anula SROJA
+		//if ($i == 520)
+		//{
+		//	dd($this->datas[$i]['low'].' '.$this->ultimoMinimoBajista.' '.$this->datas[$i]['high'].' '.$this->ultimoMaximoBajista);
+		//}
+        if (($this->datas[$i]['low'] < $this->ultimoMinimoAlcista || $i > $this->ventanaSpAlcista ||
+            $this->datas[$i]['high'] > $this->ultimoMaximoAlcista) && $this->flSpAlcista)
+        {
+            $this->flSpAlcista = false;
+            $this->tgtSpAlcista1 = 0;
+
+            if ($this->datas[$i]['high'] > $this->ultimoMaximoAlcista)
+                $this->datas[$i]['entrada'] .= ' Cierra SROJA por max > a ult_maximo '.$this->ultimoMaximoAlcista;
+            if ($this->datas[$i]['low'] < $this->ultimoMinimoAlcista)
+                $this->datas[$i]['entrada'] .= ' Cierra SROJA por min < ult.min.'.$this->ultimoMinimoAlcista;
+            if ($i > $this->ventanaSpAlcista)
+                $this->datas[$i]['entrada'] .= ' Cierra SROJA por superar tiempo de ventana';
+
+            $this->ventanaSpAlcista = 0;
+            $this->ultimoMaximoAlcista = 0;
+            $this->ultimoMinimoAlcista = 0;
+        }
+
+        // Chequea por fin de anulacion por ABC/AB=CD
+        if ($this->acumFlAnulacionAbcAlcistaActiva)
+        {
+            $this->acumFlAnulacionAbcAlcistaActiva = Self::verificaAnulacionActivaAbc($i, 'ALCISTA');
+                
+            if (!$this->acumFlAnulacionAbcAlcistaActiva)
+                $this->datas[$i]['entrada'] .= ' Cierra ROJA ABC';
+        }
+        
+        if ($this->acumFlAnulacionAbCdAlcistaActiva)
+        {
+            $this->acumFlAnulacionAbCdAlcistaActiva = Self::verificaAnulacionActivaAbCd($i, 'ALCISTA');
+
+            if (!$this->acumFlAnulacionAbCdAlcistaActiva)
+                $this->datas[$i]['entrada'] .= ' Cierra ROJA AB=CD';
+        }
+
+        if ($this->acumFlAnulacionW4AlcistaActiva)
+        {
+            $this->acumFlAnulacionW4AlcistaActiva = Self::verificaAnulacionActivaW4($i, 'ALCISTA');
+
+            if (!$this->acumFlAnulacionW4AlcistaActiva)
+                $this->datas[$i]['entrada'] .= ' Cierra ROJA W4';
+        }
+
+        if ($this->acumFlAnulacionAbcBajistaActiva)
+        {
+            $this->acumFlAnulacionAbcBajistaActiva = Self::verificaAnulacionActivaAbc($i, 'BAJISTA');
+                
+            if (!$this->acumFlAnulacionAbcBajistaActiva)
+                $this->datas[$i]['entrada'] .= ' Cierra BLANCA ABC';
+        }
+
+        if ($this->acumFlAnulacionAbCdBajistaActiva)
+        {
+            $this->acumFlAnulacionAbCdBajistaActiva = Self::verificaAnulacionActivaAbCd($i, 'BAJISTA');
+
+            if (!$this->acumFlAnulacionAbCdBajistaActiva)
+                $this->datas[$i]['entrada'] .= ' Cierra BLANCA AB=CD';
+        }
+
+        if ($this->acumFlAnulacionW4BajistaActiva)
+        {
+            $this->acumFlAnulacionW4BajistaActiva = Self::verificaAnulacionActivaW4($i, 'BAJISTA');
+                
+            if (!$this->acumFlAnulacionW4BajistaActiva)
+                $this->datas[$i]['entrada'] .= ' Cierra BLANCA W4';
+        }
+
+        if (($this->filtroSetup != 'T' ? !$this->acumFlAbrePosicion : true) &&
+            $this->datas[$i]['provRet'] >= 0.382 && $this->datas[$i]['provRet'] <= 1 &&
+            $this->datas[$i]['regimenVolatilidad'] == 1 &&
+            $this->datas[$i]['horainicio'] >= '08:00:00' &&
+            $this->datas[$i]['horainicio'] <= ($flDayLight ? '17:00:00' : '16:00:00') &&
+            !$this->acumFlCerroPorTiempoAlcista && !$this->acumFlCerroPorTiempoBajista && 
+            !$this->acumFlBuscaEntrada &&
+            !$this->flAnulaCandidato)
+        {
+            // Calcula filtros de inertia y volatilidad
+			if ($this->datas[$i]['provMin'] != 0 || $this->datas[$i]['provMax'] != 0)
+			{
+            	if (!$this->flSinFiltros)
+                	$this->calculaFiltrosVolatilidadInertia($i, $this->datas[$i]['provMin'] ? "ALCISTA" : "BAJISTA");
+			}
+
+            if (!$this->flVolatilidad && !$this->flInertia)
+            {
+                $minimoActual = $this->datas[$i]['low'];
+                $maximoActual = $this->datas[$i]['high'];
+
+                // Define si el candidato es alcista o bajista 
+                $this->acumOff0 = $this->acumOff1oA = -1;
+                
+                if (!$this->acumFlAbrePosicion)
+                    $this->acumFlBajista = $this->acumFlAcista = false;
+                $retroceso = $relacionVelas = 0;
+                if ($minimoActual == $this->datas[$i]['provMin'] && 
+                    ($this->filtroSetup == 'A' || $this->filtroSetup == 'T')) // Alcista
+                {
+                    if (!$this->acumFlAbrePosicion)
+                        self::buscaMinMaxAlcista($i, $this->acumOff1oA, $this->acumOff0, $this->acumStopLoss, $maximo1oA);
+                    // Si viene con posicion abierta en mismo sentido descarta
+                    if ($this->acumFlAbrePosicion && $this->acumFlAcista) 
+                        $this->acumOff0 = $this->acumOff1oA = -1;
+                    else
+                    {
+                        $this->acumFlBajista = false;
+                        $this->acumFlAcista = true;
+
+                        $this->datas[$i]['entrada'] .= 'ACTIVA ALCISTA ';
+                    }
+
+                    // Si obtiene maximo y minimo calcula valores para verificar gatillo
+                    if ($this->acumOff1oA != -1 && $this->acumOff0 != -1)
+                    {
+                        $recorrido1oA = $maximo1oA - $this->acumStopLoss;
+                        $recorrido2oB = $maximo1oA - $minimoActual;
+                        $retroceso = $recorrido2oB / $recorrido1oA;
+
+                        $barras1oA = $this->acumOff1oA - $this->acumOff0;
+                        $barras2oB = $i - $this->acumOff1oA;
+                        $relacionVelas = $barras2oB / $barras1oA;
+
+                        $this->acumT1 = Round((($recorrido1oA * 0.618) + $minimoActual)/$this->ticker,0)*$this->ticker;
+                        $this->acumT2 = Round((($recorrido1oA) + $minimoActual)/$this->ticker,0)*$this->ticker;
+                        $this->acumT3 = Round((($recorrido1oA * 1.618) + $minimoActual)/$this->ticker,0)*$this->ticker;
+                        $this->acumT4 = Round((($recorrido1oA * 2.618) + $minimoActual)/$this->ticker,0)*$this->ticker;
+                        $this->acumPuntoEntrada = (abs($this->acumT1 - $this->acumStopLoss) * 0.4) + $this->acumStopLoss;
+                        $this->acumPuntoEntrada = Round($this->acumPuntoEntrada/$this->ticker,0) * $this->ticker;
+                        $this->acumQVentanaEntrada = 0;
+
+                        // Descarta si el punto de entrada es menor al low
+                        if ($this->acumPuntoEntrada < $this->datas[$i]['low'])
+                            $this->acumOff0 = $this->acumOff1oA = -1;
+                    }
+                }
+                if ($maximoActual == $this->datas[$i]['provMax'] &&
+                    ($this->filtroSetup == 'B' || $this->filtroSetup == 'T')) // Bajista
+                {
+                    if (!$this->acumFlAbrePosicion)
+                        self::buscaMinMaxBajista($i, $this->acumOff1oA, $this->acumOff0, $this->acumStopLoss, $minimo);
+                    
+                    // Si viene con posicion abierta en mismo sentido descarta
+                    if ($this->acumFlAbrePosicion && $this->acumFlBajista) 
+                        $this->acumOff0 = $this->acumOff1oA = -1;
+                    else
+                    {
+                        $this->acumFlBajista = true;
+                        $this->acumFlAcista = false;
+
+                        $this->datas[$i]['entrada'] .= 'ACTIVA BAJISTA ';
+                    }
+
+                    // Si obtiene maximo y minimo calcula valores para verificar gatillo
+                    if ($this->acumOff1oA != -1 && $this->acumOff0 != -1)
+                    {
+                        $recorrido1oA = $this->acumStopLoss - $minimo;
+                        $recorrido2oB = $maximoActual - $minimo;
+                        if ($recorrido1oA != 0)
+                            $retroceso = $recorrido2oB / $recorrido1oA;
+                        else   
+                            $retroceso = 0;
+
+                        $barras1oA = $this->acumOff0 - $this->acumOff1oA;
+                        $barras2oB = $i - $this->acumOff0;
+                        if ($barras1oA != 0)
+                            $relacionVelas = $barras2oB / $barras1oA;
+                        else
+                            $relacionVelas = 0;
+
+                        $this->acumT1 = Round(($maximoActual - ($recorrido1oA * 0.618))/$this->ticker,0)*$this->ticker;
+                        $this->acumT2 = Round(($maximoActual - ($recorrido1oA * 1.))/$this->ticker,0)*$this->ticker;
+                        $this->acumT3 = Round(($maximoActual - ($recorrido1oA * 1.618))/$this->ticker,0)*$this->ticker;
+                        $this->acumT4 = Round(($maximoActual - ($recorrido1oA * 2.618))/$this->ticker,0)*$this->ticker;
+
+                        $this->acumPuntoEntrada = $this->acumStopLoss - (abs($this->acumStopLoss - $this->acumT1) * 0.4);
+                        $this->acumPuntoEntrada = Round($this->acumPuntoEntrada/$this->ticker,0) * $this->ticker;
+                        $this->acumQVentanaEntrada = 0;
+
+                        // Descarta si el punto de entrada es menor al low
+                        if ($this->acumPuntoEntrada > $this->datas[$i]['high'])
+                            $this->acumOff0 = $this->acumOff1oA = -1;
+                    }
+                }
+                
+                // Si obtiene maximo y minimo verifica gatillo
+                if ($this->acumOff1oA != -1 && $this->acumOff0 != -1)
+                {
+                    if ($retroceso >= 0.382 && $relacionVelas <= 1)
+                    {
+                        $this->acumFlBuscaEntrada = true;
+
+                        $this->datas[$i]['entrada'] .= ' Retroceso '.$retroceso.' RV '.$relacionVelas.' T1 '.
+                                                        $this->acumT1.' Entrada '.$this->acumPuntoEntrada;
+
+                        if (!$this->acumFlAbrePosicion)
                         {
-                            if ($t1Hit == 0 && $t1 >= $extremo)
-                            {
-                                $t1Hit = 1;
-                                $this->datas[$i]['t1Hit'] = $j - $i;
-                            }
-                            elseif ($t2Hit == 0 && $t2 >= $extremo)
-                            {
-                                $t2Hit = 1;
-                                $this->datas[$i]['t2Hit'] = $j - $i;
-                            }
-                            elseif ($t3Hit == 0 && $t3 >= $extremo)
-                            {
-                                $t3Hit = 1;
-                                $this->datas[$i]['t3Hit'] = $j - $i;
-                            }
-                            elseif ($t4Hit == 0 && $t4 >= $extremo)
-                            {
-                                $t4Hit = 1;
-                                $this->datas[$i]['t4Hit'] = $j - $i;
-                            }
+                            $zonaOpen = $this->calculaZona($this->datas[$i]['open'], $i);
+                            $zonaHigh = $this->calculaZona($this->datas[$i]['high'], $i);
+                            $zonaLow = $this->calculaZona($this->datas[$i]['low'], $i);
+                            $zonaClose = $this->calculaZona($this->datas[$i]['close'], $i);
                         }
                     }
-                    if ($spCtrl != '')
-                        break;
+                    $this->datas[$i]['extT1'] = $this->acumT1;
+                    $this->datas[$i]['extT2'] = $this->acumT2;
+                    $this->datas[$i]['extT3'] = $this->acumT3;
+                    $this->datas[$i]['extT4'] = $this->acumT4;
                 }
+            }
+            else
+                $this->datas[$i]['entrada'] .= ' Volatilidad '.$this->flVolatilidad.' Inertia '.$this->flInertia;
+        }
+
+        $sp = $this->datas[$i]['setup'];
+        if ($sp != '' && !$this->acumFlBuscaEntrada)
+        {
+            $this->acumT1 = $this->datas[$i]['extT1'];
+            $this->acumT2 = $this->datas[$i]['extT2'];
+            $this->acumT3 = $this->datas[$i]['extT3'];
+            $this->acumT4 = $this->datas[$i]['extT4'];
+        
+            $t1Hit = $t2Hit = $t3Hit = $t4Hit = 0;
+
+            switch($sp)
+            {
+            case 'HL':
+            case 'LL':
+            case 'DB':
+                $columna = 'high';
+                break;
+            case 'LH':
+            case 'HH':
+            case 'DT':
+                $columna = 'low';
+                break;
             }
         }
     }
 
-    private function calculaFiltros($i, &$flAnulacionAlcistaActiva, &$flAnulacionBajistaActiva, $op)
+    private function calculaFiltros($i, $op)
     {
-        // Calcula filtros ABC / AB=CD
-        $this->flAbc = self::calculaAbc($i, $op);
-        $this->flAbCd = self::calculaAbCd($i, $op);
-        $this->fl3Drives = self::calcula3Drives($i, $op);
-        $this->flShark = self::calculaShark($i, $op);
-        $this->flW4 = self::calculaW4($i, $op);
-        $this->flSp = self::calculaSp($i, $op);
-
-        if ($this->flAbc || $this->flAbCd || $this->flShark || $this->flW4 || $this->flSp) 
+        if (self::calculaW4($i, $op, true))
         {
             if ($op == 'BAJISTA')
-                $flAnulacionAlcistaActiva = true;
-            else
-                $flAnulacionBajistaActiva = true;
+            {
+                $this->acumFlAnulacionW4BajistaActiva = true;
 
-            $this->datas[$i]['entrada'] .= ' ACTIVA ANULACION de candidatos '.
-                                            ($op == 'BAJISTA' ? 'alcistas' : 'bajistas');
+                $this->datas[$i]['filtroActivo'] .= ' W4 BLANCA';
+            }
+            else
+            {
+                $this->acumFlAnulacionW4AlcistaActiva = true;
+
+                $this->datas[$i]['filtroActivo'] .= ' W4 ROJA';
+            }
+        }     
+        if (self::calculaAbCd($i, $op, true))
+        {
+            if ($op == 'BAJISTA')
+            {
+                $this->acumFlAnulacionAbCdBajistaActiva = true;
+
+                $this->datas[$i]['filtroActivo'] .= ' AB=CD BLANCA';
+            }
+            else
+            {
+                $this->acumFlAnulacionAbCdAlcistaActiva = true;
+
+                $this->datas[$i]['filtroActivo'] .= ' AB=CD ROJA';
+            }
+        }
+        // Calcula filtros ABC / AB=CD
+        if (self::calculaAbc($i, $op, true))
+        {
+            if ($op == 'BAJISTA')
+            {
+                $this->acumFlAnulacionAbcBajistaActiva = true;
+
+                $this->datas[$i]['filtroActivo'] .= ' ABC BLANCA';
+            }
+            else
+            {
+                $this->acumFlAnulacionAbcAlcistaActiva = true;
+
+                $this->datas[$i]['filtroActivo'] .= ' ABC ROJA';
+            }
         }
     }
     
@@ -1789,8 +2015,6 @@ class IndicadoresService
         $plPuntos = ($this->datas[$i]['e'] - $precioCierre) * ($flBajista ? 1 : -1);
         $plTicks = $plPuntos / $this->ticker;
         $plPesos = $plTicks * $this->valorTicker;
-        //$mpc = $this->calculaMpc($offAbrePosicion, $i, $this->datas[$i]['evento'], $precioCierre);
-        //$mpf = $this->calculaMpf($offAbrePosicion, $i, $this->datas[$i]['evento'], $precioCierre);
 
 		if ($this->datas[$i]['stoploss'] - $this->datas[$i]['e'] != 0)
         	$eficienciaEntrada = ($mpc - $this->datas[$i]['e']) / ($this->datas[$i]['stoploss'] - $this->datas[$i]['e']);
@@ -1837,6 +2061,7 @@ class IndicadoresService
 				{
                 	$this->datas[$i]['p'] = '0';
                     $flAbrePosicion = false;
+                	$this->acumFlCierraPorTiempo = false;
 				}
             }
             // Chequea con SL
@@ -1860,6 +2085,7 @@ class IndicadoresService
                 $this->datas[$i]['p'] = '0';
                 $this->datas[$i]['evento'] = 'SL '.$this->datas[$i]['stoploss'].' A i'.$i;
                 $flAbrePosicion = false;
+                $this->acumFlCierraPorTiempo = false;
             }
         }
         if ($flBajista)
@@ -1890,6 +2116,7 @@ class IndicadoresService
 				{
                 	$this->datas[$i]['p'] = '0';
                     $flAbrePosicion = false;
+                	$this->acumFlCierraPorTiempo = false;
 				}
             }
             // Chequea con SL
@@ -1901,6 +2128,7 @@ class IndicadoresService
                 $this->datas[$i]['p'] = '0';
                 $this->datas[$i]['evento'] = 'SL '.$this->datas[$i]['stoploss'].' B i'.$i;
                 $flAbrePosicion = false;
+                $this->acumFlCierraPorTiempo = false;
 
                 $this->armaTablaOperaciones($this->datas[$i]['fecha'],
                     $idTrade, 
@@ -1928,8 +2156,7 @@ class IndicadoresService
                     $off0 = $o;
                     $stopLoss = $this->datas[$o]['low'];
                     if (!strstr($this->datas[$o]['entrada'], 'Stop Loss'))
-                        $this->datas[$o]['entrada'] .= ' Nuevo STOP
-                         Loss Alcista '.$stopLoss;
+                        $this->datas[$o]['entrada'] .= ' Nuevo STOP Loss Alcista '.$stopLoss;
                 }
             }
             if ($this->datas[$o]['max'] != 0)
@@ -1967,6 +2194,32 @@ class IndicadoresService
             }
             if ($offmax != -1 && $offmin != -1)
                 break;
+        }
+    }
+
+    private function buscaUltimoMinimo($offset, &$offmin, &$minimo)
+    {
+        $offmin = -1;
+        for ($o = $offset; $o >= 0 && $offmin == -1; $o--)
+        {
+            if ($this->datas[$o]['min'] != 0)
+            {
+                $minimo = $this->datas[$o]['min'];
+                $offmin = $o;
+            }
+        }
+    }
+
+    private function buscaUltimoMaximo($offset, &$offmax, &$maximo)
+    {
+        $offmax = -1;
+        for ($o = $offset; $o >= 0 && $offmax == -1; $o--)
+        {
+            if ($this->datas[$o]['max'] != 0)
+            {
+                $maximo = $this->datas[$o]['max'];
+                $offmax = $o;
+            }
         }
     }
 
@@ -2032,22 +2285,42 @@ class IndicadoresService
         return $mpc;
     }
 
-    private function calculaAbc($offset, $setup)
+    private function marcaSetup($offMax, $offMin, $setup)
+    {   
+        if ($setup == 'ALCISTA')
+            $offset = $offMin;
+        else    
+            $offset = $offMax;
+
+        // Calcula SP
+        if (Self::calculaSp($offset, $setup, false))
+            $this->datas[$offset]['senial'] = ($setup == 'ALCISTA' ? 'SPup' : 'Spdw');
+
+        // Calcula AB=CD
+        if (Self::calculaAbCd($offset, ($setup == 'ALCISTA' ? 'BAJISTA' : 'ALCISTA'), false))
+            $this->datas[$offset]['senial'] = ($setup == 'ALCISTA' ? 'ABCDup' : 'ABCDdw');
+
+        // Calcula W4 da vuelta el nombre porque W4 calcula como señal que anula que es la inversa
+        if (Self::calculaW4($offset, ($setup == 'ALCISTA' ? 'BAJISTA' : 'ALCISTA'), false))
+            $this->datas[$offset]['senial'] = ($setup == 'ALCISTA' ? 'W4up' : 'W4dw');       
+        
+        // Calcula W5
+        if (Self::calculaW5($offset, ($setup == 'ALCISTA' ? 'BAJISTA' : 'ALCISTA')))
+            $this->datas[$offset]['senial'] = ($setup == 'ALCISTA' ? 'W5up' : 'W5dw');  
+
+        // Calcula ABC da vuelta el nombre porque ABC calcula como señal que anula que es la inversa
+        if (Self::calculaAbc($offset, $setup, false))
+            $this->datas[$offset]['senial'] = ($setup == 'ALCISTA' ? 'ABCup' : 'ABCdw');       
+    }
+
+    private function calculaAbc($offset, $setup, $flAvisos)
     {
-        if ($setup == 'BAJISTA')
-        {
-            $offMin = 1;
-            $offMax = 2;
-        }
-        else
-        {
-            $offMin = 2;
-            $offMax = 1;
-        }
-        $D = 2; $C = 1; $B = 1; $A = 0; $O = 0;
+        $offMin = 1;
+        $offMax = 1;
+        $C = $offset; $B = 1; $A = 1; $O = 0; $I = 0;
         $min = array();
         $max = array();
-        for ($o = $offset; $o >= 0 && ($offMin >= 0 || $offMax >= 0); $o--)
+        for ($o = $offset-1; $o >= 0 && ($offMin >= 0 || $offMax >= 0); $o--)
         {
             if ($this->datas[$o]['min'] != 0 && $offMin >= 0)
                 $min[$offMin--] = $o;
@@ -2055,111 +2328,175 @@ class IndicadoresService
             if ($this->datas[$o]['max'] != 0 && $offMax >= 0)
                 $max[$offMax--] = $o;
         }
-        // Si encontro los minimos y maximos necesarios calcula cibducuibes de ABC
-        $condicion0 = $condicion1 = $condicion2 = $condicion3 = 0;
+        // Si encontro los minimos y maximos necesarios calcula condiciones de ABC
+        $condicion0 = $condicion1 = $condicion2 = $condicion3 = $condicion4 = 0;
         $retroceso1 = $retroceso2 = 0;
-        $this->datas[$offset]['entrada'] .= "CONTROL ABC INICIAL ".$offMin." ".$offMax." ".$setup;
+        if ($flAvisos)
+            $this->datas[$offset]['entrada'] .= " CONTROL ABC INICIAL ".$offMin." ".$offMax." ".$setup;
         if ($offMin == -1 && $offMax == -1)
         {
-            if ($setup == 'BAJISTA')
+            if ($flAvisos)
             {
-                if ($this->datas[$max[$D]]['max'] > $this->datas[$max[$B]]['max'] && 
-                    $this->datas[$max[$D]]['max'] < $this->datas[$max[$O]]['max'] &&
-                    $this->datas[$min[$C]]['min'] >= $this->datas[$min[$A]]['min'])
-                    $condicion0 = true;
+                if ($setup == 'BAJISTA')
+                {
+                    if ($this->datas[$C]['provMin'] < $this->datas[$min[$A]]['min'] && 
+                        $this->datas[$A]['min'] > $this->datas[$min[$O]]['min'] &&
+                        $this->datas[$C]['provMin'] > $this->datas[$min[$O]]['min'] &&
+                        $this->datas[$max[$B]]['max'] < $this->datas[$max[$I]]['max'])
+                        $condicion0 = true;
 
-                if (abs($this->datas[$min[$A]]['min'] - $this->datas[$max[$B]]['max']))
-                    $retroceso1 = abs($this->datas[$max[$B]]['max'] - $this->datas[$min[$C]]['min']) / 
-                                abs($this->datas[$min[$A]]['min'] - $this->datas[$max[$B]]['max']);
+                    if ($condicion0)
+                    {
+                        $retroceso1 = abs($max[$I] - $C) / abs($max[$I] - $min[$O]);
+                    }
+                }
+                else
+                {
+                    if ($this->datas[$C]['provMax'] > $this->datas[$max[$A]]['max'] && 
+                        $this->datas[$min[$B]]['min'] > $this->datas[$min[$I]]['min'] &&
+                        $this->datas[$C]['provMax'] < $this->datas[$max[$O]]['max'])
+                        $condicion0 = true;
 
-                if (abs($this->datas[$max[$B]]['max'] - $this->datas[$min[$C]]['min']))
-                    $retroceso2 = abs($this->datas[$min[$C]]['min'] - $this->datas[$max[$D]]['max']) / 
-                            abs($this->datas[$max[$B]]['max'] - $this->datas[$min[$C]]['min']);
+                    if ($condicion0)
+                    {
+                        $retroceso1 = abs($min[$I] - $C) / abs($min[$I] - $max[$O]);
+                    }
+                }
 
-                $barras2 = $this->datas[$max[$D]]['swingBars'];
-                $barras1 = $this->datas[$max[$B]]['swingBars'];
+                // Arma condicion 1 2 y 3
+                if ($retroceso1 >= 0.3 && $retroceso1 <= 1.05)
+                    $condicion1 = true;
+
+                $condicion2 = true;
+                $condicion3 = true;
+                $condicion4 = true;
             }
             else
             {
-                if ($this->datas[$min[$D]]['min'] < $this->datas[$min[$B]]['min'] && 
-                    $this->datas[$min[$D]]['min'] < $this->datas[$min[$O]]['min'] &&
-                    $this->datas[$max[$C]]['max'] < $this->datas[$max[$A]]['max'])
-                    $condicion0 = true;
+                if ($setup == 'BAJISTA')
+                {
+                    if ($this->datas[$C]['max'] < $this->datas[$max[$O]]['max'])
+                        $condicion0 = true;
 
-                if (abs($this->datas[$max[$A]]['max'] - $this->datas[$min[$B]]['min']))
-                    $retroceso1 = abs($this->datas[$min[$B]]['min'] - $this->datas[$max[$C]]['max']) / 
+                    $x1 = abs($max[$O] - $min[$I]);
+                    $x2 = abs($min[$I] - $max[$A]) + abs($max[$A] - $min[$B]) + abs($min[$B] - $C);
+
+                    if ($x2 >= $x1 * 0.5 && $x2 <= $x1 * 1.618)
+                        $condicion1 = true;
+
+                    $retroceso1 = abs($this->datas[$min[$B]]['min'] - $this->datas[$C]['max']) / 
                                 abs($this->datas[$max[$A]]['max'] - $this->datas[$min[$B]]['min']);
 
-                if (abs($this->datas[$min[$B]]['min'] - $this->datas[$max[$C]]['max']))
-                    $retroceso2 = abs($this->datas[$max[$C]]['max'] - $this->datas[$min[$D]]['min']) / 
-                            abs($this->datas[$min[$B]]['min'] - $this->datas[$max[$C]]['max']);
+                    $retroceso2 = abs($this->datas[$max[$A]]['max'] - $this->datas[$min[$B]]['min']) /
+                                abs($this->datas[$max[$A]]['max'] - $this->datas[$min[$I]]['min']);
 
-                $barras2 = $this->datas[$min[$D]]['swingBars'];
-                $barras1 = $this->datas[$min[$B]]['swingBars'];
+                    if ($retroceso1 >= 0.786 && $retroceso1 <= 1.236)
+                        $condicion2 = true;
+        
+                    if ($retroceso2 >= 0.786 && $retroceso2 <= 1.236)
+                        $condicion3 = true;
+
+                    $retroceso3 = abs($this->datas[$max[$A]]['max'] - $this->datas[$min[$B]]['min']) /
+                                abs($this->datas[$max[$O]]['max'] - $this->datas[$min[$I]]['min']);
+
+                    if ($retroceso3 <= 1)
+                        $condicion4 = true;                        
+                }
+                else
+                {
+                    if ($this->datas[$C]['min'] > $this->datas[$min[$O]]['min'])
+                        $condicion0 = true;
+
+                    $x1 = abs($min[$O] - $max[$I]);
+                    $x2 = abs($max[$I] - $min[$A]) + abs($min[$A] - $max[$B]) + abs($max[$B] - $C);
+
+                    if ($x2 >= $x1 * 0.5 && $x2 <= $x1 * 1.618)
+                        $condicion1 = true;
+
+                    $retroceso1 = abs($this->datas[$max[$B]]['max'] - $this->datas[$C]['min']) / 
+                                abs($this->datas[$min[$A]]['min'] - $this->datas[$max[$B]]['max']);
+
+                    $retroceso2 = abs($this->datas[$min[$A]]['min'] - $this->datas[$max[$B]]['max']) /
+                                abs($this->datas[$min[$A]]['min'] - $this->datas[$max[$I]]['max']);
+
+                    if ($retroceso1 >= 0.786 && $retroceso1 <= 1.236)
+                        $condicion2 = true;
+
+                    if ($retroceso2 >= 0.786 && $retroceso2 <= 1.236)
+                        $condicion3 = true;
+
+                    $retroceso3 = abs($this->datas[$min[$A]]['min'] - $this->datas[$max[$B]]['max']) /
+                                abs($this->datas[$min[$O]]['min'] - $this->datas[$max[$I]]['max']);
+
+                    if ($retroceso3 <= 1)
+                        $condicion4 = true;
+                }
             }
-
-            // Arma condicion 1 2 y 3
-            if ($retroceso1 >= 0.382 && $retroceso1 <= 0.886)
-                $condicion1 = true;
-                
-            if ($retroceso2 >= 1.13 && $retroceso2 <= 2.618)
-                $condicion2 = true;
-
-            $cocienteBarras = 0;
-            if ($barras1 != 0)
-                $cocienteBarras = $barras2 / $barras1;
-
-            if ($cocienteBarras >= 0.5 && $cocienteBarras <= 2)
-                $condicion3 = true;
-
-            if ($setup == 'BAJISTA')
-                $this->datas[$offset]['entrada'] .= " Control ABC Max D=".$this->datas[$max[$D]]['max']." Min C=". 
-												$this->datas[$min[$C]]['min']." Max B=".$this->datas[$max[$B]]['max'].
-												" Min A=".$this->datas[$min[$A]]['min']." Max O=".$this->datas[$max[$O]]['max'].
-                                                " Retroceso 1=".$retroceso1.
-												" Retroceso 2=".$retroceso2." Barras DC ".$barras2." Barras BA ".$barras1." Cociente barras=".$cocienteBarras." ".
-                                                $condicion0." ".$condicion1." ".$condicion2." ".$condicion3;
-            else
-                $this->datas[$offset]['entrada'] .= " Control ABC Min D=".$this->datas[$min[$D]]['min']." Max C=". 
-												$this->datas[$max[$C]]['max']." Min B=".$this->datas[$min[$B]]['min'].
-												" Max A=".$this->datas[$max[$A]]['max']." Min O=".$this->datas[$min[$O]]['min'].
-                                                " Retroceso 1=".$retroceso1.
-												" Retroceso 2=".$retroceso2." Barras DC ".$barras2." Barras BA ".$barras1." Cociente barras=".$cocienteBarras." ".
-                                                $condicion0." ".$condicion1." ".$condicion2." ".$condicion3;
         }
-        if ($condicion0 && $condicion1 && $condicion2 && $condicion3)
+        if ($condicion0 && $condicion1 && $condicion2 && $condicion3 && $condicion4)
         {
-            // Asigna variables globales
-            if ($setup == 'BAJISTA')
+            if ($flAvisos)
             {
-                $this->offsetMaximoD = $max[$D];
-                $this->offsetMinimoC = $min[$C];
-                $this->offsetMaximoB = $max[$B];
-                $this->offsetMinimoA = $min[$A];
+                if ($setup == 'BAJISTA')
+                    $this->datas[$offset]['entrada'] .= " Control ABC Alcista Min C=".$this->datas[$C]['provMin'].
+                                                    " Max B=".$this->datas[$max[$B]]['max'].
+                                                    " Min A=".$this->datas[$min[$A]]['min'].
+                                                    " Max 1=".$this->datas[$max[$I]]['max'].
+                                                    " Min O=".$this->datas[$min[$O]]['min'].
+                                                    " Retroceso 1=".$retroceso1." ".
+                                                    $condicion0." ".$condicion1;
+                else
+                    $this->datas[$offset]['entrada'] .= " Control ABC Bajista Max C=".$this->datas[$C]['provMax'].
+                                                    " Min B=".$this->datas[$min[$B]]['min'].
+                                                    " Max A=".$this->datas[$max[$A]]['max'].
+                                                    " Min 1=".$this->datas[$min[$I]]['min'].
+                                                    " Max O=".$this->datas[$max[$O]]['max'].
+                                                    " Retroceso 1=".$retroceso1." ".
+                                                    $condicion0." ".$condicion1;
+            }
+
+            // Asigna variables globales
+            if ($setup == 'ALCISTA')
+            {
+                $this->offsetCAbc = $offset;
+                $this->offsetBAbc = $min[$B];
+                $this->offsetAAbc = $max[$A];
+                $this->offsetU = $min[$I];
+                $this->offsetO = $max[$O];
             }
             else
             {
-                $this->offsetMinimoD = $min[$D];
-                $this->offsetMaximoC = $max[$C];
-                $this->offsetMinimoB = $min[$B];
-                $this->offsetMaximoA = $max[$A];
+                $this->offsetCAbc = $offset;
+                $this->offsetBAbc = $max[$B];
+                $this->offsetAAbc = $min[$A];
+                $this->offsetU = $max[$I];
+                $this->offsetO = $min[$O];
             }
 
             // Marca aviso de punto ABC
-            $this->datas[$offset]['entrada'] .= " CUMPLE ABC ".$setup." ";
+            if ($flAvisos)
+                $this->datas[$offset]['entrada'] .= " CUMPLE ABC ".$setup." ";
 
-            $this->offsetAbcd = $offset;
+            $this->offsetAbc = $offset;
             return true;
         }
         return false;
     }
 
-    private function calculaAbCd($offset, $setup)
+    private function calculaAbCd($offset, $setup, $flAvisos)
     {
-        $offMin = 1;
-        $offMax = 1;
-        $D = 1; $C = 1; $B = 0; $A = 0;
-        for ($o = $offset; $o >= 0 && ($offMin >= 0 || $offMax >= 0); $o--)
+        if ($setup == 'BAJISTA')
+        {
+            $offMin = 0;
+            $offMax = 1;
+        }
+        else
+        {
+            $offMin = 1;
+            $offMax = 0;
+        }
+        $D = $offset; $C = 1; $B = 0; $A = 0;
+        for ($o = $offset-1; $o >= 0 && ($offMin >= 0 || $offMax >= 0); $o--)
         {
             if ($this->datas[$o]['min'] != 0 && $offMin >= 0)
                 $min[$offMin--] = $o;
@@ -2169,99 +2506,112 @@ class IndicadoresService
         }
         // Si encontro los minimos y maximos necesarios calcula cibducuibes de ABC
         $condicion0 = $condicion1 = $condicion2 = $condicion3 = 0;
-        $retroceso1 = $retroceso2 = 0;
-        $this->datas[$offset]['entrada'] .= "CONTROL AB=CD INICIAL ".$offMin." ".$offMax." ".$setup;
+        $retroceso1 = $retroceso2 = $retroceso3 = 0;
+        if ($flAvisos)
+            $this->datas[$offset]['entrada'] .= "CONTROL AB=CD INICIAL ".$offMin." ".$offMax." ".$setup;
         if ($offMin == -1 && $offMax == -1)
         {
             if ($setup == 'BAJISTA')
             {
-                if ($this->datas[$max[$D]]['max'] > $this->datas[$max[$B]]['max'] && 
-                    $this->datas[$min[$C]]['min'] > $this->datas[$min[$A]]['min'])
-                    $condicion0 = true;
-
-                if (abs($this->datas[$min[$A]]['min'] - $this->datas[$max[$B]]['max']) > 0)
-                    $retroceso1 = abs($this->datas[$max[$B]]['max'] - $this->datas[$min[$C]]['min']) / 
-                            abs($this->datas[$min[$A]]['min'] - $this->datas[$max[$B]]['max']);
-
-                if (abs($this->datas[$max[$B]]['max'] - $this->datas[$min[$C]]['min']) > 0)
-                    $retroceso2 = abs($this->datas[$min[$C]]['min'] - $this->datas[$max[$D]]['max']) / 
-                            abs($this->datas[$max[$B]]['max'] - $this->datas[$min[$C]]['min']);
-                
-                $barras2 = $this->datas[$max[$D]]['swingBars'];
-                $barras1 = $this->datas[$max[$B]]['swingBars'];                
-            }
-            else
-            {
-                if ($this->datas[$min[$D]]['min'] < $this->datas[$min[$B]]['min'] && 
+                if ($this->datas[$D]['provMin'] < $this->datas[$min[$B]]['min'] && 
                     $this->datas[$max[$C]]['max'] < $this->datas[$max[$A]]['max'])
                     $condicion0 = true;
 
-                if (abs($this->datas[$max[$A]]['max'] - $this->datas[$min[$B]]['min']) > 0)
+                if ($condicion0)
+                {
                     $retroceso1 = abs($this->datas[$min[$B]]['min'] - $this->datas[$max[$C]]['max']) / 
-                            abs($this->datas[$max[$A]]['max'] - $this->datas[$min[$B]]['min']);
+                                abs($this->datas[$max[$A]]['max'] - $this->datas[$min[$B]]['min']);
 
-                if (abs($this->datas[$min[$B]]['min'] - $this->datas[$max[$C]]['max']) > 0)
-                    $retroceso2 = abs($this->datas[$max[$C]]['max'] - $this->datas[$min[$D]]['min']) / 
-                            abs($this->datas[$min[$B]]['min'] - $this->datas[$max[$C]]['max']);
+                    $retroceso2 = abs($this->datas[$max[$C]]['max'] - $this->datas[$D]['provMin']) / 
+                                abs($this->datas[$min[$B]]['min'] - $this->datas[$max[$C]]['max']);
 
-                $barras2 = $this->datas[$min[$D]]['swingBars'];
-                $barras1 = $this->datas[$min[$B]]['swingBars'];
+					$retroceso3 = abs($max[$C] - $D) / abs($max[$A] - $min[$B]);
+                }
+            }
+            else
+            {
+                if ($this->datas[$D]['provMax'] > $this->datas[$max[$B]]['max'] && 
+                    $this->datas[$min[$C]]['min'] > $this->datas[$min[$A]]['min'])
+                    $condicion0 = true;
+
+                if ($condicion0)
+                {
+                    $retroceso1 = abs($this->datas[$max[$B]]['max'] - $this->datas[$min[$C]]['min']) / 
+                            abs($this->datas[$min[$A]]['min'] - $this->datas[$max[$B]]['max']);
+
+                    $retroceso2 = abs($this->datas[$min[$C]]['min'] - $this->datas[$D]['provMax']) / 
+                            abs($this->datas[$max[$B]]['max'] - $this->datas[$min[$C]]['min']);
+
+					$retroceso3 = abs($min[$C] - $D) / abs($min[$A] - $max[$B]);
+                }
             }
 
             // Arma condicion 1 2 y 3
             if ($retroceso1 >= 0.382 && $retroceso1 <= 0.886)
                 $condicion1 = true;
 
-            if ($retroceso2 >= 1.13 && $retroceso2 <= 2.618)
-                $condicion2 = true;
-
-            $barras2 = $this->datas[$max[$D]]['swingBars'];
-            $barras1 = $this->datas[$max[$B]]['swingBars'];
-
-            $cocienteBarras = 0;
-            if ($barras1 != 0)
-                $cocienteBarras = $barras2 / $barras1;
-
-            if ($cocienteBarras >= 0.5 && $cocienteBarras <= 2)
+            if ($flAvisos)
+            {
+                if ($retroceso2 >= 1.13 && $retroceso2 <= 2.618)
+                    $condicion2 = true;
+        
+                if ($retroceso3 >= 0.618 && $retroceso3 <= 1.618)
+                    $condicion3 = true;
+            }
+            else
+            {
+                if ($retroceso2 >= 1.272 && $retroceso2 <= 1.618)
+                    $condicion2 = true; 
+                
                 $condicion3 = true;
+            }
 
-            if ($setup == 'BAJISTA')
-                $this->datas[$offset]['entrada'] .= " Control AB=CD Max D=".$this->datas[$max[$D]]['max']." Min C=". 
-												$this->datas[$min[$C]]['min']." Max B=".$this->datas[$max[$B]]['max'].
-												" Max A=".$this->datas[$min[$A]]['min']. " Retroceso 1=".$retroceso1.
-												" Retroceso 2=".$retroceso2." Barras DC ".$barras2." Barras BA ".$barras1.
-                                                " Cociente barras=".$cocienteBarras." ".
+            if ($flAvisos)
+            {
+                if ($setup == 'BAJISTA')
+                    $this->datas[$offset]['entrada'] .= " CONDICIONES AB=CD Min D=".$this->datas[$D]['provMin'].
+                                                    " Max C=".$this->datas[$max[$C]]['max'].
+                                                    " Min B=".$this->datas[$min[$B]]['min'].
+                                                    " Max A=".$this->datas[$max[$A]]['max']. 
+                                                    " Retroceso 1=".$retroceso1.
+                                                    " Retroceso 2=".$retroceso2.
+                                                    " Retroceso 3=".$retroceso3.
+                                                    ' '.
+                                                    $condicion0." ".$condicion1." ".$condicion2." ".$condicion3;
+                else            
+                    $this->datas[$offset]['entrada'] .= " CONDICIONES AB=CD Max D=".$this->datas[$D]['provMax'].
+                                                " Min C=".$this->datas[$min[$C]]['min'].
+                                                " Max B=".$this->datas[$max[$B]]['max'].
+                                                " Min A=".$this->datas[$min[$A]]['min']. 
+                                                " Retroceso 1=".$retroceso1.
+                                                " Retroceso 2=".$retroceso2.
+                                                " Retroceso 3=".$retroceso3.' '.
                                                 $condicion0." ".$condicion1." ".$condicion2." ".$condicion3;
-            else            
-                $this->datas[$offset]['entrada'] .= " Control AB=CD Min D=".$this->datas[$min[$D]]['min']." Max C=". 
-                                                $this->datas[$max[$C]]['max']." Min B=".$this->datas[$min[$B]]['min'].
-                                                " Max A=".$this->datas[$max[$A]]['max']. " Retroceso 1=".$retroceso1.
-                                                " Retroceso 2=".$retroceso2." Barras DC ".$barras2." Barras BA ".$barras1.
-                                                " Cociente barras=".$cocienteBarras." ".
-                                                $condicion0." ".$condicion1." ".$condicion2." ".$condicion3;
+            }
         }
         if ($condicion0 && $condicion1 && $condicion2 && $condicion3)
         {
             // Asigna variables globales
             if ($setup == 'BAJISTA')
             {
-                $this->offsetMaximoD = $max[$D];
-                $this->offsetMinimoC = $min[$C];
-                $this->offsetMaximoB = $max[$B];
-                $this->offsetMinimoA = $min[$A];
+                $this->offsetD = $D;
+                $this->offsetCAbCd = $max[$C];
+                $this->offsetBAbCd = $min[$B];
+                $this->offsetAAbCd = $max[$A];
             }
             else
             {
-                $this->offsetMinimoD = $min[$D];
-                $this->offsetMaximoC = $max[$C];
-                $this->offsetMinimoB = $min[$B];
-                $this->offsetMaximoA = $max[$A];
+                $this->offsetD = $D;
+                $this->offsetCAbCd = $min[$C];
+                $this->offsetBAbCd = $max[$B];
+                $this->offsetAAbCd = $min[$A];
             }
 
             // Marca aviso de punto AB = CD
-            $this->datas[$offset]['entrada'] .= " CUMPLE AB = CD ".$setup." ";
+            if ($flAvisos)
+                $this->datas[$offset]['entrada'] .= " CUMPLE AB = CD ".$setup." ";
 
-            $this->offsetAbcd = $offset;
+            $this->offsetAbCd = $offset;
             return true;
         }
         return false;
@@ -2557,19 +2907,157 @@ class IndicadoresService
         return false;
     }
 
-    private function calculaW4($offset, $setup)
+    private function calculaW4($offset, $setup, $flAvisos)
     {
-        if ($setup == 'BAJISTA')
+        $offMax = 1;
+        $offMin = 1;
+        $O = 0; $U = 0; $D = 1; $T = 1; $C = $offset;
+        $min = array();
+        $max = array();
+        for ($o = $offset-1; $o >= 0 && ($offMin >= 0 || $offMax >= 0); $o--)
         {
-            $offMax = 2;
-            $offMin = 1;
+            if ($this->datas[$o]['min'] != 0 && $offMin >= 0)
+                $min[$offMin--] = $o;
+
+            if ($this->datas[$o]['max'] != 0 && $offMax >= 0)
+                $max[$offMax--] = $o;
         }
-        else
+        // Si encontro los minimos y maximos necesarios calcula condiciones
+        $condicion0 = $condicion1 = $condicion2 = $condicion3 = 0;
+        $condicion4 = 0;
+
+        if ($flAvisos)
+            $this->datas[$offset]['entrada'] .= "CONTROL W4 INICIAL ".$offMin." ".$offMax." ".$setup;
+
+        if ($offMin == -1 && $offMax == -1)
         {
-            $offMax = 1;
-            $offMin = 2;
+            if ($setup == 'ALCISTA')
+            {
+                // Arma condicion 1 2 3 4 y 5
+                if ($this->datas[$C]['provMax'] < $this->datas[$min[$U]]['min'])
+                    $condicion0 = true;
+                
+                if ($this->datas[$max[$D]]['max'] <= $this->datas[$max[$O]]['max'])
+                    $condicion1 = true;
+
+                if ($flAvisos)
+                {
+                    if (abs($C - $min[$T]) <= abs($max[$O] - $min[$U]) * 1.5)
+                        $condicion2 = true;
+
+                    if (abs($min[$U] - $max[$D]) * 0.6 <= abs($min[$T] - $C) && 
+                        abs($min[$T] - $C) <= abs($min[$U] - $max[$D]) * 2)
+                        $condicion3 = true;
+                }
+                else
+                {
+                    if ($this->datas[$C]['max'] < $this->datas[$max[$D]]['max'])
+                        $condicion2 = true;                    
+
+                    if ($this->datas[$min[$T]]['min'] <= $this->datas[$min[$U]]['min'])
+                        $condicion3 = true;          
+                
+                    if (abs($C - $min[$T]) <= abs($min[$U] - $max[$D]) * 3)
+                        $condicion4 = true;                       
+                }
+            }
+            else
+            {
+                // Arma condicion 1 2 3 4 y 5
+                if ($this->datas[$C]['provMin'] > $this->datas[$max[$U]]['max'])
+                    $condicion0 = true;
+                
+                if ($this->datas[$min[$D]]['min'] >= $this->datas[$min[$O]]['min'])
+                    $condicion1 = true;
+
+                if ($flAvisos)
+                {
+                    if (abs($C - $max[$T]) <= abs($min[$O] - $max[$U]) * 1.5)
+                        $condicion2 = true;
+
+                    if (abs($max[$U] - $min[$D]) * 0.6 <= abs($max[$T] - $C) && 
+                        abs($max[$T] - $C) <= abs($max[$U] - $min[$D]) * 2)
+                        $condicion3 = true;
+                }
+                else
+                {
+                    if ($this->datas[$C]['min'] > $this->datas[$min[$D]]['min'])
+                        $condicion2 = true;                    
+
+                    if ($this->datas[$max[$T]]['max'] > $this->datas[$max[$U]]['max'])
+                        $condicion3 = true;          
+                    
+                    if (abs($C - $max[$T]) <= abs($max[$U] - $min[$D]) * 3)
+                        $condicion4 = true;                        
+                }
+
+            }
+            if ($flAvisos)
+            {
+                if ($this->datas[$offset]['ewo'] < $this->datas[$offset]['w4Dw2'] &&
+                    $this->datas[$offset]['ewo'] > $this->datas[$offset]['w4Dw1'])
+                    $condicion4 = true;
+
+                if ($setup == 'ALCISTA')
+                    $this->datas[$offset]['entrada'] .= " Control W4 Max 4=".$this->datas[$C]['provMax'].
+                                                    " Min 3=".$this->datas[$min[$T]]['min'].
+                                                    " Max 2=".$this->datas[$max[$D]]['max'].
+                                                    " Min 1=".$this->datas[$min[$U]]['min'].
+                                                    " Max O=".$this->datas[$max[$O]]['max'].
+                                                    " EWO=".$this->datas[$offset]['ewo'].
+                                                    " W4dw1=".$this->datas[$offset]['w4Dw1'].
+                                                    " W4dw2=".$this->datas[$offset]['w4Dw2']." ".
+                                                    $condicion0." ".$condicion1." ".$condicion2." ".
+                                                    $condicion3." ".
+                                                    $condicion4;
+                else
+                    $this->datas[$offset]['entrada'] .= " Control W4 Min 4=".$this->datas[$C]['provMin'].
+                                                    " Max 3=".$this->datas[$max[$T]]['max'].
+                                                    " Min 2=".$this->datas[$min[$D]]['min'].
+                                                    " Max 1=".$this->datas[$max[$U]]['max'].
+                                                    " Min O=".$this->datas[$min[$O]]['min'].
+                                                    " EWO=".$this->datas[$offset]['ewo'].
+                                                    " W4dw1=".$this->datas[$offset]['w4Dw1'].
+                                                    " W4dw2=".$this->datas[$offset]['w4Dw2'].
+                                                    $condicion0." ".$condicion1." ".$condicion2." ".$condicion3." ".
+                                                    $condicion4;
+            }
         }
-        $D = 2; $C = 1; $B = 1; $A = 0; $O = 0;
+        if ($condicion0 && $condicion1 && $condicion2 && $condicion3 && $condicion4)
+        {
+            // Asigna variables globales
+            if ($setup == 'ALCISTA')
+            {
+                $this->offsetMaximoCW4 = $C;
+                $this->offsetMinimoTW4 = $min[$T];
+                $this->offsetMaximoDW4 = $max[$D];
+                $this->offsetMinimoUW4 = $min[$U];
+                $this->offsetMaximoOW4 = $max[$O];
+            }
+            else
+            {
+                $this->offsetMinimoCW4 = $C;
+                $this->offsetMaximoTW4 = $max[$T];
+                $this->offsetMinimoDW4 = $min[$D];
+                $this->offsetMaximoUW4 = $max[$U];
+                $this->offsetMinimoOW4 = $min[$O];
+            }            
+
+            // Marca aviso de punto 
+            if ($flAvisos)
+                $this->datas[$offset]['entrada'] .= " CUMPLE W4 ".$setup." ";
+
+            $this->offsetW4 = $offset;
+            return true;
+        }
+        return false;
+    }
+
+    private function calculaW5($offset, $setup)
+    {
+        $offMax = 2;
+        $offMin = 2;
+        $O = 0; $U = 0; $D = 1; $T = 1; $C = 2; $I = 2;
         $min = array();
         $max = array();
         for ($o = $offset; $o >= 0 && ($offMin >= 0 || $offMax >= 0); $o--)
@@ -2582,101 +3070,70 @@ class IndicadoresService
         }
         // Si encontro los minimos y maximos necesarios calcula condiciones
         $condicion0 = $condicion1 = $condicion2 = $condicion3 = 0;
-        $retroceso1 = $retroceso3 = 0;
-        $this->datas[$offset]['entrada'] .= "CONTROL W4 INICIAL ".$offMin." ".$offMax." ".$setup;
+        $condicion4 = $condicion5 = 0;
+
         if ($offMin == -1 && $offMax == -1)
         {
             if ($setup == 'ALCISTA')
             {
-                $retroceso1 = abs($this->datas[$min[$O]]['min'] - $this->datas[$max[$A]]['max']);
-                $retroceso3 = abs($this->datas[$max[$C]]['max'] - $this->datas[$min[$B]]['min']);
-                
-                $barras1 = $this->datas[$max[$A]]['swingBars'];
-                $barras2 = $this->datas[$min[$B]]['swingBars'];
-                $barras3 = $this->datas[$max[$C]]['swingBars'];
-                $barras4 = $this->datas[$min[$D]]['swingBars'];
-
                 // Arma condicion 1 2 3 4 y 5
-                if ($this->datas[$min[$D]]['min'] > $this->datas[$max[$A]]['max'])
+                if ($this->datas[$max[$I]]['max'] >= $this->datas[$max[$T]]['max'])
                     $condicion0 = true;
-                    
-                if ($this->datas[$min[$B]]['min'] > $this->datas[$min[$O]]['min'])
+                
+                if ($this->datas[$max[$T]]['max'] > $this->datas[$max[$U]]['max'])
                     $condicion1 = true;
+
+                if ($this->datas[$min[$C]]['min'] > $this->datas[$min[$D]]['min'])
+                    $condicion2 = true;                    
+
+                if ($this->datas[$min[$D]]['min'] >= $this->datas[$min[$O]]['min'])
+                    $condicion3 = true;          
+
+                if ($this->datas[$min[$C]]['min'] > $this->datas[$max[$U]]['max'])
+                    $condicion4 = true;                    
             }
             else
             {
-                $retroceso1 = abs($this->datas[$max[$O]]['max'] - $this->datas[$min[$A]]['min']);
-                $retroceso3 = abs($this->datas[$min[$C]]['min'] - $this->datas[$max[$B]]['max']);
-                
-                $barras1 = $this->datas[$min[$A]]['swingBars'];
-                $barras2 = $this->datas[$max[$B]]['swingBars'];
-                $barras3 = $this->datas[$min[$C]]['swingBars'];
-                $barras4 = $this->datas[$max[$D]]['swingBars'];
-
                 // Arma condicion 1 2 3 4 y 5
-                if ($this->datas[$max[$D]]['max'] < $this->datas[$min[$A]]['min'])
+                if ($this->datas[$min[$I]]['min'] <= $this->datas[$min[$T]]['min'])
                     $condicion0 = true;
-                    
-                if ($this->datas[$max[$B]]['max'] < $this->datas[$max[$O]]['max'])
-                    $condicion1 = true;
-            }
                 
-            if ($retroceso3 >= $retroceso1 * 1.5)
-                $condicion2 = true;
+                if ($this->datas[$min[$T]]['min'] < $this->datas[$min[$U]]['min'])
+                    $condicion1 = true;
 
-            if ($this->datas[$offset]['ewo'] >= $this->datas[$offset]['w4Dw1'] &&
-                $this->datas[$offset]['ewo'] <= $this->datas[$offset]['w4Dw2'])
-                $condicion3 = true;
+                if ($this->datas[$max[$C]]['max'] < $this->datas[$max[$D]]['max'])
+                    $condicion2 = true;                    
 
-            if ($setup == 'ALCISTA')
-                $this->datas[$offset]['entrada'] .= " Control W4 Min D=".$this->datas[$min[$D]]['min']." Max C=". 
-                                                $this->datas[$max[$C]]['max']." Min B=".$this->datas[$min[$B]]['min'].
-                                                " Max A=".$this->datas[$max[$A]]['max']." Min O=".$this->datas[$min[$O]]['min'].
-                                                " Retroceso 1=".$retroceso1.
-                                                " Retroceso 3=".$retroceso3." EWO=".$this->datas[$offset]['ewo'].
-                                                " W4dw1=".$this->datas[$offset]['w4Dw1']." W4dw2=".$this->datas[$offset]['w4Dw2'].
-                                                " Barras 0A ".$barras1." Barras AB ".$barras2.
-                                                " Barras BC ".$barras3." Barras CD ".$barras4." ".
-                                                $condicion0." ".$condicion1." ".$condicion2." ".$condicion3;
-            else
-                $this->datas[$offset]['entrada'] .= " Control W4 Max D=".$this->datas[$max[$D]]['max']." Min C=". 
-												$this->datas[$min[$C]]['min']." Max B=".$this->datas[$max[$B]]['max'].
-												" Min A=".$this->datas[$min[$A]]['min']." Max O=".$this->datas[$max[$O]]['max'].
-                                                " Retroceso 1=".$retroceso1.
-												" Retroceso 3=".$retroceso3." EWO=".$this->datas[$offset]['ewo'].
-                                                " W4dw1=".$this->datas[$offset]['w4Dw1']." W4dw2=".$this->datas[$offset]['w4Dw2'].
-                                                " Barras 0A ".$barras1." Barras AB ".$barras2.
-                                                " Barras BC ".$barras3." Barras CD ".$barras4." ".
-                                                $condicion0." ".$condicion1." ".$condicion2." ".$condicion3;
+                if ($this->datas[$max[$D]]['max'] <= $this->datas[$max[$O]]['max'])
+                    $condicion3 = true;          
+
+                if ($this->datas[$max[$C]]['max'] < $this->datas[$min[$U]]['min'])
+                    $condicion4 = true;                    
+            }
         }
-        if ($condicion0 && $condicion1 && $condicion2 && $condicion3)
+        if ($condicion0 && $condicion1 && $condicion2 && $condicion3 && $condicion4)
         {
-            // Asigna variables globales
             if ($setup == 'ALCISTA')
-            {
-                $this->offsetMinimoD = $min[$D];
-                $this->offsetMaximoC = $max[$C];
-                $this->offsetMinimoB = $min[$B];
-                $this->offsetMaximoA = $max[$A];
-            }
+                $this->datas[$offset]['entrada'] = "W5dw H0=".$this->datas[$max[$I]]['max'].
+                                                        "L0=".$this->datas[$min[$C]]['min'].
+                                                        "H1=".$this->datas[$max[$T]]['max'].
+                                                        "L1=".$this->datas[$min[$D]]['min'].
+                                                        "H2=".$this->datas[$max[$U]]['max'].
+                                                        "L2=".$this->datas[$min[$O]]['min'];
             else
-            {
-                $this->offsetMaximoD = $max[$D];
-                $this->offsetMinimoC = $min[$C];
-                $this->offsetMaximoB = $max[$B];
-                $this->offsetMinimoA = $min[$A];
-            }            
+                $this->datas[$offset]['entrada'] = "W5up L0=".$this->datas[$min[$I]]['min'].
+                                                        "H0=".$this->datas[$max[$C]]['max'].
+                                                        "L1=".$this->datas[$min[$T]]['min'].
+                                                        "H1=".$this->datas[$max[$D]]['max'].
+                                                        "L2=".$this->datas[$min[$U]]['min'].
+                                                        "H2=".$this->datas[$max[$O]]['max'];
 
-            // Marca aviso de punto 
-            $this->datas[$offset]['entrada'] .= " CUMPLE W4 ".$setup." ";
-
-            $this->offsetW4 = $offset;
             return true;
         }
         return false;
     }
 
-    private function calculaSp($offset, $setup)
+    private function calculaSp($offset, $setup, $flAvisos)
     {
         if ($setup == 'ALCISTA')
         {
@@ -2701,7 +3158,8 @@ class IndicadoresService
         }
         // Si encontro los minimos y maximos necesarios calcula cibducuibes de ABC
         $condicion0 = 0;
-        $this->datas[$offset]['entrada'] .= "CONTROL SP INICIAL ".$offMin." ".$offMax." ".$setup;
+        if ($flAvisos)
+            $this->datas[$offset]['entrada'] .= "CONTROL SP INICIAL ".$offMin." ".$offMax." ".$setup;
         if ($offMin == -1 && $offMax == -1)
         {
             if ($setup == 'ALCISTA')
@@ -2715,14 +3173,17 @@ class IndicadoresService
                     $condicion0 = true;
             }
 
-            if ($setup == 'ALCISTA')
-                $this->datas[$offset]['entrada'] .= " Control SP ".$setup." Min B=".$this->datas[$min[$B]]['min'].
-												" Max A=".$this->datas[$max[$A]]['max']." Min O=".$this->datas[$min[$O]]['min'].
-                                                $condicion0;
-            else
-                $this->datas[$offset]['entrada'] .= " Control SP ".$setup." Max B=".$this->datas[$max[$B]]['max'].
-                                                " Min A=".$this->datas[$min[$A]]['min']." Max O=".$this->datas[$max[$O]]['max'].
-                                                $condicion0;
+            if ($flAvisos)
+            {
+                if ($setup == 'ALCISTA')
+                    $this->datas[$offset]['entrada'] .= " Control SP ".$setup." Min B=".$this->datas[$min[$B]]['min'].
+                                                    " Max A=".$this->datas[$max[$A]]['max']." Min O=".$this->datas[$min[$O]]['min'].
+                                                    $condicion0;
+                else
+                    $this->datas[$offset]['entrada'] .= " Control SP ".$setup." Max B=".$this->datas[$max[$B]]['max'].
+                                                    " Min A=".$this->datas[$min[$A]]['min']." Max O=".$this->datas[$max[$O]]['max'].
+                                                    $condicion0;
+            }
         }
         if ($condicion0)
         {
@@ -2739,7 +3200,8 @@ class IndicadoresService
             }
 
             // Marca aviso de punto ABC
-            $this->datas[$offset]['entrada'] .= " CUMPLE SP ".$setup." ";
+            if ($flAvisos)
+                $this->datas[$offset]['entrada'] .= " CUMPLE SP ".$setup." ";
 
             $this->offsetSP = $offset;
             return true;
@@ -2747,64 +3209,124 @@ class IndicadoresService
         return false;
     }
 
-    private function verificaAnulacionActiva($offset, $setup)
+    private function verificaAnulacionActivaAbc($offset, $setup)
     {
         $flSigueAnulacion = true;
-        if ($setup == 'BAJISTA' && $this->offsetMaximoD != null && $this->offsetMinimoC != null)
+        if ($setup == 'BAJISTA')
         {
-            $this->datas[$offset]['entrada'] .= " Controla anulacion candidatos alcistas maximo D ".
-                                            $this->datas[$this->offsetMaximoD]['high']." minimo C ".
-                                            $this->datas[$this->offsetMinimoC]['low'];
-            if ($this->datas[$offset]['high'] > $this->datas[$this->offsetMaximoD]['high'])
+            if ($this->datas[$offset]['low'] < $this->datas[$this->offsetCAbc]['provMin'])
             {
-                $this->datas[$offset]['entrada'] .= " Desactiva anulacion maximo D ";
+                $this->datas[$offset]['entrada'] .= " Desactiva anulacion ABC por low menor a minimo C ";
                 $flSigueAnulacion = false;
             }
-
-            if ($this->datas[$offset]['low'] < $this->datas[$this->offsetMinimoC]['low'])
+            if ($this->datas[$offset]['high'] > $this->datas[$this->offsetBAbc]['max'])
             {
-                $this->datas[$offset]['entrada'] .= " Desactiva anulacion minimo C ";
+                $this->datas[$offset]['entrada'] .= " Desactiva anulacion ABC por high mayor a maximo B ";
                 $flSigueAnulacion = false;
             }
         }
         else
         {
-            if ($this->offsetMaximoD != null && $this->offsetMinimoC != null)
+            if ($this->datas[$offset]['high'] > $this->datas[$this->offsetCAbc]['provMax'])
             {
-                $this->datas[$offset]['entrada'] .= " Controla anulacion candidatos bajistas minimo D ".
-                                                $this->datas[$this->offsetMinimoD]['low']." maximo C ".
-                                                $this->datas[$this->offsetMaximoC]['high'];
-                if ($this->datas[$offset]['low'] < $this->datas[$this->offsetMinimoD]['low'])
-                {
-                    $this->datas[$offset]['entrada'] .= " Desactiva anulacion minimo D ";
-                    $flSigueAnulacion = false;
-                }
-
-                if ($this->datas[$offset]['high'] > $this->datas[$this->offsetMaximoC]['high'])
-                {
-                    $this->datas[$offset]['entrada'] .= " Desactiva anulacion maximo C ";                                        
-                    $flSigueAnulacion = false;
-                }
+                $this->datas[$offset]['entrada'] .= " Desactiva anulacion ABC por high mayor a maximo C ";
+                $flSigueAnulacion = false;
             }
-        }
-
-        // Chequea ultima condicion para activar la anulacion
-        if ($flSigueAnulacion && $this->offsetMaximoD != null && $this->offsetMinimoC != null)
-        {
-            // Calcula tiempo
-            $tiempoSwing = ($this->datas[$this->offsetMaximoB]['swingBars'] +
-                            $this->datas[$this->offsetMinimoC]['swingBars'] +
-                            $this->datas[$this->offsetMaximoD]['swingBars']);
-
-            $barrasDesdeAbcd = $offset - $this->offsetAbcd;
-
-            $this->datas[$offset]['entrada'] .= " tiempo ".$tiempoSwing." offset ".$offset." Barras ".$barrasDesdeAbcd;
-            if ($offset > $barrasDesdeAbcd)
+            if ($this->datas[$offset]['low'] < $this->datas[$this->offsetBAbc]['min'])
             {
-                $this->datas[$offset]['entrada'] .= " Desactiva anulacion tiempo ".$barrasDesdeAbcd.' '.$tiempoSwing." ";
+                $this->datas[$offset]['entrada'] .= " Desactiva anulacion ABC por low menor a minimo B ";
                 $flSigueAnulacion = false;
             }
         }
+        $barras = abs($this->offsetO-$this->offsetU) * 1.05;
+
+        //if ($offset == 3169)
+            //dd($barras.' '.$this->offsetO.' '.$this->offsetU.' '.$this->offsetAbc);
+
+        // Chequea ultima condicion para levantar anulacion activa ABC
+        if ($flSigueAnulacion)
+        {
+            if ($offset >= $barras + $this->offsetAbc + 1)
+            {
+                $this->datas[$offset]['entrada'] .= " Desactiva anulacion ABC por tiempo ".$barras;
+                $flSigueAnulacion = false;
+            }
+        }
+        return $flSigueAnulacion;
+    }
+
+    private function verificaAnulacionActivaAbCd($offset, $setup)
+    {
+        $flSigueAnulacion = true;
+        if ($setup == 'BAJISTA')
+        {
+            if ($this->datas[$offset]['low'] < $this->datas[$this->offsetD]['provMin'])
+            {
+                $this->datas[$offset]['entrada'] .= " Desactiva anulacion ABCD por low menor a minimo D ";
+                $flSigueAnulacion = false;
+            }
+            if ($this->datas[$offset]['high'] > $this->datas[$this->offsetCAbCd]['max'])
+            {
+                $this->datas[$offset]['entrada'] .= " Desactiva anulacion ABCD por high mayor a maximo C ";
+                $flSigueAnulacion = false;
+            }
+
+            if ($this->datas[$offset]['provMin'] > 0)
+            {
+                $retroceso2 = abs($this->datas[$this->offsetCAbCd]['max'] - $this->datas[$offset]['provMin']) / 
+                            abs($this->datas[$this->offsetBAbCd]['min'] - $this->datas[$this->offsetCAbCd]['max']);
+    
+                if ($retroceso2 > 2.618)
+                {
+                    $this->datas[$offset]['entrada'] .= " Desactiva anulacion ABCD por cd/bc mayor a 2.618";
+                    $flSigueAnulacion = false;
+                }
+            }
+        }
+        else
+        {
+            if ($this->datas[$offset]['low'] < $this->datas[$this->offsetCAbCd]['min'])
+            {
+                $this->datas[$offset]['entrada'] .= " Desactiva anulacion ABCD por low menor a minimo C ";
+                $flSigueAnulacion = false;
+            }
+            if ($this->datas[$offset]['high'] > $this->datas[$this->offsetD]['provMax'])
+            {
+                $this->datas[$offset]['entrada'] .= " Desactiva anulacion ABCD por low menor a maximo D ";
+                $flSigueAnulacion = false;
+            }
+
+            if ($this->datas[$offset]['provMax'] > 0)
+            {
+				if (abs($this->datas[$this->offsetBAbCd]['max'] -
+				        $this->datas[$this->offsetCAbCd]['min']) != 0)
+                	$retroceso2 = abs($this->datas[$this->offsetCAbCd]['min'] - 
+                                $this->datas[$offset]['provMax']) / 
+                                abs($this->datas[$this->offsetBAbCd]['max'] - 
+                                $this->datas[$this->offsetCAbCd]['min']);
+				else
+					$retroceso2 = 0.;
+    
+                if ($retroceso2 > 2.618)
+                {
+                    $this->datas[$offset]['entrada'] .= " Desactiva anulacion ABCD por cd/bc mayor a 2.618";
+                    $flSigueAnulacion = false;
+                }
+            }
+        }
+        $barras = abs($this->offsetAAbCd-$this->offsetBAbCd) + abs($this->offsetBAbCd-$this->offsetCAbCd) + 
+                    abs($this->offsetCAbCd-$this->offsetD);
+
+        // Chequea ultima condicion para levantar anulacion activa ABC\d
+        if ($flSigueAnulacion)
+        {
+            if ($offset >= $barras + $this->offsetAbCd + 1)
+            {
+                $this->datas[$offset]['entrada'] .= " Desactiva anulacion ABCD por tiempo ".$barras;
+                $flSigueAnulacion = false;
+            }
+        }
+
         return $flSigueAnulacion;
     }
 
@@ -2902,21 +3424,30 @@ class IndicadoresService
         $flSigueAnulacion = true;
         if ($setup == 'ALCISTA')
         {
-        }
-        else
-        {
-            $this->datas[$offset]['entrada'] .= " Controla anulacion candidatos alcistas minimo D ".
-                                            $this->datas[$this->offsetMinimoC]['low']." maximo B ".
-                                            $this->datas[$this->offsetMaximoD]['high'];
-            if ($this->datas[$offset]['low'] < $this->datas[$this->offsetMinimoC]['low'])
+            if ($this->datas[$offset]['low'] < $this->datas[$this->offsetMinimoTW4]['provMin'])
             {
-                $this->datas[$offset]['entrada'] .= " Desactiva anulacion minimo C ";
+                $this->datas[$offset]['entrada'] .= " Desactiva anulacion minimo 3 ";
                 $flSigueAnulacion = false;
             }
 
-            if ($this->datas[$offset]['high'] > $this->datas[$this->offsetMaximoD]['high'])
+            if ($this->datas[$offset]['high'] > $this->datas[$this->offsetMaximoCW4]['provMax'])
             {
-                $this->datas[$offset]['entrada'] .= " Desactiva anulacion maximo D ";                                        
+                $this->datas[$offset]['entrada'] .= " Desactiva anulacion maximo 4 ". 
+                $this->datas[$offset]['high'].' '.$this->datas[$this->offsetMaximoCW4]['max'];                                        
+                $flSigueAnulacion = false;
+            }
+        }
+        else
+        {
+            if ($this->datas[$offset]['low'] < $this->datas[$this->offsetMinimoCW4]['provMin'])
+            {
+                $this->datas[$offset]['entrada'] .= " Desactiva anulacion minimo 4 ";
+                $flSigueAnulacion = false;
+            }
+
+            if ($this->datas[$offset]['high'] > $this->datas[$this->offsetMaximoTW4]['provMax'])
+            {
+                $this->datas[$offset]['entrada'] .= " Desactiva anulacion maximo 3 ";                                        
                 $flSigueAnulacion = false;
             }
         }
@@ -2925,13 +3456,16 @@ class IndicadoresService
         if ($flSigueAnulacion)
         {
             // Calcula tiempo
-            $barrasDesdeW4 = $this->offsetW4 + 42;
+            $barrasOU = abs($this->offsetMaximoOW4 - $this->offsetMinimoUW4) * 2;
 
-            $this->datas[$offset]['entrada'] .= " tiempo 42 offset ".$offset.
+            $barrasDesdeW4 = abs($this->offsetW4 - $offset);
+
+            $this->datas[$offset]['entrada'] .= " tiempo 01 offset ".$offset.
                                                 " Barras ".$barrasDesdeW4;
-            if ($offset > $barrasDesdeW4)
+            if ($barrasDesdeW4 > $barrasOU)
             {
-                $this->datas[$offset]['entrada'] .= " Desactiva anulacion tiempo ".$barrasDesdeW4;
+                $this->datas[$offset]['entrada'] .= " Desactiva anulacion tiempo desde W4 ".$barrasDesdeW4.
+                                                    " Barras 01 * 2".$barrasOU;
                 $flSigueAnulacion = false;
             }
         }
@@ -3219,6 +3753,7 @@ class IndicadoresService
             't2Hit'=>0,
             't3Hit'=>0,
             't4Hit'=>0,
+            'filtroActivo'=>'',
             'entrada'=>'',
             'e' => '',
             'stoploss' => '',
@@ -3229,6 +3764,7 @@ class IndicadoresService
             'p' => '',
             'evento' => '',
             'zona' => '',
+            'senial' => '',
             'nuevo' => true
         ];
     }
@@ -3487,6 +4023,7 @@ class IndicadoresService
         $this->k2 = 2 / ($this->mmCorta + $this->mmLarga);
         $this->k1 = 1 - $this->k2;
         $this->flBatch = true;
+        $this->flSinFiltros = false;
         // Saltea fechas repetidas
         if ($this->acumFechaLectura != "01-01-2001")
         {
@@ -3587,9 +4124,10 @@ class IndicadoresService
 
                 if ($this->acumItem > ($this->swingSize * 2))
                 {
-                    $this->calculaPivot();
+                    //$this->calculaPivot();
+                    
                     // Calcula volumen por swing y Tgt hit
-                    $this->calculaSwingTgt();       
+                    $this->calculaSwingTgtBatch($this->acumItem-2);       
                 }    
 
                 // Graba tabla 
@@ -3879,6 +4417,7 @@ class IndicadoresService
                             'p' => $indicador->p,
                             'evento' => $indicador->evento,
                             'zona' => '',
+                            'senial' => '',
                             'nuevo' => false
                         ];
 		}

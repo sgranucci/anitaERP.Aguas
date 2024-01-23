@@ -131,14 +131,24 @@ function facturarPedido(item)
     // Debe chequear que no este facturada la orden de trabajo
     flFacturada = false;
     flTerminada = false;
+    flEmpacada = true;
     $(".pedido_id").each(function(){
             if ($(this).val() == pedido_combinacion_id && $(this).parents("tr").find(".tarea_id").val() == 
                 tareaFacturada)
                 flFacturada = true;
             if (($(this).val() == pedido_combinacion_id || $(this).val() == '' || $(this).val() == null) && 
                 ($(this).parents("tr").find(".tarea_id").val() == tareaEmpaque ||
-                $(this).parents("tr").find(".tarea_id").val() == tareaTerminada))
+                $(this).parents("tr").find(".tarea_id").val() == tareaTerminada ||
+                $(this).parents("tr").find(".tarea_id").val() == tareaTerminadaStock))
+            {
+                if ($(this).parents("tr").find(".tarea_id").val() == tareaEmpaque &&
+                    $(this).parents("tr").find(".hastafecha").val() === "")
+                {
+                    alert("tarea no empacada");
+                    flEmpacada = false;
+                }
                 flTerminada = true;
+            }
             
     });
     if (flFacturada)
@@ -151,7 +161,10 @@ function facturarPedido(item)
         alert("Orden sin terminar")
         return;
     }
-
+    if (!flEmpacada)
+    {
+        return;
+    }
     // Lee tabla de medidas
     var val_medida = $(item).parents("tr").find(".medidas").val();
 
@@ -396,7 +409,7 @@ function empacarPedido(item)
     var token = $('#csrf_token').val();
 
     // Controla secuencia
-    var listarUri = "/anitaERP/public/produccion/controlsecuencia/"+codigoordentrabajo+"/"+operacion_id+"/"+tareaEmpaque;
+    var listarUri = "/anitaERP/public/produccion/ctrlsecuencia/"+codigoordentrabajo+"/"+operacion_id+"/"+tareaEmpaque+"/"+pedido_combinacion_id;
 
     $.get(listarUri, function(data){
         if (data.resultado == '0')
@@ -795,7 +808,8 @@ function tipoOt()
         nroTarea++;
 
         // Si la tarea es la 2da. y es la tarea terminada es de stock
-        if (nroTarea == 2 && $(this).val() == tareaTerminada)
+        if (nroTarea == 2 && 
+            ($(this).val() == tareaTerminada || $(this).val() == tareaTerminadaStock))
             tipoOt = tipoOt + " STOCK";
 
     });

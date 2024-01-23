@@ -34,6 +34,12 @@ class RepListaPrecioController extends Controller
 			'INACTIVAS' => 'Combinaciones inactivas',
 			'TODAS' => 'Todas las combinaciones'
         ];
+        $nofactura_enum = [
+            ['id' => '0', 'nombre' => 'Facturables'],
+            ['id' => '1', 'nombre' => 'No facturables'],
+            ['id' => '2', 'nombre' => 'Todos']
+                 ];
+
         $articulo_query = $this->articuloQuery->allQueryConCombinacion(['id','sku','descripcion'], 'descripcion');
         $articulo_query->prepend((object) ['id'=>'0','descripcion'=>'Primero']);
         $articulo_query->push((object) ['id'=>'99999999','descripcion'=>'Ultimo']);
@@ -44,7 +50,7 @@ class RepListaPrecioController extends Controller
         $mventa_query->prepend((object) ['id'=>'0','nombre'=>'Todas las marcas']);
 
         return view('stock.replistaprecio.create', compact('estado_enum', 'articulo_query',
-                                                        'mventa_query', 'categoria_query'
+                                                        'mventa_query', 'categoria_query', 'nofactura_enum'
                                                         ));
     }
 
@@ -67,7 +73,8 @@ class RepListaPrecioController extends Controller
                                                 $request->mventa_id,
                                                 $request->desdearticulo_id, $request->hastaarticulo_id,
                                                 $request->desdecategoria_id, $request->hastacategoria_id,
-                                                $request->listasprecio)
+                                                $request->listasprecio,
+                                                $request->nofactura)
                                     ->download('listaprecio.'.$extension);
     }
 }

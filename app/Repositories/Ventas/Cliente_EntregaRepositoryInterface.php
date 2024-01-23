@@ -11,6 +11,6 @@ interface Cliente_EntregaRepositoryInterface
     public function findOrFail($id);
     public function delete($cliente_id, $codigo);
     public function sincronizarConAnita();
-
+    public function leeClienteEntrega($cliente_id);
 }
 

@@ -49,6 +49,19 @@
     					<input type="text" name="nomenclador" id="nomenclador" class="form-control" value="{{old('nomenclador', $producto->nomenclador ?? '')}}" required/>
                 	</div>
                 </div>
+				<div class="form-group row">
+    				<label for="nofactura" class="col-lg-4 col-form-label requerido">Facturable</label>
+					<select id="nofactura" name="nofactura" class="col-lg-8 form-control">
+                        <option value="">-- Seleccionar --</option>
+                        @foreach($nofactura_enum as $key => $value)
+                            @if( isset($producto) && (int) $value['id'] == (int) old('nofactura', $producto->nofactura ?? ''))
+                                <option value="{{ $value['id'] }}" selected="select">{{ $value['nombre'] }}</option>    
+                            @else
+                                <option value="{{ $value['id'] }}">{{ $value['nombre'] }}</option>    
+                            @endif
+                        @endforeach
+                    </select>
+              	</div>
             </div>
         </div>
 		<div class="card-footer">
@@ -89,7 +102,7 @@
                         <input type="number" name="costos[]" class="form-control costo" value="{{old('costos', $articulocosto->costo ?? '')}}"/>
                 	</td>
                     <td>
-                        <input type="date" name="fechas[]" class="form-control fecha" value="{{substr(optional($articulocosto)->updated_at ?? date('Y-m-d'),0,10)}}" readonly/>
+                        <input type="date" name="fechasvigencia[]" class="form-control fecha" value="{{substr(optional($articulocosto)->fechavigencia ?? date('Y-m-d'),0,10)}}"/>
                     </td>
                     <td>
 						<button type="button" title="Elimina esta linea" style="padding:0;" class="btn-accion-tabla eliminarCosto tooltipsC">

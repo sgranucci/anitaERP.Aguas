@@ -92,6 +92,7 @@ function limpiaFiltros(){
                             <th>Categor&iacute;a</th>
                             <th>Marca</th>
                             <th>L&iacute;nea</th>
+                            <th>Facturable</th>
                             <th data-orderable="false"></th>
                         </tr>
                     </thead>
@@ -113,6 +114,9 @@ function limpiaFiltros(){
         						<td>
             						{{ $articulo->stkm_linea ?? '' }}
         						</td>
+                                <td>
+                                    {{ $articulo->nofactura == '0' ? 'Facturable' : 'No facturable'}}
+                                </td>
                             <td>
 								@if ($articulo->usoarticulo_id == 1)
                        				@if (can('editar-articulos-combinaciones', false))

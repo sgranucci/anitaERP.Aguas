@@ -40,7 +40,7 @@ class MovimientoStockService
 	{
         $movimientostock = $this->movimientostockRepository->find($id);
 
-        return $movimientostock;
+		return $movimientostock;
 	}
 
 	public function guardaMovimientoStock($data, $funcion, $id = null)
@@ -123,6 +123,7 @@ class MovimientoStockService
 						'fechajornada' => $data['fecha'],
 						'tipotransaccion_id' => $data['tipotransaccion_id'],
 						'movimientostock_id' => $movimientostock_id,
+						'deposito_id' => $data['deposito_id'],
 						'venta_id' => null,
 						'pedido_combinacion_id' => null,
 						'ordentrabajo_id' => null,

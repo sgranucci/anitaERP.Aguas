@@ -1,7 +1,7 @@
 <h2> Listas de Precios </h2>
 <h1><strong>Estado de combinaciones: {{$estado}}</strong>&nbsp;Marca: {{$nombremarca}}</h1>
 <h1><strong>Desde artículo: {{$desdearticulo}} Hasta articulo: {{$hastaarticulo}} </strong></h1>
-<h1><strong>Desde categoría: {{$desdecategoria}} Hasta categoría: {{$hastacategoria}} </strong></h1>
+<h1><strong>Desde categoría: {{$desdecategoria}} Hasta categoría: {{$hastacategoria}} - {{$nofactura}}</strong></h1>
 <table>
 	<thead>
 		<tr>

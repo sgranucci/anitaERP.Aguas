@@ -815,7 +815,6 @@
         $('#agrega_renglon').on('click', agregaRenglon);
         $(document).on('click', '.eliminar', borraRenglon);
         $(document).on('click', '.anulaitem', anulaItem);
-		$(document).on('click', '.historiaitem', historiaItem);
 
 		// Si no tiene items agrega el primero
 		if(!$('.item-pedido').length)
@@ -937,72 +936,6 @@
 	
 	});
 
-	// Muestra historia del item
-    function historiaItem() {
-		itemAnulacionOt = $(this);
-		codigoAnulacionOt = $(this).parents('tr').find('.otcodigo').val();
-		flAnulacionItem = true;
-
-		armaMedidas(itemAnulacionOt);
-
-		setTimeout(() => {
-			$("#historiaModal").modal('show');
-		}, 300);
-	}
-
-	// Controla apertura modal de historia
-	$('#historiaModal').on('show.bs.modal', function (event) {
-		var modal = $(this);
-		let tituloModal = "Historia Anulación Item ";
-
-		$("#ordentrabajohistoria").val(codigoAnulacionOt);
-		modal.find('.modal-title').text(tituloModal+descripcion_articulo+' Combinacion '+nombre_combinacion+' Modulo '+nombre_modulo);
-		modal.find('#historiaModal').empty();
-		modal.find('#historiaModal').append(talles_txt+medidas_txt+precios_txt+tallesid_txt);
-		modal.find('#tbody-historia').empty();
-		
-		let historia = $(itemAnulacionOt).parents("tr").find('.historiaanulacion').val();
-		historia = JSON.parse(historia);
-
-		historia_txt = "";
-		for (var i=0; i < historia.length; i++)
-		{
-			var motivo = historia[i];
-
-			historia_txt += "<tr>";
-			
-			let fechaCierre = Date.parse(motivo.created_at);
-
-			historia_txt += "<td>"+new Date(fechaCierre).toLocaleString("es-AR")+"</td>";
-			historia_txt += "<td>"+motivo.motivoscierrepedido.nombre+"</td>";
-			if (motivo.clientes != null)
-				historia_txt += "<td>"+motivo.clientes.nombre+"</td>";
-			else
-				historia_txt += "<td></td>";
-			historia_txt += "<td>"+motivo.observacion+"</td>";
-			historia_txt += "<td>"+motivo.estado+"</td>";
-			historia_txt += "</tr>"
-		}
-
-		modal.find('#tbody-historia').append(historia_txt);
-
-		sumaanulacionPares();
-		muestrahistoriaTotalPares();
-	});
-
-	$('#aceptahistoriaModal').on('click', function () {
-		$('#historiaModal').modal('hide');
-		flAnulacionItem = false;
-	});
-
-	$('#historiaModal').on('hidden.bs.modal', function () {
-		// Inicializa variables modal
-		talles_txt = "";
-		medidas_txt = "";
-		precios_txt = "";
-		tallesid_txt = "";
-	});
-
     function borraRenglon() {
         event.preventDefault();
 		ordentrabajo = $(this).parents('tr').find('.otcodigo').val();
@@ -1011,17 +944,20 @@
 		combinacion_id = $(this).parents("tr").find(".combinacion").val();
 
 		// Busca si tiene factura asociada
-		var listarUri = "/anitaERP/public/ventas/estadoot/"+ordentrabajo;
 		var flError = false;
+		if (ordentrabajo > 0 && ordentrabajo < 999999)
+		{
+			var listarUri = "/anitaERP/public/ventas/estadoot/"+ordentrabajo;
 
-		$.get(listarUri, function(data){
-							
-			if (data.numerofactura != -1 && data.numerofactura != -2)
-			{
-				alert("OT ya facturada "+data.numerofactura);
-				flError = true;
-			}
-		});
+			$.get(listarUri, function(data){
+								
+				if (data.numerofactura != -1 && data.numerofactura != -2)
+				{
+					alert("OT ya facturada "+data.numerofactura);
+					flError = true;
+				}
+			});
+		}
 
 		// Busca si tiene una OT asociada al lote
 		if (!flError && loteStock >= 1)
@@ -1058,30 +994,5 @@
         });
     }
 
-	function preparaPreFactura()
-	{
-        $("#tbody-tabla .checkImpresion").each(function() {
-			$(this).show();
-		});
-		flFactura = false;
-		$("#imprimePreFactura").show();
-	}
-
-	function imprimePreFactura()
-	{
-		let checksId=[];
-		let itemId;
-	  	let pedidoId = $("#pedidoid").val();
-
-		$("input[type=checkbox]:checked").each(function(){
-			
-	  		itemId = $(this).parents('tr').find('.ids').val();
-    		checksId.push(itemId);
-
-		});
-
-		let listarUri = "/anitaERP/public/ventas/listarprefactura"+"/"+pedidoId+'/'+checksId;
-		document.location.href= listarUri;
-	}
 	
 	

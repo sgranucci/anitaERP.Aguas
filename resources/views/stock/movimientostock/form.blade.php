@@ -31,7 +31,7 @@
         	<select name="deposito_id" id="deposito_id" data-placeholder="Depósito" class="col-lg-8 form-control required" data-fouc>
         		<option value="">-- Seleccionar depósito  --</option>
         		@foreach($deposito_query as $key => $value)
-        			@if( (int) $value->id == (int) old('deposito_id', $movimientostock->deposito_id ?? '1'))
+        			@if( (int) $value->id == (int) old('deposito_id', $movimientostock->articulos_movimiento[0]->deposito_id ?? '1'))
         				<option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
         			@else
         				<option value="{{ $value->id }}">{{ $value->nombre }}</option>    
@@ -58,9 +58,9 @@
 				<option value="">-- Seleccionar lote --</option>
 				@foreach($lote_query as $key => $value)
 					@if( (int) $value->id == (int) old('loteimportacion_id', $movimientostock->articulos_movimiento[0]->loteimportacion_id ?? ''))
-						<option value="{{ $value->id }}" selected="select">{{ $value->numerodespacho }}</option>    
+						<option value="{{ $value->id }}" selected="select">{{ $value->id }}-{{ $value->numerodespacho }}</option>    
 					@else
-						<option value="{{ $value->id }}">{{ $value->numerodespacho}}</option>    
+						<option value="{{ $value->id }}">{{ $value->id }}-{{ $value->numerodespacho }}</option>    
 					@endif
 				@endforeach
 			</select>				
@@ -130,7 +130,7 @@
         						<input type="hidden" class="desc_modulo" name="desc_modulo[]" class="desc_modulo" value="{{old('desc_modulo', $pedidoitem->desc_modulo ?? '')}}" >
                 			</td>
                 			<td>
-                				<input type="text" id="icantidad" name="cantidades[]" class="form-control cantidad" readonly value="{{abs(number_format(old('cantidades.'.$loop->index, optional($pedidoitem)->cantidad),0))}}" />
+                				<input type="text" id="icantidad" name="cantidades[]" class="form-control cantidad" readonly value="{{number_format(abs($pedidoitem->cantidad),0, '.', '')}}" />
                 			</td>
                 			<td>
                 				<input type="text" style="text-align: right;" id="iprecio" name="precios[]" class="form-control precio" readonly value="{{number_format(old('precios.'.$loop->index, optional($pedidoitem)->precio),2)}}" />

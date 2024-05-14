@@ -174,10 +174,12 @@ class Pedido_CombinacionRepository implements Pedido_CombinacionRepositoryInterf
 									'ordentrabajo_combinacion_talle.ordentrabajo_stock_id as ordentrabajo_stock_id',
 									'pedido_combinacion_talle.pedido_combinacion_id as pedido_combinacion_id',
 									'ordentrabajo.id as ordentrabajo_id',
-									'ordentrabajo.codigo as codigo')
+									'ordentrabajo.codigo as codigo',
+									'articulo_movimiento.deposito_id as deposito_id')
 							->join('pedido_combinacion_talle', 'pedido_combinacion_talle.pedido_combinacion_id', 'pedido_combinacion.id')
 							->join('ordentrabajo_combinacion_talle', 'ordentrabajo_combinacion_talle.pedido_combinacion_talle_id', 'pedido_combinacion_talle.id')
 							->join('ordentrabajo', 'ordentrabajo.id', 'ordentrabajo_combinacion_talle.ordentrabajo_id')
+							->leftjoin('articulo_movimiento', 'articulo_movimiento.ordentrabajo_id', 'ordentrabajo.id')
 							->where('pedido_combinacion.id', $pedido_combinacion_id)
 							->get();
 

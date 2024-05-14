@@ -18,6 +18,7 @@ use App\Models\Stock\Mventa;
 use App\Models\Stock\Talle;
 use App\Models\Stock\Combinacion;
 use App\Models\Produccion\Tarea;
+use App\Exports\Ventas\OrdentrabajoExport;
 
 class OrdentrabajoController extends Controller
 {
@@ -150,6 +151,65 @@ class OrdentrabajoController extends Controller
         return view('ventas.ordentrabajo.index', compact('ordentrabajo_query'));
     }
 
+	// Index paginando 
+
+	public function indexp(Request $request)
+    {
+		can('listar-ordenes-de-trabajo');
+
+		ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', '0');
+
+        $busqueda = $request->busqueda;
+        
+		$ordentrabajo = $this->ordentrabajoService->leeOrdenestrabajoPaginando($busqueda, true);
+
+		$datas = ['ordentrabajo' => $ordentrabajo, 'busqueda' => $busqueda];
+
+		return view('ventas.ordentrabajo.indexp', $datas); 
+    }
+
+    public function lista(Request $request, $formato = null, $busqueda = null)
+    {
+        can('listar-ordenes-de-trabajo'); 
+
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', '0');
+
+        switch($formato)
+        {
+        case 'PDF':
+			$ordentrabajo = $this->ordentrabajoService->leeOrdenestrabajoPaginando($busqueda, false);
+            $view =  \View::make('ventas.ordentrabajo.listado', compact('ordentrabajo'))
+                        ->render();
+            $path = storage_path('pdf/listados');
+            $nombre_pdf = 'listado_ordentrabajo';
+
+            $pdf = \App::make('dompdf.wrapper');
+            $pdf->setPaper('legal','portrait');
+            $pdf->loadHTML($view)->save($path.'/'.$nombre_pdf.'.pdf');
+
+            return response()->download($path.'/'.$nombre_pdf.'.pdf');
+            break;
+
+        case 'EXCEL':
+            return (new OrdentrabajoExport($this->ordentrabajoService))
+                        ->parametros($busqueda)
+                        ->download('ordentrabajo.xlsx');
+            break;
+
+        case 'CSV':
+            return (new OrdentrabajoExport($this->ordentrabajoService))
+                        ->parametros($busqueda)
+                        ->download('ordentrabajo.csv', \Maatwebsite\Excel\Excel::CSV);
+            break;            
+        }   
+
+        $datas = ['ordentrabajo' => $pedidos, 'busqueda' => $busqueda];
+
+		return view('ventas.ordentrabajo.indexp', $datas);       
+    }
+
 	public function limpiafiltro(Request $request) 
 	{
 		session()->forget('filtrosOrdentrabajo');
@@ -238,7 +298,7 @@ class OrdentrabajoController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function guardar($origen, $ids, $checkOtStock, $ordentrabajo_stock_codigo, $leyenda = null)
+    public function guardar($origen, $ids, $checkOtStock, $ordentrabajo_stock_codigo, $deposito_id, $leyenda = null)
     {
 		$ids = json_decode($ids);
 		
@@ -247,6 +307,7 @@ class OrdentrabajoController extends Controller
 
 		$data = $this->ordentrabajoService->guardaOrdenTrabajo($ids, $checkOtStock, 
 																$ordentrabajo_stock_codigo,
+																$deposito_id,
 																(!$leyenda ? ' ' : $leyenda), 'create');
 
 		if ($origen == 'pedido')
@@ -394,7 +455,12 @@ class OrdentrabajoController extends Controller
                 return response()->json(['mensaje' => 'ng']);
             }
         } else {
-            abort(404);
+			if ($this->ordentrabajoService->borraOrdenTrabajo($id))
+				$mensaje = 'ok';
+			else 	
+				$mensaje = 'error';
+
+			return redirect('ventas/ordenestrabajo')->with('mensaje', $mensaje);
         }
     }
 

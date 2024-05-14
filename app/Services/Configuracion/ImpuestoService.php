@@ -44,6 +44,11 @@ class ImpuestoService
 		$provincia = $dataCliente['provincia'];
 		$porcDescuento = 0;
 
+		if (isset($dataCliente['descuentoimportepie']))
+			$descuentoImportePie = $dataCliente['descuentoimportepie'];
+		else
+			$descuentoImportePie = 0;
+
 		// Lee condicion de iva del cliente
 		$condicioniva = $this->condicionivaRepository->find($dataCliente['condicioniva_id']);
 
@@ -57,6 +62,32 @@ class ImpuestoService
 		// Calcula netos por tasa
 		$netos = [];
 		$subtotales = [];
+		$porcentajeDescuentoImportePie = 0;
+
+		if ($descuentoImportePie != 0.)
+		{
+			// Debe calcular el total de los items y sacar el descuento en porcentaje
+			foreach($dataItem as $item)
+			{
+				// Lee tasa impuesto del item
+				$impuesto = Impuesto::findOrFail($item['impuesto_id']);
+
+				// Asume que no tiene impuesto incluido si el cliente no lleva iva
+				if (!$flConIva)
+				{
+					$item['incluyeimpuesto'] = 'N';
+					$impuesto->valor = 0;
+				}
+
+				// Calcula importe del item
+				$importeSinDescuento = $item['cantidad'] * 
+					($item['incluyeimpuesto'] == 'N' || $item['incluyeimpuesto'] == '2' ? 
+					$item['precio'] : ($item['precio'] / (1.+($impuesto->valor/100))));
+
+				$totalBruto += $importeSinDescuento;
+			}
+			$porcentajeDescuentoImportePie = 1 - ($descuentoImportePie / $totalBruto);
+		}
 
 		foreach($dataItem as $item)
 		{
@@ -91,12 +122,13 @@ class ImpuestoService
 				self::agregaItemTotales("Subtotal", 0, $totalItem, 0, 0, $subtotales);
 
 				// Agrega descuento final
-				if ($item['descuentofinal'] != 0.)
+				if (($item['descuentofinal']+$porcentajeDescuentoImportePie) != 0.)
 				{
-					$descuentoFinal += ($totalItem * $item['descuentofinal'] / 100.);
+					$descuentoFinal += ($totalItem * ($item['descuentofinal'] +
+										$porcentajeDescuentoImportePie) / 100.);
 
-					$totalItem *= (1. - ($item['descuentofinal'] / 100.));
-					$porcDescuento = $item['descuentofinal'];
+					$totalItem *= (1. - (($item['descuentofinal']+$porcentajeDescuentoImportePie) / 100.));
+					$porcDescuento = ($item['descuentofinal']+$porcentajeDescuentoImportePie);
 				}
 
 				// Acumula netos por tasa de impuesto
@@ -105,7 +137,7 @@ class ImpuestoService
 			}
 		}
 
-		if ($descuentoFinal != 0.)
+		if (($descuentoFinal+$porcentajeDescuentoImportePie) != 0.)
 		{
 			$detalle = "Descuento ".$porcDescuento.'%';
 			$totalNeto -= $descuentoFinal;
@@ -152,13 +184,21 @@ class ImpuestoService
 																		$condicionIIBB, $provincia);
 
 		$conceptosTotales = array_merge($subtotales, $netos, $impuestos, $percepcionesIIBB);
-
+		
 		// Agrega total final
 		for ($i = 0, $totalFinal = 0; $i < count($conceptosTotales); $i++)
 		{
 			if ($conceptosTotales[$i]['concepto'] != "Subtotal" &&
 				substr($conceptosTotales[$i]['concepto'], 0, 9) != "Descuento")
 				$totalFinal += $conceptosTotales[$i]['importe'];
+		}
+
+		if ($descuentoImportePie != 0.)
+		{
+			$detalle = "Descuento por importe";
+			$totalFinal -= $descuentoImportePie;
+
+			self::agregaItemTotales($detalle, 0, -$descuentoImportePie, 0, 0, $conceptosTotales);
 		}
 
 		$conceptosTotales[] = ["concepto"=>"Total",

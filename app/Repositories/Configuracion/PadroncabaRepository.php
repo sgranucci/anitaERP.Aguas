@@ -85,7 +85,6 @@ class PadroncabaRepository implements PadroncabaRepositoryInterface
 				$desde_fecha." AND rpcaba_hasta_fecha<=".$hasta_fecha
         );
         $datas = json_decode($apiAnita->apiCall($data));
-
 		$tasa = '';
 		if (count($datas) > 0)
 			$tasa = ($tipo == "percepcion" ? $datas[0]->percepcion : $datas[0]->retencion);

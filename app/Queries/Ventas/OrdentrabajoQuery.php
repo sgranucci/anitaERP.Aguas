@@ -30,6 +30,40 @@ class OrdentrabajoQuery implements OrdentrabajoQueryInterface
 		return $this->model->with('ordentrabajo_combinacion_talles')->with('ordentrabajo_tareas')->get();
     }
 
+	public function allPaginando($busqueda, $flPaginar)
+    {
+		$ordenes = $this->model->with(['ordentrabajo_combinacion_talles', 'ordentrabajo_tareas']);
+		
+		$boletasJuntas = "BOLETAS JUNTAS";
+		if (substr_compare (strtoupper($busqueda) , $boletasJuntas , 0, strlen($busqueda), true) == 0)
+			$ordenes = $ordenes->whereRaw(
+				'(select count(distinct(ordentrabajo_combinacion_talle.cliente_id)) from ordentrabajo_combinacion_talle 
+				where ordentrabajo.id=ordentrabajo_combinacion_talle.ordentrabajo_id) >= 2');
+		else
+			$ordenes = $ordenes->WhereHas('ordentrabajo_combinacion_talles.clientes', function ($query) use ($busqueda) {
+								$query->where('nombre', 'like', '%'.$busqueda.'%');
+							});
+							
+		$ordenes = $ordenes->orWhereHas('ordentrabajo_combinacion_talles.pedido_combinacion_talles.pedidos_combinacion.articulos', function ($query) use ($busqueda) {
+								$query->where('descripcion', 'like', '%'.$busqueda.'%');
+							})
+							->orWhereHas('ordentrabajo_combinacion_talles.pedido_combinacion_talles.pedidos_combinacion.combinaciones', function ($query) use ($busqueda) {
+								$query->where('nombre', 'like', '%'.$busqueda.'%');
+							})					
+							->orWhereHas('ordentrabajo_tareas.tareas', function ($query) use ($busqueda) {
+								$query->latest()->where('nombre', 'like', '%'.$busqueda.'%');
+							})						
+							->orWhere('ordentrabajo.id', '=', $busqueda)
+							->orderByDesc('id');
+							
+		if ($flPaginar)
+			$ordenes = $ordenes->paginate(10);
+		else
+			$ordenes = $ordenes->get();
+
+		return $ordenes;
+    }
+
     public function allQuery(array $campos)
     {
         return $this->model->select($campos)->get();
@@ -81,7 +115,7 @@ class OrdentrabajoQuery implements OrdentrabajoQueryInterface
 					$join->on('capeart.articulo_id', 'pedido_combinacion.articulo_id')
 						 ->on('capeart.combinacion_id', 'pedido_combinacion.combinacion_id');
 				})
-			->leftjoin('materialcapellada', 'materialcapellada.articulo_id', 'capeart.material_id')
+			->leftjoin('materialcapellada', 'materialcapellada.id', 'capeart.material_id')
             ->leftjoin('color as colorcapellada', 'colorcapellada.id', 'capeart.color_id')
 			->join('talle', 'talle.id', '=', 'pedido_combinacion_talle.talle_id')
 			->whereBetween('ordentrabajo.fecha', [$desdefecha, $hastafecha])
@@ -117,7 +151,7 @@ class OrdentrabajoQuery implements OrdentrabajoQueryInterface
 					$join->on('avioart.articulo_id', 'pedido_combinacion.articulo_id')
 						 ->on('avioart.combinacion_id', 'pedido_combinacion.combinacion_id');
 				})
-			->leftjoin('materialavio', 'materialavio.articulo_id', 'avioart.material_id')
+			->leftjoin('materialavio', 'materialavio.id', 'avioart.material_id')
 			->leftjoin('color as coloravio', 'coloravio.id', 'avioart.color_id')
 			->join('talle', 'talle.id', '=', 'pedido_combinacion_talle.talle_id')
 			->whereBetween('ordentrabajo.fecha', [$desdefecha, $hastafecha])

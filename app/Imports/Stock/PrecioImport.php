@@ -62,8 +62,20 @@ class PrecioImport implements OnEachRow, WithHeadingRow
                                             ->where('listaprecio_id', $listaprecio->id)
                                             ->whereDate('fechavigencia', $fechavigencia)->first();
 
-                            if (!$precio && $row[$nombreColumna] != 0)
+                            if ($row[$nombreColumna] != 0)
                             {
+                                // Si el precio ya existe lo borra primero
+                                if ($precio)
+                                {
+                                    $operacion = 'UPDATE';
+                                    $id = $precio->id;
+                                }
+                                else    
+                                {
+                                    $operacion = 'CREATE';
+                                    $id = 0;
+                                }
+
                                 $arrayPrecios[] = [
                                     'articulo_id' => $articulo->id,
                                     'listaprecio_id' => $listaprecio->id,
@@ -72,19 +84,23 @@ class PrecioImport implements OnEachRow, WithHeadingRow
                                     'precio' => $row[$nombreColumna],
                                     'precioanterior' => 0,
                                     'usuarioultcambio_id' => Auth::id(),
+                                    'operacion' => $operacion,
+                                    'id' => $id
                                 ];
                             }
                         }
                     }
                 }
             }
-            
             // Graba los precios de la fila del excel
             foreach ($arrayPrecios as $precio)
             {
                 try 
                 {
-                    Precio::create($precio);
+                    if ($precio['operacion'] == 'CREATE')
+                        Precio::create($precio);
+                    else
+                        Precio::findOrFail($precio['id'])->update($precio);
 
                     // Lee la lista de precios
                     $listaprecio = ListaPrecio::find($precio['listaprecio_id']);

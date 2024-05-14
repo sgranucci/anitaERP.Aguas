@@ -78,7 +78,7 @@ class PadronarbaRepository implements PadronarbaRepositoryInterface
             'whereArmado' => " WHERE rpibr_cuit='".$cuitfinal."'"
         );
         $datas = json_decode($apiAnita->apiCall($data));
-
+        //dd($datas);
 		$tasa = '';
 		if (count($datas) > 0)
 			$tasa = ($tipo == "percepcion" ? $datas[0]->percepcion : $datas[0]->retencion);

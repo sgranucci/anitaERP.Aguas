@@ -93,6 +93,19 @@
 		@endforeach
 	</select>
 </div>
+<div class="form-group row">
+	<label for="gatillo" class="col-lg-3 col-form-label requerido">Gatillo:</label>
+	<select name="gatillo" class="col-lg-3 form-control" required>
+		<option value="">-- Elija gatillo --</option>
+		@foreach($gatillo_enum as $value => $gatillo)
+			@if ($value == 'A')
+				<option value="{{ $value }}" selected>{{ $gatillo }}</option>    
+			@else
+				<option value="{{ $value }}">{{ $gatillo }}</option>    
+			@endif
+		@endforeach
+	</select>
+</div>
 <div class="row">
 	<div class="col-sm-6">
 		<div class="form-group row">

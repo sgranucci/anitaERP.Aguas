@@ -41,7 +41,7 @@
 				$.get(listarUri, function(data){
 					if (data.estado != -1)
 					{
-						alert("Saldo lote "+ordentrabajo_stock_codigo+" "+data.saldo);
+						alert("Saldo lote "+ordentrabajo_stock_codigo+" "+data.saldo+" Deposito "+data.deposito_id);
 
 						$('#crearOrdenTrabajoModal').modal('hide');
 
@@ -49,9 +49,11 @@
 						leyenda = leyenda.replace(pattern, '');
 
 						if (checkotstock == 'on')
-							var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/ordentrabajo/"+ids+"/on/"+ordentrabajo_stock_codigo+'/'+leyenda;
+							var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/ordentrabajo/"
+											+ids+"/on/"+ordentrabajo_stock_codigo+'/'+data.deposito_id+'/'+leyenda;
 						else
-							var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/ordentrabajo/"+ids+"/off/"+ordentrabajo_stock_codigo+'/'+leyenda;
+							var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/ordentrabajo/"
+											+ids+"/off/"+ordentrabajo_stock_codigo+'/'+data.deposito_id+'/'+leyenda;
 				
 						window.location.href = listarUri;
 					}
@@ -69,7 +71,8 @@
 				var pattern = /[\^*@!"#$%&/,()=?¡!¿'\\]/gi;
 				leyenda = leyenda.replace(pattern, '');
 						
-				var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/ordentrabajo/"+ids+"/off/"+ordentrabajo_stock_codigo+'/'+leyenda;
+				var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/ordentrabajo/"
+								+ids+"/off/"+ordentrabajo_stock_codigo+'/1/'+leyenda;
 
 				window.location.href = listarUri;
 			}
@@ -157,24 +160,31 @@
                         @foreach ($datas as $pedido)
                         	@foreach ($pedido->pedido_combinaciones as $data)
                         	<tr>
-                            	<td class="ids">{{$data->id}}</td>
-            					<td>{{date("d/m/Y", strtotime($pedido->fecha ?? ''))}}</td>
-            					<td>{{date("d/m/Y", strtotime($pedido->fechaentrega ?? ''))}}</td>
-                            	<td>{{$pedido->codigo}}</td>
-                            	<td>{{$pedido->clientes->nombre}}</td>
-                            	<td class="pares">{{round($data->cantidad,0)}}</td>
-                            	<td class="observaciones">{{$data->observacion}}</td>
-                            	<td>{{$data->ot_id}}</td>
-								<td>
-								@if (can('editar-pedidos', false))
-                                	<a href="{{route('editar_pedido', ['id' => $pedido->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">
-                                   	<i class="fa fa-edit"></i>
-                                	</a>
+								@php $estadoItem = " "; @endphp
+								@foreach ($data->pedido_combinacion_estados as $estado)
+									@php $estadoItem = $estado->estado; @endphp
+								@endforeach
+
+								@if ($estadoItem != "A")
+									<td class="ids">{{$data->id}}</td>
+									<td>{{date("d/m/Y", strtotime($pedido->fecha ?? ''))}}</td>
+									<td>{{date("d/m/Y", strtotime($pedido->fechaentrega ?? ''))}}</td>
+									<td>{{$pedido->codigo}}</td>
+									<td>{{$pedido->clientes->nombre}}</td>
+									<td class="pares">{{round($data->cantidad,0)}}</td>
+									<td class="observaciones">{{$data->observacion}}</td>
+									<td>{{$data->ot_id}}</td>
+									<td>
+									@if (can('editar-pedidos', false))
+										<a href="{{route('editar_pedido', ['id' => $pedido->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">
+										<i class="fa fa-edit"></i>
+										</a>
+									@endif
+									</td>
+									<td>
+										<input name="checks[]" class="checkImpresion" type="checkbox" autocomplete="off">
+									</td>
 								@endif
-								</td>
-                            	<td>
-									<input name="checks[]" class="checkImpresion" type="checkbox" autocomplete="off">
-                            	</td>
                         	</tr>
                         	@endforeach
                         @endforeach

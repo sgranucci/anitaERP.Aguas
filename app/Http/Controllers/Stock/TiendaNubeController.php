@@ -74,7 +74,10 @@ class TiendaNubeController extends Controller
             }
 
             if (!isset($data->variants))
+            {
+                $data = new \stdClass();
                 $data->variants = [];
+            }
 
             // Procesa cada variante
             foreach($data->variants as $variante)

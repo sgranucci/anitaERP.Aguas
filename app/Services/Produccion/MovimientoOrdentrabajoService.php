@@ -17,6 +17,7 @@ use Carbon\Carbon;
 use App;
 use Auth;
 use DB;
+use Exception;
 
 class MovimientoOrdentrabajoService 
 {
@@ -151,12 +152,11 @@ class MovimientoOrdentrabajoService
 
 					if (count($ordentrabajo_tarea) > 0 && $ordentrabajo_tarea->contains('tarea_id',
 						config('consprod.TAREA_TERMINADA_STOCK')))
-						throw new ModelNotFoundException("No puede grabar con OT ya terminada de Stock");
-						
+						throw new Exception("No puede grabar con OT ya terminada de Stock");
+
 					// Filtra tarea_id
 					$ordentrabajo_tarea_filtrada = $this->ordentrabajo_tareaRepository
 												->findPorOrdentrabajoId($ordentrabajo->id, $data['tarea_id']);
-					
 					$accion = '';
 					if ($funcion == 'create')
 					{
@@ -492,62 +492,69 @@ class MovimientoOrdentrabajoService
 				$totalPares = 0;
 				foreach($otStock as $ot)
 				{
-					if ($ot->ordentrabajo_id != $anterOrdenTrabajo_id)
+					// Si encuentra la misma ot no la imprime
+					if ($ot->ordentrabajo_id != $data['ordentrabajo_id'])
 					{
-						if ($anterOrdenTrabajo_id != 0)
+						if ($ot->ordentrabajo_id != $anterOrdenTrabajo_id)
 						{
-							$reporte .= chr(27).chr(33).chr(32);
-							$reporte .= "\nTotal pares: ".$totalPares."\n\n\n\n\n\n\n\n\n\n\n\n\n";
-							$reporte .= chr(27).chr(33).chr(2)."\n";
-							
-							Storage::disk('local')->put($nombreReporte, $reporte);
-							$path = Storage::path($nombreReporte);
-							system("lp -dcalidad ".$path);
-					
-							Storage::disk('local')->delete($nombreReporte);
-							//dd($reporte);
-						}
-						$reporte = "";
-						$nombreReporte = "tmp/OTstock-" . $ot->ordentrabajo_id . '.txt';
-						$reporte = chr(27).chr(33).chr(2);
-						$reporte .= "ORDEN DE TRABAJO NRO. ".$ot->ordentrabajo_id."\n";
-						$reporte .= "ASOCIADA A LA OT DE STOCK NRO. ".$data['ordentrabajo_id']."\n";
+							if ($anterOrdenTrabajo_id != 0)
+							{
+								$reporte .= chr(27).chr(33).chr(32);
+								$reporte .= "\nTotal pares: ".$totalPares."\n\n\n\n\n\n\n\n\n\n\n\n\n";
+								$reporte .= chr(27).chr(33).chr(2)."\n";
+								
+								Storage::disk('local')->put($nombreReporte, $reporte);
+								$path = Storage::path($nombreReporte);
+								system("lp -dcalidad ".$path);
 						
-						$reporte .= "PEDIDO NRO: ".$ot->pedido_combinacion_talles->pedidos_combinacion->pedido_id."\n";
-			
-						// Lee el cliente
-						$cliente = $this->clienteRepository->find($ot->cliente_id);
-
-						if ($cliente)
-						{
-							$reporte .= chr(27).chr(33).chr(32).$cliente->nombre."\n\n";
-						}
-			
-						$reporte .= "Articulo: \n";
-						$reporte .= chr(27).chr(33).chr(32).$request['articulo']."\n";
+								Storage::disk('local')->delete($nombreReporte);
+								//dd($reporte);
+							}
+							$reporte = "";
+							$nombreReporte = "tmp/OTstock-" . $ot->ordentrabajo_id . '.txt';
+							$reporte = chr(27).chr(33).chr(2);
+							$reporte .= "ORDEN DE TRABAJO NRO. ".$ot->ordentrabajo_id."\n";
+							$reporte .= "ASOCIADA A LA OT DE STOCK NRO. ".$data['ordentrabajo_id']."\n";
+							
+							$reporte .= "PEDIDO NRO: ".$ot->pedido_combinacion_talles->pedidos_combinacion->pedido_id."\n";
 				
-						$reporte .= chr(27).chr(33).chr(2)."SKU: ".$request['sku']."\n\n";
-						$reporte .= "Combinacion: ".$request['combinacion']."\n\n";
-			
-						$reporte .= "MEDIDAS\n";
+							// Lee el cliente
+							$cliente = $this->clienteRepository->find($ot->cliente_id);
 
-						$anterOrdenTrabajo_id = $ot->ordentrabajo_id;
-						$totalPares = 0;
+							if ($cliente)
+							{
+								$reporte .= chr(27).chr(33).chr(32).$cliente->nombre."\n\n";
+							}
+				
+							$reporte .= "Articulo: \n";
+							$reporte .= chr(27).chr(33).chr(32).$request['articulo']."\n";
+					
+							$reporte .= chr(27).chr(33).chr(2)."SKU: ".$request['sku']."\n\n";
+							$reporte .= "Combinacion: ".$request['combinacion']."\n\n";
+				
+							$reporte .= "MEDIDAS\n";
+
+							$anterOrdenTrabajo_id = $ot->ordentrabajo_id;
+							$totalPares = 0;
+						}
+
+						$reporte .= "Talle: ".$ot->pedido_combinacion_talles->talles->nombre.
+									" Cantidad: ".$ot->pedido_combinacion_talles->cantidad."\n";
+						$totalPares += $ot->pedido_combinacion_talles->cantidad;
 					}
-
-					$reporte .= "Talle: ".$ot->pedido_combinacion_talles->talles->nombre.
-								" Cantidad: ".$ot->pedido_combinacion_talles->cantidad."\n";
-					$totalPares += $ot->pedido_combinacion_talles->cantidad;
 				}
 
-				$reporte .= chr(27).chr(33).chr(32);
-				$reporte .= "\nTotal pares: ".$totalPares."\n\n\n\n\n\n\n\n\n\n\n\n\n";
-				$reporte .= chr(27).chr(33).chr(2)."\n";
+				if ($totalPares > 0)
+				{
+					$reporte .= chr(27).chr(33).chr(32);
+					$reporte .= "\nTotal pares: ".$totalPares."\n\n\n\n\n\n\n\n\n\n\n\n\n";
+					$reporte .= chr(27).chr(33).chr(2)."\n";
 				
-				Storage::disk('local')->put($nombreReporte, $reporte);
-				$path = Storage::path($nombreReporte);
-				system("lp -dcalidad ".$path);
-		
+					Storage::disk('local')->put($nombreReporte, $reporte);
+					$path = Storage::path($nombreReporte);
+					system("lp -dcalidad ".$path);
+				}
+
 				Storage::disk('local')->delete($nombreReporte);
 			}
 		}

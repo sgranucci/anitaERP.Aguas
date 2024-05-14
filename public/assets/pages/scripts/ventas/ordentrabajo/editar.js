@@ -344,6 +344,7 @@ $('#aceptaFacturarOrdenTrabajoModal').on('click', function () {
     var puntoventa_id = $('#puntoventa_id').val();
     var tipotransaccion_id = $('#tipotransaccion_id').val();
     var descuentopie = $('#descuentopie').val();
+    var descuentoimportepie = $('#descuentoimportepie').val();
     var descuentolinea = $('#descuentolinea').val();
     var fechafactura = $('#fechafactura').val();
     var leyendafactura = $('#leyendafactura').val();
@@ -367,6 +368,7 @@ $('#aceptaFacturarOrdenTrabajoModal').on('click', function () {
                 puntoventa_id: puntoventa_id,
                 fechafactura: fechafactura,
                 descuentopie: descuentopie,
+                descuentoimportepie: descuentoimportepie,
                 descuentolinea: descuentolinea,
                 leyendafactura: leyendafactura,
                 cantidadbulto: cantidadbulto,

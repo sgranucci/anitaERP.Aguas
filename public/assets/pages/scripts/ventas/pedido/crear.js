@@ -300,6 +300,19 @@
 			let ot = this;
 			let tilde = $(this).parents("tr").find(".checkImpresion");
 			let pedido_combinacion_id = $(this).parents("tr").find(".ids").val();
+			let articulo = $(this).parents("tr").find(".articulo");
+			let combinacion = $(this).parents("tr").find(".combinacion");
+
+			if (ordentrabajo > 0)
+			{
+				articulo.prop('disabled', 'disabled');
+				combinacion.prop('disabled', 'disabled');
+			}
+			else
+			{
+				articulo.prop('disabled', false);
+				combinacion.prop('disabled', false);
+			}
 			
 			// Busca si tiene factura asociada
 			var listarUri = "/anitaERP/public/ventas/estadoot/"+ordentrabajo+"/"+pedido_combinacion_id;
@@ -680,21 +693,26 @@
 				$.get(listarUri, function(data){
 					if (data.estado != -1)
 					{
-						alert("Saldo lote "+ordentrabajo_stock_codigo+" Saldo "+data.saldo+" Cantidad "+cantidad);
+						alert("Saldo lote "+ordentrabajo_stock_codigo+" Saldo "+data.saldo+" Cantidad "+cantidad+" Deposito "+data.deposito_id);
 
 						if (data.saldo < cantidad)
 						{
 							alert('No puede hacer la orden de trabajo porque no tiene saldo suficiente');
 							return;
 						}
-
+						if (data.deposito_id < 1)
+						{
+							alert('No puede hacer la orden de trabajo porque no tiene deposito asignado el lote');
+							return;							
+						}
 						$('#crearOrdenTrabajoModal').modal('hide');
 
 						if (checkotstock == 'on')
-							var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/pedido/"+$(pedido_combinacion).val()+"/on/"+ordentrabajo_stock_codigo+'/'+leyenda;
+							var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/pedido/"+
+											$(pedido_combinacion).val()+"/on/"+ordentrabajo_stock_codigo+'/'+data.deposito_id+'/'+leyenda;
 						else
-							var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/pedido/"+$(pedido_combinacion).val()+"/off/"+ordentrabajo_stock_codigo+'/'+leyenda;
-			
+							var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/pedido/"+
+											$(pedido_combinacion).val()+"/off/"+ordentrabajo_stock_codigo+'/'+data.deposito_id+'/'+leyenda;
 						$.get(listarUri, function(data){
 							// Asigna ot id y nro. de orden 
 							if (data.id > 0)
@@ -720,9 +738,11 @@
 				$('#crearOrdenTrabajoModal').modal('hide');
 
 				if (checkotstock == 'on')
-					var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/pedido/"+$(pedido_combinacion).val()+"/on/"+ordentrabajo_stock_codigo+'/'+leyenda;
+					var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/pedido/"
+									+$(pedido_combinacion).val()+"/on/"+ordentrabajo_stock_codigo+'/1/'+leyenda;
 				else
-					var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/pedido/"+$(pedido_combinacion).val()+"/off/"+ordentrabajo_stock_codigo+'/'+leyenda;
+					var listarUri = "/anitaERP/public/ventas/guardaordenestrabajo/pedido/"
+									+$(pedido_combinacion).val()+"/off/"+ordentrabajo_stock_codigo+'/1/'+leyenda;
 	
 				$.get(listarUri, function(data){
 					// Asigna ot id y nro. de orden 
@@ -1211,6 +1231,7 @@
 		let checksId=[];
 		let itemId;
 	  	let pedidoId = $("#pedidoid").val();
+		let descuentoLinea;
 
 		$("input[type=checkbox]:checked").each(function(){
 			
@@ -1218,8 +1239,9 @@
     		checksId.push(itemId);
 
 		});
+		descuentoLinea = prompt("Ingrese descuento de linea: ");
 
-		let listarUri = "/anitaERP/public/ventas/listarprefactura"+"/"+pedidoId+'/'+checksId;
+		let listarUri = "/anitaERP/public/ventas/listarprefactura"+"/"+pedidoId+'/'+checksId+"/"+descuentoLinea;
 		document.location.href= listarUri;
 	}
 
@@ -1425,6 +1447,7 @@
 		var puntoventa_id = $('#puntoventa_id').val();
 		var tipotransaccion_id = $('#tipotransaccion_id').val();
 		var descuentopie = $('#descuentopie').val();
+		var descuentoimportepie = $('#descuentoimportepie').val();
 		var descuentolinea = $('#descuentolinea').val();
 		var fechafactura = $('#fechafactura').val();
 		var leyendafactura = $('#leyendafactura').val();
@@ -1451,6 +1474,7 @@
 					puntoventa_id: puntoventa_id,
 					fechafactura: fechafactura,
 					descuentopie: descuentopie,
+					descuentoimportepie: descuentoimportepie,
 					descuentolinea: descuentolinea,
 					leyendafactura: leyendafactura,
 					cantidadbulto: cantidadbulto,

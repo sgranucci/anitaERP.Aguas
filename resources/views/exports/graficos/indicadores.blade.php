@@ -50,6 +50,7 @@
 		<th>Swing bars</th>
 		<th>Swing bars prev.</th>
 		<th>Retroceso</th>
+		<th>Tipo setup</th>
 		<th>Filtro Activo</th>
 		<th>Setup</th>
 		<th>ENTRADA</th>
@@ -111,6 +112,7 @@
 				<td align="right">0</td>
 			@endif
 			<td align="right">{{number_format(floatval($data['retroceso']), 5, ",", ".")}}</td>
+			<td align="right">{{$data['setup']}}</td>
 			<td>{{$data['filtroActivo']}}</td>
 			<td>{{$data['senial']}}</td>
 			<td align="left">{{$data['entrada']}}</td>

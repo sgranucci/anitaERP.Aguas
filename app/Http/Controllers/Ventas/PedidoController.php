@@ -33,6 +33,7 @@ use App\Exports\Ventas\PedidoExport;
 use App\Exports\Ventas\TotalPedidoExport;
 use App\Exports\Ventas\GeneralPedidoExport;
 use App\Exports\Ventas\ConsumoMaterialExport;
+use Illuminate\Pagination\Paginator;
 use DB;
 
 class PedidoController extends Controller
@@ -121,44 +122,68 @@ class PedidoController extends Controller
 						break;
 					}
 				}
-				else
-				{
-					switch($filtros['filter_column'][$ii]['type'])
-					{
-					case 'in':
-						$query = $datas->whereIn($filtros['filter_column'][$ii]['column'], explode(',', $filtros['filter_column'][$ii]['value']));
-						break;
-					case 'not in':
-						$query = $datas->whereNotIn($filtros['filter_column'][$ii]['column'], explode(',', $filtros['filter_column'][$ii]['value']));
-						break;
-					case 'like':
-					case 'not like':
-						$query = $datas->where($filtros['filter_column'][$ii]['column'], $filtros['filter_column'][$ii]['type'], '%'.$filtros['filter_column'][$ii]['value'].'%');
-						break;
-					case '';
-						$query = $datas->whereExists(function($query)
-								{
-    								$query->select(DB::raw(1))
-										->from("combinacion")
-          								->whereRaw("combinacion.articulo_id=articulo.id and combinacion.estado='A'");
-								});
-						break;
-					default:
-						if ($filtros['filter_column'][$ii]['value'])
-							$query = $datas->where($filtros['filter_column'][$ii]['column'], $filtros['filter_column'][$ii]['type'], $filtros['filter_column'][$ii]['value']);
-						break;
-					}
-				}
-
-				if($filtros['filter_column'][$ii]['sorting'] != '')
-				{
-				}
 			}
 		}
 		else
 			$datas = $this->pedidoService->leePedidosPorEstado($cliente_id, 'P');
 
 		return view('ventas.pedido.index', compact('datas'));
+    }
+
+	// Index paginando 
+
+	public function indexp(Request $request)
+    {
+		can('listar-pedidos');
+
+        $busqueda = $request->busqueda;
+        
+		$pedidos = $this->pedidoService->leePedidosPorEstadoPaginando($busqueda);
+
+		$datas = ['pedidos' => $pedidos, 'busqueda' => $busqueda];
+
+		return view('ventas.pedido.indexp', $datas); 
+    }
+
+    public function listar(Request $request, $formato = null, $busqueda = null)
+    {
+        can('listar-pedidos'); 
+
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', '0');
+
+        switch($formato)
+        {
+        case 'PDF':
+			$pedidos = $this->pedidoService->leePedidosPorEstadoSinPaginar($busqueda);
+            $view =  \View::make('ventas.pedido.listado', compact('pedidos'))
+                        ->render();
+            $path = storage_path('pdf/listados');
+            $nombre_pdf = 'listado_pedido';
+
+            $pdf = \App::make('dompdf.wrapper');
+            $pdf->setPaper('legal','portrait');
+            $pdf->loadHTML($view)->save($path.'/'.$nombre_pdf.'.pdf');
+
+            return response()->download($path.'/'.$nombre_pdf.'.pdf');
+            break;
+
+        case 'EXCEL':
+            return (new PedidoExport($this->pedidoService))
+                        ->parametros($busqueda)
+                        ->download('pedido.xlsx');
+            break;
+
+        case 'CSV':
+            return (new PedidoExport($this->pedidoService))
+                        ->parametros($busqueda)
+                        ->download('pedido.csv', \Maatwebsite\Excel\Excel::CSV);
+            break;            
+        }   
+
+        $datas = ['pedidos' => $pedidos, 'busqueda' => $busqueda];
+
+		return view('ventas.pedido.indexp', $datas);       
     }
 
 	public function limpiafiltro(Request $request) {
@@ -435,9 +460,9 @@ class PedidoController extends Controller
 	}
 
 	/* Lista el prefactura */
-	public function listarPreFactura($id, $items_id)
+	public function listarPreFactura($id, $items_id, $descuentoLinea = null)
 	{
-		return $this->pedidoService->listarPreFactura($id, $items_id);
+		return $this->pedidoService->listarPreFactura($id, $items_id, $descuentoLinea);
 	}
 
 	/* Anula un item del pedido */
@@ -544,10 +569,9 @@ class PedidoController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function actualizar(ValidacionPedido $request, $id)
+    public function actualizar(Request $request, $id)
 	{
         can('actualizar-pedidos');
-		
 		$pedido = $this->pedidoService->guardaPedido($request->all(), 'update', $id);
 
 		if (isset($pedido['error']))
@@ -584,6 +608,7 @@ class PedidoController extends Controller
     {
         can('borrar-pedidos');
 
+		$fl_borro = false;
         if ($request->ajax()) 
 		{
 			if ($this->pedidoService->borraPedido($id))
@@ -595,7 +620,12 @@ class PedidoController extends Controller
                 return response()->json(['mensaje' => 'ng']);
             }
         } else {
-            abort(404);
+			if ($this->pedidoService->borraPedido($id))
+				$mensaje = 'ok';
+			else 	
+				$mensaje = 'error';
+
+			return redirect('ventas/pedido')->with('mensaje', $mensaje);
         }
     }
 

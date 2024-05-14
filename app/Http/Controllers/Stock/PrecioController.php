@@ -34,17 +34,62 @@ class PrecioController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         can('listar-precios');
-        $datas = Precio::with('articulos')->with('listaprecios')->with('monedas')->with('usuarios')->
-					whereExists(function($query) 
+
+		$filtros = [];
+		if ($request->url() != $request->fullUrl())
+		{
+			$url = urldecode($request->fullUrl());
+			$components = parse_url($url);
+			parse_str($components['query'], $filtros);
+
+			session(['filtrosPrecios' => $filtros]);
+		}
+		else
+		{
+			$filtros = session('filtrosPrecios');
+		}
+
+        $datas = Precio::with('articulos')->with('listaprecios')->with('monedas')->with('usuarios');
+
+		// Aplica los filtros si es que hay definidos
+		if ($filtros != '' && $filtros['filter_column'] ?? '')
+		{
+			for ($ii = 0; $ii < count($filtros['filter_column']); $ii++)
+			{
+				if ($filtros['filter_column'][$ii]['type'] == '')
+					continue;
+
+				if ($filtros['filter_column'][$ii]['column'] == 'estado' &&
+					$filtros['filter_column'][$ii]['type'] == '=')
+				{
+                    switch($filtros['filter_column'][$ii]['value'])
 					{
-						$query->select(DB::raw(1))
-								->from('combinacion')
-								->whereRaw("combinacion.articulo_id = precio.articulo_id AND combinacion.estado='A'");
-					})
-					->get();
+					case 'F':
+                        $datas = $datas->whereHas('articulos', function($query) 
+                        {
+                            $query->where('nofactura','0');
+                        });
+                        break;
+                    case 'N':
+                        $datas = $datas->whereHas('articulos', function($query)
+                        {
+                            $query->where('nofactura','1');
+                        });
+                        break;
+                    }
+                }
+            }
+        }
+
+        $datas = $datas->whereExists(function($query) 
+        {
+            $query->select(DB::raw(1))
+                    ->from('combinacion')
+                    ->whereRaw("combinacion.articulo_id = precio.articulo_id");
+        })->get();
 
 		//if ($datas->isEmpty())
 		//{
@@ -268,4 +313,11 @@ class PrecioController extends Controller
                 ->with('mensaje', $exception->getMessage());
         }
     }
+
+	public function limpiafiltro(Request $request) {
+		session()->forget('filtrosPrecios');
+
+        return json_encode(["ok"]);
+	}
+
 }

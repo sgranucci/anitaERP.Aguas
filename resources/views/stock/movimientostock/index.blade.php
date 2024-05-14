@@ -54,7 +54,7 @@ Movimientos de Stock
                 					<small> {{$movimientostock['codigo']}}</small>
         						</td>
 								<td>
-                					<small> {{$movimientostock['mventas']['nombre']}}</small>
+                					<small> {{ $movimientostock['mventas']['nombre'] ?? ''}}</small>
         						</td>
 								<td>
                 					<small> {{$movimientostock['articulos_movimiento'][0]['lote']}}</small>

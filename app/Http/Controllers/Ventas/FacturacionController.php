@@ -21,6 +21,7 @@ use App\Models\Stock\Modulo;
 use App\Models\Stock\Listaprecio;
 use App\Models\Ventas\Vendedor;
 use App\Models\Ventas\Condicionventa;
+use App\Exports\Ventas\FacturaExport;
 
 class FacturacionController extends Controller
 {
@@ -70,6 +71,48 @@ class FacturacionController extends Controller
         $datas = ['ventas' => $ventas, 'busqueda' => $busqueda];
 
         return view('ventas.factura.index', $datas);
+    }
+
+    public function listar($formato = null, $busqueda = null)
+    {
+        can('listar-facturas'); 
+
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', '0');
+
+		$ventas = $this->facturacionService->leeSinPaginar($busqueda);
+
+        switch($formato)
+        {
+        case 'PDF':
+            $view =  \View::make('ventas.factura.listado', compact('ventas'))
+                        ->render();
+            $path = storage_path('pdf/listados');
+            $nombre_pdf = 'listado_factura';
+
+            $pdf = \App::make('dompdf.wrapper');
+            $pdf->setPaper('legal','portrait');
+            $pdf->loadHTML($view)->save($path.'/'.$nombre_pdf.'.pdf');
+
+            return response()->download($path.'/'.$nombre_pdf.'.pdf');
+            break;
+
+        case 'EXCEL':
+            return (new FacturaExport($this->facturacionService))
+                        ->parametros($busqueda)
+                        ->download('factura.xlsx');
+            break;
+
+        case 'CSV':
+            return (new FacturaExport($this->facturacionService))
+                        ->parametros($busqueda)
+                        ->download('factura.csv', \Maatwebsite\Excel\Excel::CSV);
+            break;            
+        }   
+
+        $datas = ['ventas' => $ventas, 'busqueda' => $busqueda];
+
+        return view('ventas.factura.index', $datas);       
     }
 
     /**

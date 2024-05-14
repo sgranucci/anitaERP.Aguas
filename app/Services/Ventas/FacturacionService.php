@@ -102,7 +102,7 @@ class FacturacionService
 	protected $cantidadBulto, $puntoventaremito_id;
 	protected $formapago_id, $mercaderiaExportacion, $leyendaExportacion, $incoterm_id, $abreviaturaIncoterm;
 	protected $condicionVentaExportacion, $formaPagoExportacion, $monedaExportacion;
-	protected $descuentoPie, $descuentoLinea;
+	protected $descuentoPie, $descuentoLinea, $descuentoImportePie;
 	protected $numeroDespacho;
 	protected $cuentacontable_id, $codigoCuentaContable, $nombreTipoTransaccion;
 
@@ -172,6 +172,11 @@ class FacturacionService
         return $this->ventaRepository->leePaginando($busqueda);
     }
 
+	public function leeSinPaginar($busqueda)
+    {
+        return $this->ventaRepository->leeSinPaginar($busqueda);
+    }
+
 	// Factura por item de OT
 
 	public function generaFacturaPorItemOt(array $data)
@@ -197,6 +202,7 @@ class FacturacionService
 
 		$this->descuentoPie = $data['descuentopie'];
 		$this->descuentoLinea = $data['descuentolinea'];
+		$this->descuentoImportePie = $data['descuentoimportepie'];
 		$this->cantidadBulto = $data['cantidadbulto'];
 		$this->puntoventaremito_id = $data['puntoventaremito_id'];
 		$this->formapago_id = $data['formapago_id'];
@@ -432,6 +438,7 @@ class FacturacionService
 						  "retieneiva" => $cliente->retieneiva,
 						  "condicioniibb" => $cliente->condicioniibb,
 						  "provincia" => $cliente->provincia_id,
+						  "descuentoimportepie" => $this->descuentoImportePie
 						];
 
 		// Calcula impuestos
@@ -1120,7 +1127,7 @@ class FacturacionService
 	// Graba factura en Anita
 	public function grabaAnita($puntoventa, $letra, $puntoventaremito, $numeroremito, $venta, 
 								$dataCAE, $conceptostotales, $cuentacorriente, $datatalle, $signo, 
-								$cuentaVenta, $contrapartida)
+								$cuentaVenta, $contrapartida, $servidor = null, $ifx_server = null)
 	{
 		// Lee el cliente
 		$cliente = $this->clienteQuery->traeClienteporId($venta['cliente_id']);
@@ -1374,7 +1381,7 @@ class FacturacionService
 							'".$puntoventa."',
 							'".$venta['numerocomprobante']."',
 							'".$this->cantidadBulto."',
-							'".$numeroremito."',
+							'".$venta['numerocomprobante']."',
 							'".date('Ymd', strtotime($venta['fecha']))."',
 							'".'0'."',
 							'".$venta['condicionventa_id']."',
@@ -1407,6 +1414,7 @@ class FacturacionService
 		{
 			foreach ($item['medidas'] as $medida)
 			{
+				$partida = 1;
 				if ($medida['medida'] >= config('consprod.DESDE_INTERVALO1') &&
 					$medida['medida'] <= config('consprod.HASTA_INTERVALO1'))
 					$partida = 1;
@@ -1513,6 +1521,9 @@ class FacturacionService
 			else	
 				$deposito = 1;
 
+			if ($ifx_server == 'IFX_SERVER_LOCAL')
+				$deposito = 10;
+
 			$data = array( 	'tabla' => 'stkmov', 
 							'acc' => 'insert',
 							'campos' => ' 
@@ -1553,7 +1564,7 @@ class FacturacionService
 								'".($provincia_id == null ? '0' : $provincia_id)."',
 								'".($subzonavta_id == null ? '0' : $subzonavta_id)."',
 								'".'0'."',
-								'".$medida['partida']."',
+								'".($ifx_server == 'IFX_SERVER_LOCAL' ? $medida['medida'] : $medida['partida'])."',
 								'".substr($medida['pedido'],-8)."',
 								'".Auth::user()->nombre."',
 								'".'ERP'."',
@@ -1566,6 +1577,13 @@ class FacturacionService
 								'".$medida['codigocombinacion']."'
 								"
 				);
+
+			if ($servidor != null)
+			{
+				$data['servidor'] = $servidor;
+				$data['ifx_server'] = $ifx_server;
+			}
+
 			$stkmov = $apiAnita->apiCall($data);
 			if (strpos($stkmov, 'Error') !== false)
 				return 'Error';
@@ -1597,7 +1615,7 @@ class FacturacionService
 							'".($provincia_id == null ? '0' : $provincia_id)."',
 							'".($subzonavta_id == null ? '0' : $subzonavta_id)."',
 							'".'0'."',
-							'".$medida['partida']."',
+							'".($ifx_server == 'IFX_SERVER_LOCAL' ? $medida['medida'] : $medida['partida'])."',
 							'".$medida['medida']."',
 							'".'0'."',
 							'".'0'."',
@@ -1605,6 +1623,12 @@ class FacturacionService
 							'".$medida['codigocombinacion']."'
 							"
 			);
+			if ($servidor != null)
+			{
+				$data['servidor'] = $servidor;
+				$data['ifx_server'] = $ifx_server;
+			}
+
 			$stkvmed = $apiAnita->apiCall($data);
 			if (strpos($stkvmed, 'Error') !== false)
 				return 'Error';
@@ -1645,27 +1669,7 @@ class FacturacionService
 		$totalVentaNeta = $dataCAE['exento']+$dataCAE['nogravado']+$dataCAE['gravado'];
 
 		// Lee numero de operacion
-		$apiAnita = new ApiAnita();
-        $data = array( 
-            'acc' => 'list', 
-			'tabla' => 'numerador', 
-            'campos' => '
-                num_ult_numero
-			' , 
-            'whereArmado' => " WHERE num_clave='500' " 
-        );
-        $dataAnita = json_decode($apiAnita->apiCall($data));
-
-		$numeroOperacion = $dataAnita[0]->num_ult_numero + 1;
-
-		// Actualiza numero
-		$apiAnita = new ApiAnita();
-		$data = array( 'acc' => 'update', 
-					'tabla' => 'numerador', 
-					'valores' => 
-						" num_ult_numero = '".$numeroOperacion."' ", 
-					'whereArmado' => " WHERE num_clave = '500' " );
-        $numerador = $apiAnita->apiCall($data);
+		$numeroOperacion = Self::leeNumeroOperacionSubdiario();
 
 		// Arma detalle
 		$detalle = substr($venta['codigo'], 0, 3)." ".$letra." ".$puntoventa."-".
@@ -2019,5 +2023,33 @@ class FacturacionService
 		$venta = $ventaRepository->find($id);
 
 		// Lee items
+	}
+
+	public function leeNumeroOperacionSubdiario()
+	{
+		// Lee numero de operacion
+		$apiAnita = new ApiAnita();
+		$data = array( 
+			'acc' => 'list', 
+			'tabla' => 'numerador', 
+			'campos' => '
+				num_ult_numero
+			' , 
+			'whereArmado' => " WHERE num_clave='500' " 
+		);
+		$dataAnita = json_decode($apiAnita->apiCall($data));
+
+		$numeroOperacion = $dataAnita[0]->num_ult_numero + 1;
+
+		// Actualiza numero
+		$apiAnita = new ApiAnita();
+		$data = array( 'acc' => 'update', 
+					'tabla' => 'numerador', 
+					'valores' => 
+						" num_ult_numero = '".$numeroOperacion."' ", 
+					'whereArmado' => " WHERE num_clave = '500' " );
+		$numerador = $apiAnita->apiCall($data);
+
+		return $numeroOperacion;
 	}
 }

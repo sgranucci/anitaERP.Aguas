@@ -164,6 +164,12 @@ class GeneraOrdenes implements ShouldQueue
         $indicadoresService->acumFlAnulacionW4AlcistaActiva = false;
         $indicadoresService->acumFlAnulacionW4BajistaActiva = false;
 
+        // Por ahora no utiliza filtros para anular candidatos
+        $indicadoresService->acumconFiltrosCandidato = true;
+
+        // Filtro outbound
+        $indicadoresService->acumFlFiltroOutBound = false;
+
         $dataPrueba = DB::connection('trade')->table('trade.lecturas')
             ->select('id',
                     'fechalectura',

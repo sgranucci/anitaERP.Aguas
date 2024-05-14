@@ -6,12 +6,20 @@ use Illuminate\Support\Facades\File;
 class ApiAnita {
     public function __construct()    {
         $this->fecha = date("YmdHisu")."_".random_int(0, 9999);
-        $this->servidorAnita = env('ANITA_IP');
+
+        $this->servidorAnita = env('ANITA_IP'); 
     }
 
 
     public function apiCallHttp($data){
-        $data["IFX_SERVER"]	 = env('IFX_SERVER');
+        if (isset($data['servidor']))
+            $this->servidorAnita = env($data['servidor']);
+
+        if (isset($data['ifx_server']))
+            $data["IFX_SERVER"]	 = env($data['ifx_server']);
+        else
+            $data["IFX_SERVER"]	 = env('IFX_SERVER');
+
         $data["DB_NAME"]	 = env('ANITA_BDD');
         $data["IFX_DB_PATH"] = env('ANITA_BDD_PATH')."/".env('ANITA_BDD');
         //dd($data);

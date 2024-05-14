@@ -23,7 +23,7 @@ class Pedido extends Model
 
     protected $fillable = ['fecha', 'fechaentrega', 'cliente_id', 'condicionventa_id', 'vendedor_id', 'transporte_id', 
 							'mventa_id', 'estado', 'usuario_id', 'leyenda', 'descuento', 'descuentointegrado', 
-							'cliente_entrega_id', 'lugarentrega', 'codigo'];
+							'cliente_entrega_id', 'lugarentrega', 'codigo', 'estadopedido'];
     protected $table = 'pedido';
 	protected $dates = [
 						'fecha',
@@ -86,9 +86,13 @@ class Pedido extends Model
 	public function scopeWithWhereHasOtArticuloCombinacion($query, $articulo_id, $combinacion_id)
 	{
 		return $query->with(['pedido_combinaciones' => function ($q) use($articulo_id, $combinacion_id) {
-				$q->whereIn('ot_id',[-1,0])->where('articulo_id',$articulo_id)->where('combinacion_id',$combinacion_id);
-				}, 'pedido_combinaciones.combinaciones'])->whereHas('pedido_combinaciones', function ($q) use ($articulo_id, $combinacion_id) {
-					$q->whereIn('ot_id',[-1,0])->where('articulo_id',$articulo_id)->where('combinacion_id',$combinacion_id);
+				$q->whereIn('ot_id',[-1,0])->where('articulo_id',$articulo_id)
+                ->where('combinacion_id',$combinacion_id);
+				}, 'pedido_combinaciones.combinaciones'])
+                ->whereHas('pedido_combinaciones', function ($q) use ($articulo_id, $combinacion_id) {
+					$q->whereIn('ot_id',[-1,0])
+                    ->where('articulo_id',$articulo_id)
+                    ->where('combinacion_id',$combinacion_id);
 				});
 	}
 }

@@ -5,6 +5,8 @@ namespace App\Queries\Ventas;
 use App\Models\Ventas\Pedido;
 use App\Models\Stock\Capeart;
 use App\Models\Stock\Avioart;
+use Illuminate\Support\Collection;
+use DB;
 
 class PedidoQuery implements PedidoQueryInterface
 {
@@ -32,6 +34,54 @@ class PedidoQuery implements PedidoQueryInterface
         return $pedidos;
     }
     
+    public function allPedidoIndexPaginando($busqueda)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', '0');
+
+        $pedidos = $this->model->select('pedido.id as id',
+                                'pedido.fecha as fecha',
+                                'cliente.nombre as nombrecliente',
+                                'pedido.codigo as codigo',
+                                'pedido.estadopedido as estado')
+                                ->join('cliente', 'cliente.id', '=', 'pedido.cliente_id')
+                                ->with('pedido_combinaciones')
+                                ->where('cliente.nombre', 'like', '%'.$busqueda.'%')
+                                ->orwhere('pedido.fecha', $busqueda)
+                                ->orwhere('pedido.id', $busqueda)
+                                ->orWhere('pedido.estadopedido', 'like', '%'.$busqueda.'%')
+                                ->orWhereHas('mventas', function ($query) use ($busqueda) {
+                                    $query->where('nombre', 'like', '%'.$busqueda.'%');
+                                })
+                                ->orderBy('id','desc') 
+                                ->paginate(10);
+        return $pedidos;
+    }
+
+    public function allPedidoIndexSinPaginar($busqueda)
+    {
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', '0');
+
+        $pedidos = $this->model->select('pedido.id as id',
+                                'pedido.fecha as fecha',
+                                'cliente.nombre as nombrecliente',
+                                'pedido.codigo as codigo',
+                                'pedido.estadopedido as estado')
+                                ->join('cliente', 'cliente.id', '=', 'pedido.cliente_id')
+                                ->with('pedido_combinaciones')
+                                ->where('cliente.nombre', 'like', '%'.$busqueda.'%')
+                                ->orwhere('pedido.fecha', $busqueda)
+                                ->orwhere('pedido.id', $busqueda)
+                                ->orWhere('pedido.estadopedido', 'like', '%'.$busqueda.'%')
+                                ->orWhereHas('mventas', function ($query) use ($busqueda) {
+                                    $query->where('nombre', 'like', '%'.$busqueda.'%');
+                                })
+                                ->orderBy('id','desc')
+                                ->get();
+        return $pedidos;
+    }
+                
     public function allPendiente($cliente_id = null)
     {
 		if ($cliente_id)
@@ -44,7 +94,9 @@ class PedidoQuery implements PedidoQueryInterface
 
     public function allPendienteOt($articulo_id, $combinacion_id)
     {
-		$mod = $this->model->with('clientes:id,nombre')->with('mventas:id,nombre')->with('transportes:id,nombre')
+		$mod = $this->model->with('clientes:id,nombre')
+                ->with('mventas:id,nombre')
+                ->with('transportes:id,nombre')
 				->withWhereHasOtArticuloCombinacion($articulo_id, $combinacion_id)
 				->get();
 

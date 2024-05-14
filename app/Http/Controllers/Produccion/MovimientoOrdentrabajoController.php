@@ -11,6 +11,7 @@ use App\Services\Produccion\MovimientoOrdentrabajoService;
 use App\Repositories\Produccion\TareaRepositoryInterface;
 use App\Repositories\Produccion\OperacionRepositoryInterface;
 use App\Repositories\Produccion\EmpleadoRepositoryInterface;
+use Exception;
 
 class MovimientoOrdentrabajoController extends Controller
 {
@@ -89,8 +90,7 @@ class MovimientoOrdentrabajoController extends Controller
 		} catch (\Exception $e)
 		{
 			$mensaje = $e->getMessage();
-            
-		    return back()->with('errores', [$mensaje]);
+		    return back()->with('mensaje', [$mensaje]);
 		}
 
 		$this->armarTablasVista($tarea_query, $operacion_query, $empleado_query);
@@ -129,7 +129,25 @@ class MovimientoOrdentrabajoController extends Controller
     {
         can('actualizar-movimientos-orden-trabajo');
 
-		$data = $this->movimientoOrdentrabajoService->guardaMovimientoOrdenTrabajo($request->all(), 'update', $id);
+        $mensaje = '';
+		try
+		{
+            $data = $this->movimientoOrdentrabajoService->guardaMovimientoOrdenTrabajo($request->all(), 'update', $id);
+
+            if (isset($data['errores']))
+                throw new Exception($data['errores']);
+
+			if (is_array($data))
+				$mensaje = "Movimiento de OT actualizado con exito";
+			else
+				if ($data)
+					$mensaje = $data;
+		} catch (\Exception $e)
+		{
+			$mensaje = $e->getMessage();
+
+		    return back()->with('mensaje', $mensaje);
+		}
 
         return redirect('produccion/movimientoordentrabajo')->with('mensaje', 'Movimiento de OT actualizado con exito');
     }

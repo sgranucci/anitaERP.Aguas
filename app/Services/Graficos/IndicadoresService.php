@@ -118,11 +118,16 @@ class IndicadoresService
     public $ventanaSpBajista;
     public $flAnulaCandidato;
     public $flEmpiezaOperacion;
+    public $acumconFiltrosCandidato;
+    public $acumFlFiltroOutBound;
+    public $acumCantidadPivotes = 0;
+    public $gatillo;
 
 	public function calculaIndicadores($desdefecha, $hastafecha, $desdehora, $hastahora, $especie, $calculobase, 
                                         $mmcorta, $mmlarga, $compresion, $largovma, $largocci, $largoxtl,
                                         $umbralxtl, $calculobase_enum, $swingSize, $filtroSetup, 
-                                        $totalContratos, $administracionposicion, $tiempo, $filtrosMatematicos)
+                                        $totalContratos, $administracionposicion, $tiempo, $filtrosMatematicos,
+                                        $gatillo)
 	{
         ini_set('memory_limit', '512M');
         ini_set('max_execution_time', '2400');
@@ -149,6 +154,7 @@ class IndicadoresService
         $this->administracionPosicion = $administracionposicion;
         $this->tiempo = $tiempo;
         $this->flSinFiltros = ($filtrosMatematicos == 'S' ? false : true);
+        $this->gatillo = $gatillo;
 
         $this->acumFlBuscaEntrada = $this->acumFlAbrePosicion = false;
         $this->acumOff0 = $this->acumOff1oA = -1;
@@ -160,6 +166,14 @@ class IndicadoresService
         $this->acumFlAnulacionAbcBajistaActiva = false;
         $this->acumFlAnulacionAbCdAlcistaActiva = false;
         $this->acumFlAnulacionAbCdBajistaActiva = false;
+
+        // Por ahora no utiliza filtros para anular candidatos
+        $this->acumconFiltrosCandidato = true;
+
+        // Filtro outbound
+        $this->acumFlFiltroOutBound = false;
+        $this->acumCantidadPivotes = 0;
+
         $this->acumIdSenial = $this->acumIdTrade = 0;
         $this->cantidadActivaContratos = $this->totalContratos;
         $this->acumFlCerroPorTiempoAlcista = false;
@@ -923,7 +937,7 @@ class IndicadoresService
                         $this->datas[$off]['extT4'] = $pivot0 + ABS($swing) * 2.618;
 
                         if ($pivot0 > $pivot2)
-                            $this->datas[$off]['setup'] = 'HL';
+                            $this->datas[$off]['setup'] = 'LH';
                         elseif ($pivot0 < $pivot2)
                             $this->datas[$off]['setup'] = 'LL';
                         else    
@@ -939,7 +953,7 @@ class IndicadoresService
                         if ($pivot0 > $pivot2)
                             $this->datas[$off]['setup'] = 'HL';
                         elseif ($pivot0 < $pivot2)
-                            $this->datas[$off]['setup'] = 'LH';
+                            $this->datas[$off]['setup'] = 'HH';
                         elseif ($pivot0 == $pivot2)
                             $this->datas[$off]['setup'] = 'DT';
                     }
@@ -989,11 +1003,14 @@ class IndicadoresService
             $this->calculaPivot($i);
 
         $fechaActual = date('Y-m-d', ceil($this->datas[$i]['fecha']/1000));
-        if ($fechaActual < "2023-03-12" || $fechaActual >= "2023-11-05")
+        if ($fechaActual < "2023-03-12" || 
+			($fechaActual >= "2023-11-05" && $fechaActual < "2024-03-10") ||
+			($fechaActual >= "2024-11-03" && $fechaActual < "2025-03-10"))
             $flDayLight = true;
         else
         {
-            if ($fechaActual >= "2023-03-12" && $fechaActual < "2023-11-05")
+            if (($fechaActual >= "2023-03-12" && $fechaActual < "2023-11-05") ||
+                ($fechaActual >= "2024-03-10" && $fechaActual < "2024-11-03"))
                 $flDayLight = false;
         }
 
@@ -1314,7 +1331,20 @@ class IndicadoresService
                     if ($this->acumFlAbrePosicionEntrada)
                         $this->acumValorEntrada = $this->acumPuntoEntrada;
 
-                    if (!$this->acumFlAbrePosicion)
+                    $riesgoPuntos = abs($this->acumValorEntrada-$this->acumStopLoss);
+                    $riesgoTicks = round($riesgoPuntos/$this->ticker, 0);
+                    $riesgoPesos = $riesgoTicks * $this->valorTicker;
+
+                    // Gatillo chequeando riesgo en pesos contra SL que sea menor a 500$
+                    $flAbre = true;
+                    if ($this->gatillo == 'B')
+                    {
+                        $flAbre = false;
+
+                        if ($riesgoPesos < 500)
+                            $flAbre = true;
+                    }
+                    if (!$this->acumFlAbrePosicion && $flAbre)
                     {
                         $this->acumFlAbrePosicion = true;
 
@@ -1334,9 +1364,6 @@ class IndicadoresService
                         $this->cantidadActivaContratos = $this->totalContratos;
 
                         // Arma tabla de operaciones
-                        $riesgoPuntos = abs($this->acumValorEntrada-$this->acumStopLoss);
-                        $riesgoTicks = round($riesgoPuntos/$this->ticker, 0);
-                        $riesgoPesos = $riesgoTicks * $this->valorTicker;
                         $retornoPuntos = abs($this->acumValorEntrada-$this->acumT1);
                         $retornoTicks = round($retornoPuntos/$this->ticker, 0);
                         $retornoPesos = $retornoTicks * $this->valorTicker;
@@ -1525,9 +1552,14 @@ class IndicadoresService
         if ($this->acumFlAnulacionW4AlcistaActiva)
             $this->datas[$i]['filtroActivo'] .= ' W4 ROJA';
 
+        if ($this->acumFlFiltroOutBound)
+            $this->datas[$i]['filtroActivo'] .= " OUT";
+
         // Busca señal alcista o bajista
         $this->flAnulaCandidato = false;
-        if (($this->datas[$i]['provMax'] != 0 || $this->datas[$i]['provMin'] != 0) && $this->flEmpiezaOperacion)
+
+        if (($this->datas[$i]['provMax'] != 0 || $this->datas[$i]['provMin'] != 0) && 
+            $this->flEmpiezaOperacion)
         {
             // Busca ultimo maximo / minimo
             $this->buscaUltimoMaximo($i, $offMax, $maximo);
@@ -1541,6 +1573,49 @@ class IndicadoresService
             if ($this->datas[$i]['provMin'] != 0)
             {
                 $this->marcaSetup($offMax, $offMin, 'BAJISTA');
+            }
+            //if ($i == 186)
+            //{
+            //    dd($offMax.' '.$this->datas[$offMax]['setup'].' '.$this->datas[$offMax]['provMax']);
+            //}
+            // Define outbound
+            // Si estoy en HH verifica si el anterior es LL
+            if ($this->datas[$i]['provMax'] != 0 && $this->acumFlFiltroOutBound && !$this->datas[$offMin]['outbound'])
+            {
+                $this->acumFlFiltroOutBound = false;
+                $this->datas[$i]['entrada'] .= ' DESACTIVA FILTRO OUTBOUND ';
+            }
+
+            if ($this->datas[$i]['provMin'] != 0 && $this->acumFlFiltroOutBound && !$this->datas[$offMax]['outbound'])
+            {
+                $this->acumFlFiltroOutBound = false;
+                $this->datas[$i]['entrada'] .= ' DESACTIVA FILTRO OUTBOUND ';
+            }
+
+            if ($this->datas[$i]['provMax'] > $maximo && $this->datas[$i]['provMax'] != 0 && !$this->acumFlFiltroOutBound) // Es HH
+            {
+                if ($this->datas[$offMin]['setup'] == 'LL')
+                {
+                    $this->acumFlFiltroOutBound = true;
+                    $this->datas[$i]['outbound'] = true;
+
+                    $this->datas[$i]['entrada'] .= 'ACTIVA FILTRO OUTBOUND HH / LL';
+
+                    $this->datas[$i]['filtroActivo'] .= " Activa OUT";
+                }
+            }
+
+            if ($this->datas[$i]['provMin'] < $minimo && $this->datas[$i]['provMin'] != 0 && !$this->acumFlFiltroOutBound) // Es LL
+            {
+                if ($this->datas[$offMax]['setup'] == 'HH')
+                {
+                    $this->acumFlFiltroOutBound = true;
+                    $this->datas[$i]['outbound'] = true;
+
+                    $this->datas[$i]['entrada'] .= ' ACTIVA FILTRO OUTBOUND LL / HH ';
+
+                    $this->datas[$i]['filtroActivo'] .= " Activa OUT";
+                }
             }
 
             // Busca si provmax es menor al ultimo maximo
@@ -1749,7 +1824,8 @@ class IndicadoresService
             $this->datas[$i]['horainicio'] <= ($flDayLight ? '17:00:00' : '16:00:00') &&
             !$this->acumFlCerroPorTiempoAlcista && !$this->acumFlCerroPorTiempoBajista && 
             !$this->acumFlBuscaEntrada &&
-            !$this->flAnulaCandidato)
+            ($this->acumconFiltrosCandidato ? !$this->flAnulaCandidato : true) &&
+            !$this->acumFlFiltroOutBound)
         {
             // Calcula filtros de inertia y volatilidad
 			if ($this->datas[$i]['provMin'] != 0 || $this->datas[$i]['provMax'] != 0)
@@ -3765,6 +3841,7 @@ class IndicadoresService
             'evento' => '',
             'zona' => '',
             'senial' => '',
+            'outbound' => false,
             'nuevo' => true
         ];
     }

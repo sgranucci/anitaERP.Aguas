@@ -128,3 +128,20 @@ function redondear($n, $dec, $prec)
     
     return $ent + ($r / 100);
 }
+
+// Extrae valores del checkbox para cuando se usan en un array y se pasan por formulario a php
+
+function getAllChkboxValues($chk_name) {
+    $found = array(); //create a new array 
+    foreach($chk_name as $key => $val) {
+        //echo "KEY::".$key."VALue::".$val."<br>";
+        if($val == '1') { //replace '1' with the value you want to search
+            $found[] = $key;
+        }
+    }
+    foreach($found as $kev_f => $val_f) {
+        unset($chk_name[$val_f-1]); //unset the index of un-necessary values in array
+    }   
+    $final_arr = array(); //create the final array
+    return $final_arr = array_values($chk_name); //sort the resulting array again
+}

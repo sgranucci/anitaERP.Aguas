@@ -392,6 +392,7 @@ Route::delete('stock/precio/{id}', 'Stock\PrecioController@eliminar')->name('eli
 Route::get('stock/asignaprecio/{id}/{talle?}', 'Stock\PrecioController@asignaPrecio')->name('asigna_precio');
 Route::get('stock/precio/crearimportacionprecio', 'Stock\PrecioController@crearImportacion')->name('crear_importacion_precio');
 Route::post('stock/importarprecio', 'Stock\PrecioController@importar')->name('importar_precio');
+Route::post('stock/precio/limpiafiltro', 'Stock\PrecioController@limpiafiltro')->name('precio.limpiafiltro');
 
 /* 
  * Tienda nube
@@ -401,7 +402,7 @@ Route::post('stock/importarprecio', 'Stock\PrecioController@importar')->name('im
  Route::post('stock/importartiendanube', 'Stock\TiendaNubeController@importar')->name('importar_tiendanube');
  Route::get('ventas/crearimportacionfacturastiendanube', 'Ventas\FacturanteController@crearImportacion')->name('crear_importacion_facturas_tiendanube');
  Route::post('ventas/listarfacturastiendanube', 'Ventas\FacturanteController@listarComprobanteFull')->name('listar_facturas_tiendanube');
- Route::get('ventas/generarfacturastiendanube/{desdefecha}/{hastafecha}', 'Ventas\FacturanteController@generarFacturasTiendaNube')->name('generar_facturas_tiendanube');
+ Route::post('ventas/generarfacturastiendanube', 'Ventas\FacturanteController@generarFacturasTiendaNube')->name('generar_facturas_tiendanube');
 
 /* 
  * Unidades de medida
@@ -769,36 +770,41 @@ Route::get('ventas/leercliente/{cliente_id}', 'Ventas\ClienteController@leerClie
  * Pedidos
  */
 
-Route::get('ventas/pedido', 'Ventas\PedidoController@index')->name('pedido');
+Route::get('ventas/pedido', 'Ventas\PedidoController@indexp')->name('pedido');
+//Route::get('ventas/pedidop', 'Ventas\PedidoController@indexp')->name('pedidop');
 Route::get('ventas/pedido/crear', 'Ventas\PedidoController@crear')->name('crear_pedido');
 Route::post('ventas/pedido', 'Ventas\PedidoController@guardar')->name('guardar_pedido');
 Route::get('ventas/pedido/{id}/editar', 'Ventas\PedidoController@editar')->name('editar_pedido');
 Route::put('ventas/pedido/{id}', 'Ventas\PedidoController@actualizar')->name('actualizar_pedido');
 Route::delete('ventas/pedido/{id}', 'Ventas\PedidoController@eliminar')->name('eliminar_pedido');
 Route::get('ventas/listarpedido/{id}/{cliente_id?}', 'Ventas\PedidoController@listarPedido')->name('listar_pedido');
-Route::get('ventas/listarprefactura/{id}/{itemid}', 'Ventas\PedidoController@listarPreFactura')->name('listar_prefactura');
+Route::get('ventas/listarprefactura/{id}/{itemid}/{descuentolinea?}', 'Ventas\PedidoController@listarPreFactura')->name('listar_prefactura');
 Route::get('ventas/anularitempedido/{id}/{codigoot}/{motivocierrepedido_id}/{cliente_id?}', 'Ventas\PedidoController@anularItemPedido')->name('anular_item_pedido');
 Route::get('ventas/pedido/cerrar', 'Ventas\PedidoController@cerrarPedido')->name('cerrar_pedido');
 Route::post('ventas/pedido/ejecutacierre', 'Ventas\PedidoController@ejecutaCierre')->name('ejecuta_cierre_pedido');
 Route::post('ventas/pedido/limpiafiltro', 'Ventas\PedidoController@limpiafiltro')->name('pedido.limpiafiltro');
+Route::get('ventas/listapedido/{formato?}/{busqueda?}', 'Ventas\PedidoController@listar')->name('lista_pedido');
 
 /* 
  * Ordenes de trabajo
  */
 
-Route::get('ventas/ordenestrabajo', 'Ventas\OrdentrabajoController@index')->name('ordentrabajo');
-Route::get('ventas/consultaordenestrabajo', 'Ventas\OrdentrabajoController@index')->name('consulta_ordentrabajo');
+Route::get('ventas/ordenestrabajo', 'Ventas\OrdentrabajoController@indexp')->name('ordentrabajo');
+//Route::get('ventas/ordenestrabajop', 'Ventas\OrdentrabajoController@indexp')->name('ordentrabajop');
+Route::get('ventas/consultaordenestrabajo', 'Ventas\OrdentrabajoController@indexp')->name('consulta_ordentrabajo');
 Route::get('ventas/ordenestrabajo/crear', 'Ventas\OrdentrabajoController@crear')->name('crear_ordentrabajo');
 Route::get('ventas/ordenestrabajo/{id}/editar', 'Ventas\OrdentrabajoController@editar')->name('editar_ordentrabajo');
 Route::put('ventas/ordenestrabajo/{id}', 'Ventas\OrdentrabajoController@actualizar')->name('actualizar_ordentrabajo');
 Route::delete('ventas/ordenestrabajo/{id}', 'Ventas\OrdentrabajoController@eliminar')->name('eliminar_ordentrabajo');
 Route::post('ventas/pedido/consultapendientesot', 'Ventas\PedidoController@consultarPendienteOt')->name('consultar_pendiente_ot');
 Route::post('ventas/ordenestrabajo/generar', 'Ventas\OrdentrabajoController@generar')->name('generar_ordentrabajo');
-Route::get('ventas/guardaordenestrabajo/{origen}/{ids}/{checkotstock}/{ordentrabajo_stock_codigo}/{leyenda?}', 'Ventas\OrdentrabajoController@guardar')->name('guardar_ordentrabajo');
+Route::get('ventas/guardaordenestrabajo/{origen}/{ids}/{checkotstock}/{ordentrabajo_stock_codigo}/{deposito_id}/{leyenda?}', 
+    'Ventas\OrdentrabajoController@guardar')->name('guardar_ordentrabajo');
 Route::get('ventas/listaordenestrabajo/{id}', 'Ventas\OrdentrabajoController@listar')->name('listar_ordentrabajo');
 Route::get('ventas/estadoot/{id}/{pedido_combinacion_id?}', 'Ventas\OrdentrabajoController@estadoOt')->name('estado_ot');
 Route::get('ventas/controlaordentrabajostock/{id}/{articulo_id}/{combinacion_id}', 'Ventas\OrdentrabajoController@controlaOtStock')->name('controla_ordetrabajo_stock');
 Route::post('ventas/ordenestrabajo/limpiafiltro', 'Ventas\OrdentrabajoController@limpiafiltro')->name('ordentrabajo.limpiafiltro');
+Route::get('ventas/listaordentrabajo/{formato?}/{busqueda?}', 'Ventas\OrdentrabajoController@lista')->name('lista_ordentrabajo');
 
 /*
  * Comprobantes de venta
@@ -809,8 +815,7 @@ Route::get('ventas/factura/crear', 'Ventas\FacturacionController@crear')->name('
 Route::post('ventas/factura', 'Ventas\FacturacionController@guardar')->name('guardar_factura');
 Route::get('ventas/factura/{id}/editar', 'Ventas\FacturacionController@editar')->name('editar_factura');
 Route::delete('ventas/factura/{id}', 'Ventas\FacturacionController@eliminar')->name('eliminar_factura');
-Route::get('ventas/listafactura/{id}', 'Ventas\FacturacionController@listar')->name('listar_factura');
-
+Route::get('ventas/listafactura/{formato?}/{busqueda?}', 'Ventas\FacturacionController@listar')->name('listar_factura');
 
 /* PRODUCCION */
 

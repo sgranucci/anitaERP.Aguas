@@ -1,10 +1,11 @@
 @extends("theme.$theme.layout")
 @section('titulo')
-Movimientos de Stock
+Comprobantes de Venta
 @endsection
 
 @section("scripts")
 <script src="{{asset("assets/pages/scripts/admin/index.js")}}" type="text/javascript"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/excellentexport@3.4.3/dist/excellentexport.min.js"></script>
 @endsection
 
 <?php use App\Helpers\biblioteca ?>
@@ -36,6 +37,7 @@ Movimientos de Stock
                 </div>
             </div>
             <div class="card-body table-responsive p-0">
+				@include('includes.exportar-tabla', ['ruta' => 'listar_factura', 'busqueda' => $busqueda])
                 <table class="table table-striped table-bordered table-hover" id="tabla-paginada">
                     <thead>
                         <tr>

@@ -41,6 +41,10 @@
                             <label for="recipient-name" class="col-lg-4 col-form-label">Descuento pie factura</label>
                             <input type="number" id="descuentopie" name="descuentopie" value=""></input>
                         </div>
+                        <div class="form-group row">
+                            <label for="recipient-name" class="col-lg-4 col-form-label">Descuento pie importe</label>
+                            <input type="number" id="descuentoimportepie" name="descuentoimportepie" value=""></input>
+                        </div>
                         <div class="form-group row" id="puntoventaremito">
                             <label for="recipient-name" class="col-lg-4 col-form-label requerido">Pto.venta del remito</label>
                             <select name="puntoventaremito_id" id="puntoventaremito_id" data-placeholder="Punto de venta del remito" class="col-lg-5 form-control required" data-fouc>

@@ -15,6 +15,7 @@ use App\Queries\Ventas\PedidoQueryInterface;
 use App\Queries\Ventas\ClienteQueryInterface;
 use App\Queries\Ventas\OrdentrabajoQueryInterface;
 use App\Models\Stock\Articulo;
+use App\Models\Stock\Mventa;
 use App\Models\Stock\Combinacion;
 use App\Models\Stock\Categoria;
 use App\Models\Stock\Talle;
@@ -113,9 +114,7 @@ class PedidoService
 				{
                     $qProduccion++;
 
-					//$factura = $this->ordentrabajoService->otFacturada(0, $item->ot_id);
 					$factura = $this->ordentrabajoService->buscaTareaOt($item->ot_id, config("consprod.TAREA_FACTURADA"));
-					//if ($factura['numerofactura'] != -1 && $factura['numerofactura'] != -2)
 					if ($factura > 0)
 						$qFacturado++;
 				}
@@ -163,6 +162,26 @@ class PedidoService
 			}
         }
 		return $datas;
+	}
+
+	public function leePedidosPorEstadoSinPaginar($busqueda)
+	{
+		ini_set('memory_limit', '512M');
+        ini_set('max_execution_time', '2400');
+
+		$pedidos = $this->pedidoQuery->allPedidoIndexSinPaginar($busqueda);
+
+		return $pedidos;
+	}
+
+	public function leePedidosPorEstadoPaginando($busqueda)
+	{
+		ini_set('memory_limit', '512M');
+        ini_set('max_execution_time', '2400');
+
+		$pedidos = $this->pedidoQuery->allPedidoIndexPaginando($busqueda);
+
+		return $pedidos;
 	}
 
 	public function leePedidosProduccion($cliente_id)
@@ -441,7 +460,8 @@ class PedidoService
 				$estadopedido = $pedido['codigoot'] != '' ? 'EN PRODUCCION' : 'PENDIENTE';
 
 				$factura = $this->ordentrabajoService->otFacturada(0, $pedido['ot_id'], $pedido['pedido_combinacion_id']);
-				if ($factura['numerofactura'] != -1 && $factura['numerofactura'] != -2)
+
+				if ($factura['numerofactura'] != -1 && $factura['numerofactura'] != -2 && $factura['numerofactura'] != -3)
 					$estadopedido = "FACTURADA";
 				else
 				{
@@ -589,7 +609,7 @@ class PedidoService
 		//return response()->download($path.'/pedido.pdf');
 	}
 
-	public function listarPreFactura($id, $items_id)
+	public function listarPreFactura($id, $items_id, $descuentoLinea = null)
 	{
 	  	ini_set('memory_limit', '512M');
 
@@ -626,9 +646,14 @@ class PedidoService
 					$precio = $this->precioService->
                                         asignaPrecio($articulo->id, $talle->id, Carbon::now());
 
+					if ($descuentoLinea > 0)
+						$precioArticulo = $precio[0]['precio'] * (1 - ($descuentoLinea / 100));
+					else
+						$precioArticulo = $precio[0]['precio'];										
+
                     for ($i = 0, $flEncontro = false; $i < count($tblImpuesto); $i++)
                     {
-                    	if ($tblImpuesto[$i]['precio'] == $precio[0]['precio'] &&
+                    	if ($tblImpuesto[$i]['precio'] == $precioArticulo &&
                     		$tblImpuesto[$i]['sku'] == $articulo->sku &&
                     		$tblImpuesto[$i]['combinacion_id'] == $pedidoitem->combinacion_id)
                     	{
@@ -639,9 +664,10 @@ class PedidoService
                     if (!$flEncontro)
                    	{
 						$tblImpuesto[] = ["sku" => $articulo->sku,
+								"descripcion" => $articulo->descripcion,
 				  				"combinacion_id" => $pedidoitem->combinacion_id,
 				  				"cantidad" => $item->cantidad,
-								"precio" => $precio[0]['precio'],
+								"precio" => $precioArticulo,
 								"descuento" => $pedidoitem->descuento,
 								"descuentointegrado" => $pedidoitem->descuentointegrado,
 								"descuentofinal" => $pedido->descuento,
@@ -658,7 +684,6 @@ class PedidoService
 				}
 			}
 		}
-
 		// Arma datos del cliente
 		$datosCliente = [ "condicioniva_id" => $cliente->condicioniva_id,
 						  "nroinscripcion" => $cliente->nroinscripcion,
@@ -744,9 +769,10 @@ class PedidoService
 								// Lee la combinacion
 								$combinacion = Combinacion::find($pedido_combinacion->combinacion_id);
 
+								// Por ahora queda en deposito 1 al reasignar a cliente stock
 								if ($articulo && $combinacion)
 									$this->generaMovimientoStock(Carbon::now(), $pedido_combinacion, $ot, 
-										$articulo, $combinacion, 0);
+										$articulo, $combinacion, 0, 1);
 							}
 							if ($flBorraStock)
 								$this->articulo_movimientoService->deletePorPedido_combinacionId($pedido_combinacion->id);
@@ -817,6 +843,7 @@ class PedidoService
 				$data['pedido_id'] = ($funcion == 'update' ? $id : $pedido->id);
 				// Borra los registros de movimientos antes de grabar nuevamente
 				$ot_stock_id = [];
+				$deposito_ids = [];
 				if ($funcion == 'update')
 				{
 					foreach($data['ids'] as $pedido_combinacion_id)
@@ -826,12 +853,21 @@ class PedidoService
 						if (count($ped) > 0)
 						{
 							if ($ped[0]->ordentrabajo_stock_id != '')
+							{
 								$ot_stock_id[] = $ped[0]->ordentrabajo_stock_id;
+								$deposito_ids[] = $ped[0]->deposito_id;
+							}
 							else
+							{
 								$ot_stock_id[] = 0;
+								$deposito_ids[] = 0;
+							}
 						}
 						else
+						{
 							$ot_stock_id[] = 0;
+							$deposito_ids[] = 0;
+						}
 					}
 					//$this->pedido_combinacionRepository->deleteporpedido($data['pedido_id']);
 					// si es update busca si hay registros borrados
@@ -1072,7 +1108,8 @@ class PedidoService
 													'estado' => $ordentrabajo->estado ?? '',
 													'cantfact' => 0,
 													'aplique' => 0,
-													'ordentrabajo_stock_id' => $ot_stock_ids[$i_comb]
+													'ordentrabajo_stock_id' => $ot_stock_ids[$i_comb],
+													'deposito_id' => $deposito_ids[$i_comb]
 													);
 										$this->ordentrabajo_combinacion_talleRepository->create($dataErp);
 									}
@@ -1094,10 +1131,10 @@ class PedidoService
 							if ($ot_stock_ids[$i_comb] > 0)
 								$this->generaMovimientoStock($data['fecha'], $pedido_combinacion, 
 														$ordentrabajo, $articulo, $combinacion,
-														$ot_stock_ids[$i_comb]);
+														$ot_stock_ids[$i_comb], $deposito_ids[$i_comb]);
 							else
 								$this->generaMovimientoStock($data['fecha'], $pedido_combinacion, 
-														$ordentrabajo, $articulo, $combinacion, 0);
+														$ordentrabajo, $articulo, $combinacion, 0, 0);
 						}
 					}
 				}
@@ -1269,7 +1306,7 @@ class PedidoService
 	}
 
 	private function generaMovimientoStock($fecha, $pedido_combinacion, $ordentrabajo, $articulo, $combinacion,
-											$ordentrabajo_stock_id)
+											$ordentrabajo_stock_id, $deposito_id)
 	{
 		$dataArticuloMovimiento = [
 			'fecha' => $fecha,
@@ -1292,6 +1329,7 @@ class PedidoService
 			'moneda_id' => $pedido_combinacion->moneda_id,
 			'incluyeimpuesto' => $pedido_combinacion->incluyeimpuesto,
 			'listaprecio_id' => $pedido_combinacion->listaprecio_id,
+			'deposito_id' => $deposito_id
 		];
 		$pedido_combinacion_talle = $this->pedido_combinacion_talleRepository->findporpedido_combinacion($pedido_combinacion->id);
 
@@ -1301,4 +1339,61 @@ class PedidoService
 								guardaArticuloMovimiento("create", 
 								$dataArticuloMovimiento, $pedido_combinacion_talle);
 	}
+
+	public function estadoPedido($pedido_id, $funcion = null)
+	{
+		// Lee el pedido
+		$pedido = $this->pedidoQuery->leePedidoporId($pedido_id);
+
+		$qPendiente = 0;
+		$qProduccion = 0;
+		$qFacturado = 0;
+		$qAnulado = 0;
+		foreach($pedido[0]->pedido_combinaciones as $item)
+		{
+			if ($item->ot_id == 0 || $item->ot_id == null)
+				$qPendiente++;
+			else
+			{
+				$qProduccion++;
+
+				$factura = $this->ordentrabajoService->buscaTareaOt($item->ot_id, config("consprod.TAREA_FACTURADA"));
+				if ($factura > 0)
+					$qFacturado++;
+			}
+			// Lee estado del pedido
+			$estadoPedido = $this->pedido_combinacion_estadoRepository->traeEstado($item->id);
+
+			if ($estadoPedido)
+			{
+				if($estadoPedido->estado == 'A')
+					$qAnulado++;
+			}
+		}
+		// Determina el estado
+		$estadoPedido = "Pendiente";
+		if ($qPendiente > 0 && $qProduccion > 0)
+			$estadoPedido = "Pendiente/parcial en produccion";
+		if ($qPendiente == 0 && $qProduccion > 0)
+			$estadoPedido = "En produccion";
+		if ($qFacturado == $qProduccion && $qFacturado > 0)
+			$estadoPedido = "Facturado";
+		else
+		{
+			if ($qFacturado > 0)
+				$estadoPedido .= " y facturado parcial";
+		}
+		if ($qAnulado > 0)
+		{
+			if ($estadoPedido != "Pendiente")
+				$estadoPedido .= "/Anulado";
+			else
+				$estadoPedido = "Anulado";
+		}
+
+		if ($funcion == "update")
+			$pedido = $this->pedidoRepository->update(['estadopedido' => $estadoPedido], $pedido_id);		
+
+		return $estadoPedido;
+	}	
 }

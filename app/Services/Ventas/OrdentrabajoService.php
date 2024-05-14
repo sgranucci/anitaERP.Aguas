@@ -43,6 +43,7 @@ use App\Models\Ventas\Copiaot;
 use App\Models\Configuracion\Empresa;
 use App\Models\Configuracion\Localidad;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use QrCode;
@@ -121,7 +122,12 @@ class OrdentrabajoService
 		return $this->ordentrabajoQuery->all();
 	}
 
-	public function guardaOrdenTrabajo($id_items, $checkOtStock, $ordentrabajo_stock_codigo,
+	public function leeOrdenestrabajoPaginando($busqueda, $flPaginar)
+	{
+		return $this->ordentrabajoQuery->allPaginando($busqueda, $flPaginar);
+	}
+
+	public function guardaOrdenTrabajo($id_items, $checkOtStock, $ordentrabajo_stock_codigo, $deposito_id,
 									$leyenda, $funcion, $id = null)
 	{
 		$usuario_id = Auth::user()->id;
@@ -133,7 +139,7 @@ class OrdentrabajoService
 
 		$flBoletasJuntas = false;
 		if (count($ids) > 1)
-			$flBoletasJuntas = true;
+			$flBoletasJuntas = true; 
 
 		$ordentrabajo_stock_id = null;
 		$lote_id = null;
@@ -358,6 +364,23 @@ class OrdentrabajoService
 						// Graba stock si el cliente es el correspondiente
 						if ($cliente->id == config("consprod.CLIENTE_STOCK") || $ordentrabajo_stock_codigo > 0)
 						{
+							// Valida deposito del alta de produccion
+							if ($checkOtStock == 'on')
+								Log::notice('OT Stock '.$ordentrabajo_id.' Lote '.$ordentrabajo_stock_codigo);
+
+							if ($ordentrabajo_stock_codigo > 0 && $checkOtStock == 'on' &&
+								$cliente->id != config("consprod.CLIENTE_STOCK"))
+							{
+								$stock = Self::controlaOtStock($ordentrabajo_stock_codigo, $articulo->id, $combinacion->id);
+
+								$deposito_id = $stock['deposito_id'];
+
+								Log::notice('OT Stock '.$ordentrabajo_id.' Lote '.$ordentrabajo_stock_codigo.' Deposito '.$deposito_id);
+							}
+
+							if ($deposito_id == null)
+								$deposito_id = 1;
+
 							$dataArticuloMovimiento = [
 									'fecha' => Carbon::now(),
 									'fechajornada' => Carbon::now(),
@@ -380,6 +403,7 @@ class OrdentrabajoService
 									'moneda_id' => $pedido_combinacion->moneda_id,
 									'incluyeimpuesto' => $pedido_combinacion->incluyeimpuesto,
 									'listaprecio_id' => $pedido_combinacion->listaprecio_id,
+									'deposito_id' => $deposito_id
 							];
 							$articulo_movimiento = $this->articulo_movimientoService->
 													guardaArticuloMovimiento($funcion, 
@@ -1292,7 +1316,7 @@ class OrdentrabajoService
 			$nroPosicionOt++;
 			for ($copia = 1; $copia <= $copias; $copia++)
 			{
-				self::DefineFormulario($data['tipoemision'], $copia, $flImpOtAsociadas, $mventa, $formulario);
+				self::DefineFormulario($data['tipoemision'], $copia, $flImpOtAsociadas, $mventa, $formulario, $numeracion);
 
 				if ($formulario != '')
 				{
@@ -1650,11 +1674,15 @@ class OrdentrabajoService
 				{
 					foreach ($medidas as $key => $valor)
 					{
+						//dd($numeracion.' '.$data['tipoemision']);
 						if ($numeracion == 'CHICO')
 						{
 							if ($data['tipoemision'] != 'COMPLETA')
 							{
 								$d_med = "tag @".chr(97+$valor['medida']-config('consprod.DESDE_INTERVALO1')-2).$nroPosicionOt."@ ";
+								$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
+
+								$d_med = "tag @".sprintf("%01d", $valor['medida'])."@ ";
 								$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
 							}
 							else
@@ -1667,18 +1695,26 @@ class OrdentrabajoService
 								$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
 							}
 						}
-						else
+						else 
 						{
+							 //dd($mventa.' '.$numeracion.' '.$valor['medida']);
 							$d_med = "tag @".chr(97+$valor['medida']-config('consprod.HASTA_MEDIDA_CHICO')).sprintf("%01d", $valor['medida'])."@ ";
 							$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
 							$d_med = "tag @".sprintf("%02d", $valor['medida']).chr(97+$posicion-1)."@ ";
 							$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
-							$d_med = "tag @".sprintf("%01d", $valor['medida'])."@ ";
+							if ($mventa == 5 && $numeracion != 'DAMA')
+								$d_med = "tag @".sprintf("%02d", $valor['medida']-
+									config('consprod.DESDE_MEDIDA_TOMAHAWK'))."@ ";
+							else
+								$d_med = "tag @".sprintf("%01d", $valor['medida'])."@ ";
 							$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
 
 							if ($data['tipoemision'] != 'COMPLETA')
 							{
-								$d_med = "tag @".chr(97+$valor['medida']-config('consprod.HASTA_MEDIDA_CHICO')).$nroPosicionOt."@ ";
+								if ($mventa == 5 && $numeracion != 'DAMA')
+									$d_med = "tag @".chr(97+$valor['medida']-39).$nroPosicionOt."@ ";
+								else
+									$d_med = "tag @".chr(97+$valor['medida']-config('consprod.HASTA_MEDIDA_CHICO')).$nroPosicionOt."@ ";
 								$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
 							}
 						}
@@ -1704,6 +1740,8 @@ class OrdentrabajoService
 								{
 									$d_med = "tag @".chr(97+$ii-config('consprod.DESDE_INTERVALO1')).$nroPosicionOt."@ ";
 									$reporte .= $d_med.'{'.' '.'}'."\n";
+									$d_med = "tag @".sprintf("%01d", $ii)."@ ";
+									$reporte .= $d_med.'{'.' '.'}'."\n";
 								}
 								else
 								{
@@ -1721,12 +1759,18 @@ class OrdentrabajoService
 								$reporte .= $d_med.'{'.' '.'}'."\n";
 								$d_med = "tag @".sprintf("%02d", $ii).chr(97+$posicion-1)."@ ";
 								$reporte .= $d_med.'{'.' '.'}'."\n";
-								$d_med = "tag @".sprintf("%01d", $ii)."@ ";
+								if ($mventa == 5)
+									$d_med = "tag @".sprintf("%01d", $ii-config('consprod.DESDE_MEDIDA_TOMAHAWK'))."@ ";
+								else
+									$d_med = "tag @".sprintf("%01d", $ii)."@ ";
 								$reporte .= $d_med.'{'.' '.'}'."\n";
 
 								if ($data['tipoemision'] != 'COMPLETA')
 								{
-									$d_med = "tag @".chr(97+$ii-config('consprod.HASTA_MEDIDA_CHICO')).$nroPosicionOt."@ ";
+									if ($mventa == 5 && $numeracion != 'DAMA')
+										$d_med = "tag @".chr(97+$ii-39).$nroPosicionOt."@ ";
+									else
+										$d_med = "tag @".chr(97+$ii-config('consprod.HASTA_MEDIDA_CHICO')).$nroPosicionOt."@ ";
 									$reporte .= $d_med.'{'.' '.'}'."\n";									
 								}
 							}
@@ -1823,7 +1867,7 @@ class OrdentrabajoService
 		}
 	}
 
-	private function DefineFormulario($tipoemision, $copia, $flImpOtAsociadas, $marca, &$formulario)
+	private function DefineFormulario($tipoemision, $copia, $flImpOtAsociadas, $marca, &$formulario, $numeracion)
 	{
 		$formulario = '';
 		if ($flImpOtAsociadas)
@@ -1858,7 +1902,10 @@ class OrdentrabajoService
 						$formulario = 'otboaonda.ps';
 						break;
 					default:
-						$formulario = 'otfragola.ps';
+						if ($numeracion === "CHICO")
+							$formulario = 'otferli.ps';
+						else
+							$formulario = 'otfragola.ps';
 						break;
 					}
 					break;
@@ -1872,7 +1919,10 @@ class OrdentrabajoService
 						$formulario = 'otboaonda.ps';
 						break;
 					default:
-						$formulario = 'otfragola2.ps';
+						if ($numeracion === "CHICO")
+							$formulario = 'otferli2.ps';
+						else
+							$formulario = 'otfragola2.ps';
 						break;
 					}
 					break;
@@ -1888,7 +1938,10 @@ class OrdentrabajoService
 					$formulario = 'otboaonda11.ps';
 					break;
 				default:
-					$formulario = 'otfragola11.ps';
+					if ($numeracion === "CHICO")
+						$formulario = 'otferli11.ps';
+					else
+						$formulario = 'otfragola11.ps';
 					break;
 				}
 				break;
@@ -2483,6 +2536,7 @@ class OrdentrabajoService
 		$stock = $this->articulo_movimientoService->leeStockPorLote($codigoOt, $articulo_id, $combinacion_id);
 		$estado = '-1';
 		$saldo = 0;
+		$deposito_id = 0;
 		foreach($stock as $movimiento)
 		{
 			if ($movimiento->ordentrabajo_id > 0)
@@ -2490,8 +2544,10 @@ class OrdentrabajoService
 			else	
 				$estado = 1;
 			$saldo += $movimiento->cantidad;
+			if ($movimiento->tipotransaccion_id == 3)
+				$deposito_id = $movimiento->deposito_id;
 		}
-		return ['estado' => $estado, 'saldo' => $saldo];
+		return ['estado' => $estado, 'saldo' => $saldo, 'deposito_id' => $deposito_id];
 	}
 }
 

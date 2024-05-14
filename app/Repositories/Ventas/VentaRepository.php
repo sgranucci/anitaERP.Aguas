@@ -26,6 +26,22 @@ class VentaRepository implements VentaRepositoryInterface
         return $this->model->get();
     }
 
+    public function leeSinPaginar($busqueda)
+    {
+        $data = $this->model->whereHas('clientes', function ($query) use ($busqueda) {
+                                $query->where('nombre', 'like', '%'.$busqueda.'%');
+                            })
+                            ->orWhereHas('tipotransacciones', function ($query) use ($busqueda) {
+                                $query->where('nombre', 'like', '%'.$busqueda.'%');
+                            })
+                            ->orWhereHas('puntoventas', function ($query) use ($busqueda) {
+                                $query->where('codigo', 'like', '%'.$busqueda.'%');
+                            })
+                            ->orWhere('numerocomprobante', $busqueda)
+                            ->orderBy('id','desc')->get();
+        return $data;
+    }
+
     public function leePaginando($busqueda)
     {
         $data = $this->model->whereHas('clientes', function ($query) use ($busqueda) {

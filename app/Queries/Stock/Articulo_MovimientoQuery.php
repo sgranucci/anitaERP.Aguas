@@ -96,17 +96,19 @@ class Articulo_MovimientoQuery implements Articulo_MovimientoQueryInterface
             'articulo.sku as sku', 
             'combinacion.id as combinacion_id',
             'combinacion.codigo as codigocombinacion',
-            'combinacion.nombre as nombrecombinacion',
+            'combinacion.nombre as nombrecombinacion', 
             'mventa.nombre as nombremarca',
             'combinacion.estado as estado',
             'articulo_movimiento.lote as lote',
             'articulo_movimiento.modulo_id as modulo_id',
             'articulo_movimiento_talle.talle_id as talle_id',
             'talle.nombre as nombretalle',
+            'articulo_movimiento.tipotransaccion_id as tipotransaccion_id',
+            'articulo_movimiento.deposito_id as deposito_id',
             'articulo_movimiento_talle.cantidad as cantidad',
             'articulo_movimiento_talle.precio as precio')
             ->join('articulo', 'articulo.id', 'articulo_movimiento.articulo_id')
-            ->join('combinacion', 'combinacion.articulo_id', 'articulo.id')
+            ->join('combinacion', 'combinacion.id', 'articulo_movimiento.combinacion_id')
             ->join('mventa', 'mventa.id', 'articulo.mventa_id')
             //->join('articulo_movimiento', 'articulo_movimiento.combinacion_id', 'combinacion.id')
             ->join('articulo_movimiento_talle', 'articulo_movimiento_talle.articulo_movimiento_id', 'articulo_movimiento.id')

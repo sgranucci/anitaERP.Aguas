@@ -6,6 +6,7 @@ interface OrdentrabajoQueryInterface
 {
     public function first();
     public function all();
+    public function allPaginando($busqueda, $flPaginar);
     public function allQuery(array $campos);
     public function leeOrdenTrabajo($id);
     public function allOrdentrabajoPorEstado($estado);

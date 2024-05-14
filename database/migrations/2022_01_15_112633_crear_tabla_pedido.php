@@ -35,6 +35,7 @@ class CrearTablaPedido extends Migration
             $table->string('descuentointegrado',100);
             $table->string('lugarentrega',255)->nullable();
             $table->string('codigo',100);
+            $table->string('estadopedido',80);
             $table->timestamps();
 			$table->softDeletes();
             $table->charset = 'utf8mb4';

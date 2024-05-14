@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use App\Observers\Ventas\Pedido_CombinacionObserver;
+use App\Observers\Ventas\Ordentrabajo_TareaObserver;
+use App\Observers\Ventas\Pedido_Combinacion_EstadoObserver;
+use App\Models\Ventas\Pedido_Combinacion;
+use App\Models\Ventas\Ordentrabajo_Tarea;
+use App\Models\Ventas\Pedido_Combinacion_Estado;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use App\Models\Admin\Menu;
@@ -20,7 +26,11 @@ class AppServiceProvider extends ServiceProvider
             $view->with('menusComposer', $menus);
         });
         View::share('theme', 'lte');
-    }
+
+		Pedido_Combinacion::observe(Pedido_CombinacionObserver::class);
+		Ordentrabajo_Tarea::observe(Ordentrabajo_TareaObserver::class);
+		Pedido_Combinacion_Estado::observe(Pedido_Combinacion_EstadoObserver::class);
+	}
 
     /**
      * Register any application services.

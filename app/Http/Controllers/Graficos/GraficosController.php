@@ -115,6 +115,11 @@ class GraficosController extends Controller
 			'T' => 'Alcistas y Bajistas',
 			];
 
+		$gatillo_enum = [
+				'A' => 'RRR >= 1.5',
+				'B' => 'RRR >= 1.5 y SL < 500',
+				];
+	
 		$administracionPosicion_enum = [
 			'A' => 'Administración sin filtro de tiempo',
 			'B' => 'Administración filtrando por tiempo',
@@ -128,7 +133,8 @@ class GraficosController extends Controller
 		$calculoBase_enum = $this->calculoBase_enum;
 		return view('graficos.reporteindicadores.create', compact('calculoBase_enum', 'compresion_enum',
 																'filtroSetup_enum', 'administracionPosicion_enum',
-																'filtrosMatematicos_enum'));
+																'filtrosMatematicos_enum',
+																'gatillo_enum'));
 	}
 
 	public function crearReporteIndicadores(Request $request)
@@ -166,7 +172,8 @@ class GraficosController extends Controller
 						$request->cantidadcontratos,
 						$request->administracionposicion,
 						$request->tiempo,
-						$request->filtrosmatematicos);
+						$request->filtrosmatematicos,
+						$request->gatillo);
 
 		return (new ReporteIndicadoresExport)
 				->parametros($request->desdefecha, 

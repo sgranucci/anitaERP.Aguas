@@ -47,7 +47,8 @@ class Articulo_MovimientoService
 			$dataMovimiento['cantidad'] = $dataMovimiento['cantidad'] * ($tipotransaccion->signo == 'S' ? 1 : -1);
 			$dataMovimiento['precio'] = str_replace(',', '', $dataMovimiento['precio']);
 
-			if (!array_key_exists('deposito_id', $dataMovimiento))
+			//if (!array_key_exists('deposito_id', $dataMovimiento))
+			if ($dataMovimiento['deposito_id'] == 0)
 				$dataMovimiento['deposito_id'] = 1;
 			if ($dataMovimiento['listaprecio_id'] == 'NaN')
 				$dataMovimiento['listaprecio_id'] = null;
@@ -200,6 +201,8 @@ class Articulo_MovimientoService
 						default:
 							$cc = true;
 					}
+					if (!isset($situacion))
+						$situacion = '';
 					if ($cc)
 						$datas[] = [
 								'foto' => $foto,
@@ -278,14 +281,18 @@ class Articulo_MovimientoService
 
 				if (count($ordentrabajo_tarea) > 0)
 				{
-					$situacion = 'En producción';
-
+					$situacion = '';
+					$nombreUltimaTarea = '';
 					foreach($ordentrabajo_tarea as $tarea)
 					{
 						if ($tarea->tarea_id == config('consprod.TAREA_TERMINADA') ||
 							$tarea->tarea_id == config('consprod.TAREA_TERMINADA_STOCK'))
 							$situacion = 'ENTREGA INMEDIATA';
+
+						$nombreUltimaTarea = $tarea->tareas->nombre;
 					}
+					if ($situacion != 'ENTREGA INMEDIATA')
+						$situacion = $nombreUltimaTarea;
 				}
 				else	
 					$situacion = 'ENTREGA INMEDIATA';

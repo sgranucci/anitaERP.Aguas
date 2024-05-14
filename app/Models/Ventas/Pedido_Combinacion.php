@@ -49,7 +49,7 @@ class Pedido_Combinacion extends Model
 
 	public function articulos()
 	{
-    	return $this->belongsTo(Articulo::class, 'articulo_id', 'id')->with('lineas');
+    	return $this->belongsTo(Articulo::class, 'articulo_id', 'id')->with('lineas')->with('mventas');
 	}
 
 	public function combinaciones()

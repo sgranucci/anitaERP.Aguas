@@ -22,6 +22,7 @@ class Localidad extends Model
     public function sincronizarConAnita(){
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 
+                    'sistema' => 'shared',
 					'campos' => $this->keyFieldAnita, 
 					'orderBy' => $this->keyFieldAnita, 
 					'tabla' => $this->table );
@@ -35,7 +36,7 @@ class Localidad extends Model
 
 		if ($dataAnita)
 		{
-		for ($_ii = 18173; $_ii < count($dataAnita); $_ii++)
+		for ($_ii = 0; $_ii < count($dataAnita); $_ii++)
 		{
         	$this->traerRegistroDeAnita($_ii);
 		}
@@ -51,6 +52,7 @@ class Localidad extends Model
         $apiAnita = new ApiAnita();
         $data = array( 
             'acc' => 'list', 'tabla' => $this->table, 
+            'sistema' => 'shared',
             'campos' => '
                 loc_localidad,
 				loc_provincia,
@@ -78,6 +80,7 @@ class Localidad extends Model
         $apiAnita = new ApiAnita();
 
         $data = array( 'tabla' => $this->table, 
+                        'sistema' => 'shared',
 						'acc' => 'insert',
             			'campos' => ' loc_localidad, loc_provincia, loc_desc, loc_cod_externo, loc_cod_postal',
             			'valores' => " '".$id."', 
@@ -92,6 +95,7 @@ class Localidad extends Model
 	public function actualizarAnita($request, $id) {
         $apiAnita = new ApiAnita();
 		$data = array( 'acc' => 'update', 
+                        'sistema' => 'shared',
 						'tabla' => $this->table, 
 						'valores' => " 
 						    loc_provincia = '".($request->provincia_id == NULL ? 0 : $request->provincia_id)."',
@@ -105,6 +109,7 @@ class Localidad extends Model
 	public function eliminarAnita($id) {
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'delete', 
+                    'sistema' => 'shared',
 					'tabla' => $this->table,
 					'whereArmado' => " WHERE ".$this->keyFieldAnita." = '".$id."' " );
         $apiAnita->apiCall($data);

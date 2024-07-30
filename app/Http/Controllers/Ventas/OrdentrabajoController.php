@@ -464,6 +464,18 @@ class OrdentrabajoController extends Controller
         }
     }
 
+	public function borrarOt(Request $request)
+	{
+		can('borrar-ordenes-de-trabajo');
+
+		if ($this->ordentrabajoService->borraOrdenTrabajo($request->ordentrabajo_id))
+			$mensaje = 'ok';
+		else 	
+			$mensaje = 'error al borrar ot';
+
+		return response()->json(['mensaje' => $mensaje]);
+	}
+
 	/*
 	 * Lista orden de trabajo por laser
 	 */

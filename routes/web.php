@@ -805,6 +805,7 @@ Route::get('ventas/estadoot/{id}/{pedido_combinacion_id?}', 'Ventas\Ordentrabajo
 Route::get('ventas/controlaordentrabajostock/{id}/{articulo_id}/{combinacion_id}', 'Ventas\OrdentrabajoController@controlaOtStock')->name('controla_ordetrabajo_stock');
 Route::post('ventas/ordenestrabajo/limpiafiltro', 'Ventas\OrdentrabajoController@limpiafiltro')->name('ordentrabajo.limpiafiltro');
 Route::get('ventas/listaordentrabajo/{formato?}/{busqueda?}', 'Ventas\OrdentrabajoController@lista')->name('lista_ordentrabajo');
+Route::post('ventas/ordenestrabajo/borrarOt', 'Ventas\OrdentrabajoController@borrarOt')->name('borrar_ot');
 
 /*
  * Comprobantes de venta
@@ -910,3 +911,63 @@ Route::post('graficos/crearindicadores', 'Graficos\GraficosController@crearRepor
 Route::get('graficos/ordenes', 'Graficos\GraficosController@indexGeneraOrdenes')->name('ordenes');
 Route::post('graficos/generaordenes', 'Graficos\GraficosController@generaOrdenes')->name('genera_ordenes');
 
+// Modulo de caja
+
+/* 
+ * Cuentas de caja
+ */
+
+ Route::get('caja/cuentacaja', 'Caja\CuentacajaController@index')->name('cuentacaja');
+ Route::get('caja/cuentacaja/crear', 'Caja\CuentacajaController@crear')->name('crear_cuentacaja');
+ Route::post('caja/cuentacaja', 'Caja\CuentacajaController@guardar')->name('guardar_cuentacaja');
+ Route::get('caja/cuentacaja/{id}/editar', 'Caja\CuentacajaController@editar')->name('editar_cuentacaja');
+ Route::put('caja/cuentacaja/{id}', 'Caja\CuentacajaController@actualizar')->name('actualizar_cuentacaja');
+ Route::delete('caja/cuentacaja/{id}', 'Caja\CuentacajaController@eliminar')->name('eliminar_cuentacaja');
+ 
+/* 
+ * Conceptos de gastos
+ */
+
+ Route::get('caja/conceptogasto', 'Caja\ConceptogastoController@index')->name('conceptogasto');
+ Route::get('caja/conceptogasto/crear', 'Caja\ConceptogastoController@crear')->name('crear_conceptogasto');
+ Route::post('caja/conceptogasto', 'Caja\ConceptogastoController@guardar')->name('guardar_conceptogasto');
+ Route::get('caja/conceptogasto/{id}/editar', 'Caja\ConceptogastoController@editar')->name('editar_conceptogasto');
+ Route::put('caja/conceptogasto/{id}', 'Caja\ConceptogastoController@actualizar')->name('actualizar_conceptogasto');
+ Route::delete('caja/conceptogasto/{id}', 'Caja\ConceptogastoController@eliminar')->name('eliminar_conceptogasto');
+  
+/* 
+ * Origen de vouchers
+ */
+
+ Route::get('caja/origenvoucher', 'Caja\OrigenvoucherController@index')->name('origenvoucher');
+ Route::get('caja/origenvoucher/crear', 'Caja\OrigenvoucherController@crear')->name('crear_origenvoucher');
+ Route::post('caja/origenvoucher', 'Caja\OrigenvoucherController@guardar')->name('guardar_origenvoucher');
+ Route::get('caja/origenvoucher/{id}/editar', 'Caja\OrigenvoucherController@editar')->name('editar_origenvoucher');
+ Route::put('caja/origenvoucher/{id}', 'Caja\OrigenvoucherController@actualizar')->name('actualizar_origenvoucher');
+ Route::delete('caja/origenvoucher/{id}', 'Caja\OrigenvoucherController@eliminar')->name('eliminar_origenvoucher');
+ 
+/* 
+ * Talonarios de vouchers
+ */
+
+ Route::get('caja/talonariovoucher', 'Caja\TalonariovoucherController@index')->name('talonariovoucher');
+ Route::get('caja/talonariovoucher/crear', 'Caja\TalonariovoucherController@crear')->name('crear_talonariovoucher');
+ Route::post('caja/talonariovoucher', 'Caja\TalonariovoucherController@guardar')->name('guardar_talonariovoucher');
+ Route::get('caja/talonariovoucher/{id}/editar', 'Caja\TalonariovoucherController@editar')->name('editar_talonariovoucher');
+ Route::put('caja/talonariovoucher/{id}', 'Caja\TalonariovoucherController@actualizar')->name('actualizar_talonariovoucher');
+ Route::delete('caja/talonariovoucher/{id}', 'Caja\TalonariovoucherController@eliminar')->name('eliminar_talonariovoucher');
+  
+/* 
+ * Talonarios de rendiciones
+ */
+
+ Route::get('caja/talonariorendicion', 'Caja\TalonariorendicionController@index')->name('talonariorendicion');
+ Route::get('caja/talonariorendicion/crear', 'Caja\TalonariorendicionController@crear')->name('crear_talonariorendicion');
+ Route::post('caja/talonariorendicion', 'Caja\TalonariorendicionController@guardar')->name('guardar_talonariorendicion');
+ Route::get('caja/talonariorendicion/{id}/editar', 'Caja\TalonariorendicionController@editar')->name('editar_talonariorendicion');
+ Route::put('caja/talonariorendicion/{id}', 'Caja\TalonariorendicionController@actualizar')->name('actualizar_talonariorendicion');
+ Route::delete('caja/talonariorendicion/{id}', 'Caja\TalonariorendicionController@eliminar')->name('eliminar_talonariorendicion');
+ 
+
+ // Modulo de compras
+ 

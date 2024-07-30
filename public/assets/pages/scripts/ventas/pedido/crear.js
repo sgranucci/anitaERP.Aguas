@@ -383,7 +383,7 @@
 				let ordentrabajo = $(this).parents("tr").find(".otcodigo").val();
 				let tilde = this;
 				let cliente_id = $("#cliente_id").val();
-				let estadocliente = $("#estadocliente").val();
+				let estadocliente = $("#estadocliente").va/czl();
 				let tiposuspensioncliente_id = $("#tiposuspensioncliente_id").val();
 				let nombretiposuspensioncliente = $("#nombretiposuspensioncliente").val();
 				let pedido_combinacion_id = $(this).parents("tr").find(".ids").val();

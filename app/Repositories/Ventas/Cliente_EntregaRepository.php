@@ -201,6 +201,7 @@ class Cliente_EntregaRepository implements Cliente_EntregaRepositoryInterface
 
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 
+						'sistema' => 'ventas',
 						'campos' => "
 							entc_cliente, 
 							entc_linea, 
@@ -223,6 +224,7 @@ class Cliente_EntregaRepository implements Cliente_EntregaRepositoryInterface
         $apiAnita = new ApiAnita();
         $data = array( 
             'acc' => 'list', 'tabla' => $this->tableAnita, 
+			'sistema' => 'ventas',
             'campos' => '
 							entc_cliente, 
 							entc_linea, 
@@ -300,6 +302,7 @@ class Cliente_EntregaRepository implements Cliente_EntregaRepositoryInterface
 		$this->setCamposAnita($transportes_id[$linea], $codigotransporte);
 
         $data = array( 'tabla' => $this->tableAnita, 'acc' => 'insert',
+			'sistema' => 'ventas',
             'campos' => ' 
 							entc_cliente, 
 							entc_linea, 
@@ -326,6 +329,7 @@ class Cliente_EntregaRepository implements Cliente_EntregaRepositoryInterface
 	private function eliminarAnita($cliente) {
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita, 
+				'sistema' => 'ventas',
 				'whereArmado' => " WHERE entc_cliente = '".str_pad($cliente, 6, "0", STR_PAD_LEFT)."' ");
         $apiAnita->apiCall($data);
 	}

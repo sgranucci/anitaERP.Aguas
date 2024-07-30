@@ -773,7 +773,7 @@ class FacturacionService
 						// Graba anita
 						$anita = self::grabaAnita($puntoventa->codigo, $letra, $puntoventaremito->codigo, $numeroremito,
 									$venta, $dataCAE, $conceptosTotales, $cuentacorriente, $dataFactura, $signo,
-									$cuentaVenta, $this->codigoCuentaContable);
+									$cuentaVenta, $this->codigoCuentaContable, true);
 
 						if ($anita == 'Error')
 							throw new Exception('Error en grabacion anita.');
@@ -1048,7 +1048,7 @@ class FacturacionService
 				// Graba anita
 				$anita = self::grabaAnita($puntoventa->codigo, $letra, $puntoventaremito->codigo, $numeroremito,
 							$venta, $dataCAE, $conceptosTotales, $cuentacorriente, $dataFactura, $signo,
-							$cuentaVenta, $this->codigoCuentaContable);
+							$cuentaVenta, $this->codigoCuentaContable, true);
 
 				if ($anita == 'Error')
 					throw new Exception('Error en grabacion anita.');
@@ -1127,7 +1127,7 @@ class FacturacionService
 	// Graba factura en Anita
 	public function grabaAnita($puntoventa, $letra, $puntoventaremito, $numeroremito, $venta, 
 								$dataCAE, $conceptostotales, $cuentacorriente, $datatalle, $signo, 
-								$cuentaVenta, $contrapartida, $servidor = null, $ifx_server = null)
+								$cuentaVenta, $contrapartida, $flGrabaStock, $servidor = null, $ifx_server = null)
 	{
 		// Lee el cliente
 		$cliente = $this->clienteQuery->traeClienteporId($venta['cliente_id']);
@@ -1154,7 +1154,7 @@ class FacturacionService
 				$nombre = $venta['nombrecliente'];
 		
 			if (isset($venta['documentocliente']))
-				$domicilio = $venta['documentocliente'];
+				$domicilio = $nroinscripcion = $venta['documentocliente'];
 		}
 
 		// Calcula totales para venta
@@ -1309,6 +1309,7 @@ class FacturacionService
 					return 'Error';
 			}
 		}
+		
 		// Graba climov
 		$nroCuota = 0;
 		foreach($cuentacorriente as $cuota)
@@ -1363,6 +1364,9 @@ class FacturacionService
 		
 		$leyenda = '';
 
+		// Filtra lugar de entrega
+		$lugarEntrega = preg_replace('([^A-Za-z0-9])', '', $venta['lugarentrega']);
+
 		// Graba comprob
 		$exento = $dataCAE['exento']+$dataCAE['nogravado'];
 		$apiAnita = new ApiAnita();
@@ -1385,7 +1389,7 @@ class FacturacionService
 							'".date('Ymd', strtotime($venta['fecha']))."',
 							'".'0'."',
 							'".$venta['condicionventa_id']."',
-							'".$venta['lugarentrega']."',
+							'".$lugarEntrega."',
 							'".$porcentajeDescuento."',
 							'".$codigoTransporte."',
 							'".'0'."',
@@ -1524,7 +1528,9 @@ class FacturacionService
 			if ($ifx_server == 'IFX_SERVER_LOCAL')
 				$deposito = 10;
 
-			$data = array( 	'tabla' => 'stkmov', 
+			if ($flGrabaStock)
+			{
+				$data = array( 	'tabla' => 'stkmov', 
 							'acc' => 'insert',
 							'campos' => ' 
 								stkv_articulo, stkv_agrupacion, stkv_fecha, 
@@ -1578,60 +1584,61 @@ class FacturacionService
 								"
 				);
 
-			if ($servidor != null)
-			{
-				$data['servidor'] = $servidor;
-				$data['ifx_server'] = $ifx_server;
+				if ($servidor != null)
+				{
+					$data['servidor'] = $servidor;
+					$data['ifx_server'] = $ifx_server;
+				}
+
+				$stkmov = $apiAnita->apiCall($data);
+				if (strpos($stkmov, 'Error') !== false)
+					return 'Error';
+
+				// Graba stkvmed
+				$data = array( 	'tabla' => 'stkvmed', 
+							'acc' => 'insert',
+							'campos' => ' 
+								stkvm_articulo, stkvm_agrupacion, stkvm_fecha, 
+								stkvm_tipo, stkvm_letra, stkvm_sucursal, stkvm_nro, 
+								stkvm_nro_orden, stkvm_deposito, stkvm_cli_pro, stkvm_vendedor,
+								stkvm_zona_vta, stkvm_zona_mult, stkvm_subzona_vta, stkvm_comprador,
+								stkvm_partida, stkvm_medida, stkvm_marca, stkvm_linea, stkvm_cantidad,
+								stkvm_color
+								',
+							'valores' => "
+								'".str_pad($medida['sku'], 13, "0", STR_PAD_LEFT)."',
+								'".str_pad($medida['categoria'], 4, "0", STR_PAD_LEFT)."',
+								'".date('Ymd', strtotime($venta['fecha']))."',
+								'".substr($venta['codigo'], 0, 3)."',
+								'".$letra."',
+								'".$puntoventa."',
+								'".$venta['numerocomprobante']."',
+								'".$orden."',
+								'".$deposito."',
+								'".str_pad($codigoCliente, 6, "0", STR_PAD_LEFT)."',
+								'".$vendedor."',
+								'".($zonavta_id == null ? '0' : $zonavta_id)."',
+								'".($provincia_id == null ? '0' : $provincia_id)."',
+								'".($subzonavta_id == null ? '0' : $subzonavta_id)."',
+								'".'0'."',
+								'".($ifx_server == 'IFX_SERVER_LOCAL' ? $medida['medida'] : $medida['partida'])."',
+								'".$medida['medida']."',
+								'".'0'."',
+								'".'0'."',
+								'".$medida['cantidad']."',
+								'".$medida['codigocombinacion']."'
+								"
+				);
+				if ($servidor != null)
+				{
+					$data['servidor'] = $servidor;
+					$data['ifx_server'] = $ifx_server;
+				}
+
+				$stkvmed = $apiAnita->apiCall($data);
+				if (strpos($stkvmed, 'Error') !== false)
+					return 'Error';
 			}
-
-			$stkmov = $apiAnita->apiCall($data);
-			if (strpos($stkmov, 'Error') !== false)
-				return 'Error';
-
-			// Graba stkvmed
-			$data = array( 	'tabla' => 'stkvmed', 
-						'acc' => 'insert',
-						'campos' => ' 
-							stkvm_articulo, stkvm_agrupacion, stkvm_fecha, 
-							stkvm_tipo, stkvm_letra, stkvm_sucursal, stkvm_nro, 
-							stkvm_nro_orden, stkvm_deposito, stkvm_cli_pro, stkvm_vendedor,
-							stkvm_zona_vta, stkvm_zona_mult, stkvm_subzona_vta, stkvm_comprador,
-							stkvm_partida, stkvm_medida, stkvm_marca, stkvm_linea, stkvm_cantidad,
-							stkvm_color
-							',
-						'valores' => "
-							'".str_pad($medida['sku'], 13, "0", STR_PAD_LEFT)."',
-							'".str_pad($medida['categoria'], 4, "0", STR_PAD_LEFT)."',
-							'".date('Ymd', strtotime($venta['fecha']))."',
-							'".substr($venta['codigo'], 0, 3)."',
-							'".$letra."',
-							'".$puntoventa."',
-							'".$venta['numerocomprobante']."',
-							'".$orden."',
-							'".$deposito."',
-							'".str_pad($codigoCliente, 6, "0", STR_PAD_LEFT)."',
-							'".$vendedor."',
-							'".($zonavta_id == null ? '0' : $zonavta_id)."',
-							'".($provincia_id == null ? '0' : $provincia_id)."',
-							'".($subzonavta_id == null ? '0' : $subzonavta_id)."',
-							'".'0'."',
-							'".($ifx_server == 'IFX_SERVER_LOCAL' ? $medida['medida'] : $medida['partida'])."',
-							'".$medida['medida']."',
-							'".'0'."',
-							'".'0'."',
-							'".$medida['cantidad']."',
-							'".$medida['codigocombinacion']."'
-							"
-			);
-			if ($servidor != null)
-			{
-				$data['servidor'] = $servidor;
-				$data['ifx_server'] = $ifx_server;
-			}
-
-			$stkvmed = $apiAnita->apiCall($data);
-			if (strpos($stkvmed, 'Error') !== false)
-				return 'Error';
 		}
 		// Graba leyenda de exportacion
 		if ($this->leyendaExportacion != '')

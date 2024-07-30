@@ -26,6 +26,7 @@ class Condicionventa extends Model
 
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 
+						'sistema' => 'ventas',
 						'campos' => $this->keyField, 
 						'orderBy' => $this->keyField,
 						'tabla' => $this->tableAnita[0] );
@@ -56,6 +57,7 @@ class Condicionventa extends Model
         $apiAnita = new ApiAnita();
         $data = array( 
             'acc' => 'list', 'tabla' => $this->tableAnita[0], 
+			'sistema' => 'ventas',
             'campos' => '
                 conm_codigo,
 				conm_desc
@@ -70,6 +72,7 @@ class Condicionventa extends Model
 
         	$datamov = array( 
             	'acc' => 'list', 
+				'sistema' => 'ventas',
 				'tabla' => $this->tableAnita[1], 
             	'campos' => '
                 	conv_codigo,
@@ -123,6 +126,7 @@ class Condicionventa extends Model
 
         $data = array( 'tabla' => $this->tableAnita[0], 
 			'acc' => 'insert',
+			'sistema' => 'ventas',
             'campos' => 'conm_codigo, conm_desc',
             'valores' => " 
 						'".$id."', 
@@ -139,6 +143,7 @@ class Condicionventa extends Model
 
         	$data = array( 'tabla' => $this->tableAnita[1], 
 				'acc' => 'insert',
+				'sistema' => 'ventas',
             	'campos' => 'conv_codigo, conv_nro_cuota, conv_tipo_plazo, conv_dia, conv_fecha_vto, conv_porc_monto, conv_porc_interes',
             	'valores' => " 
 						'".$id."', 
@@ -165,6 +170,7 @@ class Condicionventa extends Model
 
 		$data = array( 'acc' => 'update', 
 				'tabla' => $this->tableAnita[0],
+				'sistema' => 'ventas',
             	'valores' => " 
 							conm_codigo = '".$id."', 
 							conm_desc = '".$request->nombre."' ", 
@@ -175,6 +181,7 @@ class Condicionventa extends Model
 		// Elimina los movimientos
         $data = array( 'acc' => 'delete', 
 			'tabla' => $this->tableAnita[1],
+			'sistema' => 'ventas',
             'whereArmado' => " WHERE conv_codigo = '".$id."' " );
         $apiAnita->apiCall($data);
 
@@ -188,6 +195,7 @@ class Condicionventa extends Model
 
         	$data = array( 'tabla' => $this->tableAnita[1], 
 				'acc' => 'insert',
+				'sistema' => 'ventas',
             	'campos' => 'conv_codigo, conv_nro_cuota, conv_tipo_plazo, conv_dia, conv_fecha_vto, conv_porc_monto, conv_porc_interes',
             	'valores' => " 
 						'".$id."', 
@@ -205,11 +213,13 @@ class Condicionventa extends Model
 	public function eliminarAnita($id) {
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'delete', 
+			'sistema' => 'ventas',
 			'tabla' => $this->tableAnita[0],
             'whereArmado' => " WHERE ".$this->keyField." = '".$id."' " );
         $apiAnita->apiCall($data);
 
         $data = array( 'acc' => 'delete', 
+			'sistema' => 'ventas',
 			'tabla' => $this->tableAnita[1],
             'whereArmado' => " WHERE conv_codigo = '".$id."' " );
         $apiAnita->apiCall($data);

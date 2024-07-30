@@ -9,6 +9,10 @@
 <script src="{{asset("assets/pages/scripts/ventas/ordentrabajo/filtro.js")}}" type="text/javascript"></script>
 
 <script>
+$(function () {
+    $(document).on('click', '.borraot', borraOt);
+});
+
 function limpiaFiltros(){
 	$('#estado').val('');
 
@@ -23,6 +27,34 @@ function limpiaFiltros(){
 			window.location.replace(window.location.pathname);
         }
     });
+}
+
+function borraOt(){
+    let ordentrabajo_id = $(this).parents('tr').find('.codigo').html();
+    let ptr = this;
+
+    let texto = 'Esta por borrar la OT '+ordentrabajo_id;
+    resultado = confirm (texto);
+    
+    if (resultado)
+    {
+        var token = $("meta[name='csrf-token']").attr("content");
+
+        $.post("/anitaERP/public/ventas/ordenestrabajo/borrarOt",
+            {
+                ordentrabajo_id: ordentrabajo_id,
+                _token: token
+            },
+            function(data, status){
+                if (data.mensaje != 'ok')
+                    alert(data.mensaje);
+                else
+                {
+                    alert("Orden de trabajo Número: " + ordentrabajo_id + "\nBorrada: " + data.mensaje);
+                    $(ptr).parents('tr').remove();
+                }
+            });        
+    }
 }
 </script>
 @endsection
@@ -85,8 +117,8 @@ function limpiaFiltros(){
                     <tbody>
                         @foreach ($ordentrabajo as $data)
                         <tr>
-                            <td>{{str_pad($data->codigo, 4, "0", STR_PAD_LEFT)}}</td>
-            				<td>{{date("d/m/Y", strtotime($data->fecha ?? ''))}}</td>
+                            <td class="codigo" >{{str_pad($data->codigo, 4, "0", STR_PAD_LEFT)}}</td>
+            				<td class="fecha" >{{date("d/m/Y", strtotime($data->fecha ?? ''))}}</td>
                             <td>
                                 @php
 									$clientes = [];
@@ -131,19 +163,16 @@ function limpiaFiltros(){
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('borrar-ordenes-de-trabajo', false))
-                                <form action="{{route('eliminar_ordentrabajo', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
-                                    @csrf @method("delete")
-                                    <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">
-                                        <i class="fa fa-times-circle text-danger"></i>
-                                    </button>
-                                </form>
-                                @endif
                        			@if (can('listar-ordenes-de-trabajo', false))
                                 	<a href="#" onclick="imprimeOt('{{$data->codigo}}')" class="btn-accion-tabla tooltipsC" title="Listar la OT">
                                    	<i class="fa fa-print"></i>
                                 	</a>
 								@endif
+                                @if (can('borrar-ordenes-de-trabajo', false))
+                                <button type="submit" class="btn-accion-tabla borraot tooltipsC" title="Eliminar este registro">
+                                    <i class="fa fa-times-circle text-danger"></i>
+                                </button>
+                                @endif
 							</td>
                         </tr>
                         @endforeach

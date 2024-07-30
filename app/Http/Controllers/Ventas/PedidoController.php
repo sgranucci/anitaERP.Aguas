@@ -511,7 +511,7 @@ class PedidoController extends Controller
 		$data = $this->pedidoService->guardaPedido($request->all(), 'create');
 
 		if (isset($data['error']))
-			return back()->with('errores', [$pedido['error']]);
+			return back()->with('errores', [$data['error']]);
 
 		$mensaje = '';
 		if (isset($data['id']))
@@ -607,7 +607,6 @@ class PedidoController extends Controller
     public function eliminar(Request $request, $id)
     {
         can('borrar-pedidos');
-
 		$fl_borro = false;
         if ($request->ajax()) 
 		{

@@ -108,6 +108,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 
+						'sistema' => 'ventas',
 						'campos' => "$this->keyFieldAnita as $this->keyField, $this->keyFieldAnita", 
 						'tabla' => $this->tableAnita[0] );
         $dataAnita = json_decode($apiAnita->apiCall($data));
@@ -138,6 +139,7 @@ class ClienteRepository implements ClienteRepositoryInterface
         $apiAnita = new ApiAnita();
         $data = array( 
             'acc' => 'list', 'tabla' => $this->tableAnita[0], 
+			'sistema' => 'ventas',
             'campos' => '
 			clim_cliente,
     		clim_nombre,
@@ -194,18 +196,15 @@ class ClienteRepository implements ClienteRepositoryInterface
 			clim_dto_integrado,
 			clim_fecha_boletin,
 			clim_e_mail,
-			clim_fax,
-			clim_url,
-			clim_cod_loc,
-			clim_cod_prov,
-			clim_va_web
+			clim_fax
 			',
             'whereArmado' => " WHERE ".$this->keyFieldAnita." = '".$key."' " 
         );
         $dataAnita = json_decode($apiAnita->apiCall($data));
 
-        $data = array( 
+		$data = array( 
             'acc' => 'list', 'tabla' => $this->tableAnita[1], 
+			'sistema' => 'ventas',
             'campos' => '
 			clil_cliente,
     		clil_leyenda
@@ -219,23 +218,13 @@ class ClienteRepository implements ClienteRepositoryInterface
         if (count($dataAnita) > 0) {
             $data = $dataAnita[0];
 
-        	$provincia = Provincia::select('id', 'nombre')->where('id' , $data->clim_cod_prov)->first();
-			if ($provincia)
-				$provincia_id = $provincia->id;
-			else
-				$provincia_id = NULL;
+			$provincia_id = NULL;
 	
-        	$localidad = Localidad::select('id', 'nombre')->where('id' , $data->clim_cod_loc)->first();
+			$localidad = Localidad::select('id', 'nombre')->where('nombre' , '=', $data->clim_localidad)->where('codigopostal','=',$data->clim_cod_postal)->first();
 			if ($localidad)
 				$localidad_id = $localidad->id;
 			else
-			{
-        		$localidad = Localidad::select('id', 'nombre')->where('nombre' , '=', $data->clim_localidad)->where('codigopostal','=',$data->clim_cod_postal)->first();
-				if ($localidad)
-					$localidad_id = $localidad->id;
-				else
-					$localidad_id = NULL;
-			}
+				$localidad_id = NULL;
 	
         	$pais = Pais::select('id', 'nombre')->where('id' , $data->clim_pais)->first();
 			if ($pais)
@@ -283,7 +272,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 			if ($transporte)
 				$transporte_id = $transporte->id;
 			else
-				$transporte_id = 1;
+				$transporte_id = NULL;
 
 			$condicioniva_id = 1;
 			switch($data->clim_cond_iva)
@@ -339,7 +328,7 @@ class ClienteRepository implements ClienteRepositoryInterface
             	"fantasia" => $data->clim_fantasia,
 				"email" => $data->clim_e_mail,
 				"telefono" => $data->clim_telefono.' '.$data->clim_fax,
-				"urlweb" => $data->clim_url,
+				"urlweb" => ' ',
 				"domicilio" => $data->clim_direccion,
 				"localidad_id" => $localidad_id,
 				"provincia_id" => $provincia_id,
@@ -358,7 +347,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 				"listaprecio_id" => $listaprecio_id,
 				"descuento" => $data->clim_descuento,
 				"cuentacontable_id" => $cuentacontable_id,
-				"vaweb" => ($data->clim_va_web ? $data->clim_va_web : 'N'),
+				"vaweb" => 'N',
 				"estado" => $data->clim_estado_cli,
 				"leyenda" => $leyenda,
 				"usuario_id" => $usuario_id,
@@ -383,6 +372,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 		$domicilio = preg_replace('([^A-Za-z0-9 ])', '', $request['domicilio']);
 
         $data = array( 'tabla' => $this->tableAnita[0], 'acc' => 'insert',
+			'sistema' => 'ventas',
             'campos' => ' 
 				clim_cliente,
     			clim_nombre,
@@ -439,11 +429,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 				clim_dto_integrado,
 				clim_fecha_boletin,
 				clim_e_mail,
-				clim_fax,
-				clim_url,
-				clim_cod_loc,
-				clim_cod_prov,
-				clim_va_web
+				clim_fax
 				',
             'valores' => " 
 				'".str_pad($request['codigo'], 6, "0", STR_PAD_LEFT)."', 
@@ -500,12 +486,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 				'0',
 				' ',
 				'0',
-                '".$request['email']."',
-				' ',
-                '".$request['urlweb']."',
-				'".$request['localidad_id']."',
-				'".$request['provincia_id']."',
-				'".$request['vaweb']."' "
+                '".$request['email']."' "
         );
         $apiAnita->apiCall($data);
 
@@ -515,6 +496,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 		foreach ($leyenda as $ley)
 		{
         	$data = array( 'tabla' => $this->tableAnita[1], 'acc' => 'insert',
+							'sistema' => 'ventas',
             				'campos' => '
 								clil_cliente,
 								clil_linea,
@@ -536,6 +518,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 			foreach ($mventa as $marca)
 			{
         		$data = array( 'tabla' => $this->tableAnita[2], 'acc' => 'insert',
+							'sistema' => 'ventas',
             				'campos' => '
 								clico_cliente,
 								clico_marca,
@@ -569,6 +552,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 		$domicilio = preg_replace('([^A-Za-z0-9 ])', '', $request['domicilio']);
 
 		$data = array( 'acc' => 'update', 'tabla' => $this->tableAnita[0], 
+				'sistema' => 'ventas',
 				'valores' => " 
                 clim_cliente 	                = '".str_pad($request['codigo'], 6, "0", STR_PAD_LEFT)."',
                 clim_nombre 	                = '".$nombre."',
@@ -597,11 +581,7 @@ class ClienteRepository implements ClienteRepositoryInterface
                 clim_nro_ing_br 	            = '".$request['nroiibb']."',
                 clim_fantasia 	                = '".$request['fantasia']."',
                 clim_fecha_alta 	            = '".$fecha."',
-                clim_e_mail 	                = '".$request['email']."',
-                clim_url 	                    = '".$request['urlweb']."',
-                clim_cod_loc 	                = '".$localidad_id."',
-                clim_cod_prov 	                = '".$request['provincia_id']."',
-                clim_va_web	                    = '".$request['vaweb']."' "
+                clim_e_mail 	                = '".$request['email']."' "
 					,
 				'whereArmado' => " WHERE clim_cliente = '".str_pad($id, 6, "0", STR_PAD_LEFT)."' " );
         $apiAnita->apiCall($data);
@@ -617,6 +597,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 		foreach ($leyenda as $ley)
 		{
         	$data = array( 'tabla' => $this->tableAnita[1], 'acc' => 'insert',
+							'sistema' => 'ventas',
             				'campos' => '
 								clil_cliente,
 								clil_linea,
@@ -633,6 +614,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 
 		// Borra comisiones
         $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita[2], 
+				'sistema' => 'ventas',
 				'whereArmado' => " WHERE clico_cliente = '".str_pad($id, 6, "0", STR_PAD_LEFT)."' " );
         $apiAnita->apiCall($data);
 
@@ -643,6 +625,7 @@ class ClienteRepository implements ClienteRepositoryInterface
 			foreach ($mventa as $marca)
 			{
         		$data = array( 'tabla' => $this->tableAnita[2], 'acc' => 'insert',
+							'sistema' => 'ventas',
             				'campos' => '
 								clico_cliente,
 								clico_marca,
@@ -662,11 +645,13 @@ class ClienteRepository implements ClienteRepositoryInterface
 	private function eliminarAnita($id) {
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita[0], 
+				'sistema' => 'ventas',
 				'whereArmado' => " WHERE clim_cliente = '".str_pad($id, 6, "0", STR_PAD_LEFT)."' " );
         $apiAnita->apiCall($data);
 
 		// Borra leyenda
         $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita[1], 
+				'sistema' => 'ventas',
 				'whereArmado' => " WHERE clil_cliente = '".str_pad($id, 6, "0", STR_PAD_LEFT)."' " );
         $apiAnita->apiCall($data);
 	}

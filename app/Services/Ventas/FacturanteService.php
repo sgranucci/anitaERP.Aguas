@@ -165,6 +165,9 @@ class FacturanteService
 				break;
 		}
 		// Arma tabla venta
+		$nombreCliente = iconv( 'UTF-8', 'ASCII//TRANSLIT', $arrayCliente->RazonSocial );
+		$direccionCliente = iconv( 'UTF-8', 'ASCII//TRANSLIT', $arrayCliente->DireccionFiscal );
+		
 		$venta = [
 					'codigo' => $tipoComprobante,
 					'numerocomprobante' => $numero,
@@ -173,8 +176,8 @@ class FacturanteService
 					'total' => $total,
 					'moneda_id' => 1,
 					'condicionventa_id' => $condicionVenta_Id,
-					'lugarentrega' => $arrayCliente->DireccionFiscal,
-					'nombrecliente' => $arrayCliente->RazonSocial,
+					'lugarentrega' => $direccionCliente,
+					'nombrecliente' => $nombreCliente,
 					'documentocliente' => $arrayCliente->NroDocumento,
 					'transporte_id' => 0,
 					'descuentointegrado' => '',
@@ -239,7 +242,7 @@ class FacturanteService
 		//try {
 			$anita = $this->facturacionService->grabaAnita($puntoVenta, $letra, 0, 0,
 							$venta, $dataCAE, $conceptosTotales, $cuentacorriente, $dataFactura, $signo, 
-							$cuentaVenta, $contrapartida,
+							$cuentaVenta, $contrapartida, true,
 							'LOCAL_IP', 'IFX_SERVER_LOCAL');
 
 			if ($anita == 'Error')
@@ -250,7 +253,7 @@ class FacturanteService
 			
 			$fecha = Carbon::now();
 			$tipo = 'COC';
-			Self::grabaTesmov($cuentaFinanciera, $fechahora, $tipo, $letra, $puntoVenta, $numero, $total);
+			Self::grabaTesmov($cuentaFinanciera, $fechahora, $tipo, $letra, $puntoVenta, $numero, $total*$signo);
 
 			// Graba cobranza de la factura
 			// Graba subdiario
@@ -274,6 +277,11 @@ class FacturanteService
 			// Graba subdiario
 			$apiAnita = new ApiAnita();
 
+			if ($signo == -1)
+				$d_h = 'H';
+			else
+				$d_h = 'D';
+
 			$data = array( 	'tabla' => 'subdiario', 
 					'acc' => 'insert',
 					'campos' => ' 
@@ -293,7 +301,7 @@ class FacturanteService
 					'".$puntoVenta."',
 					'".$numero."',
 					'"."000000"."',
-					'".'D'."',
+					'".$d_h."',
 					'".$cuenta."',
 					'".$contrapartida."',
 					'".$numeroOperacion."',
@@ -517,57 +525,57 @@ class FacturanteService
 
 				// Graba subdiario
 				// Arma detalle
-				$detalle = "PRE"." ".$letra." ".$puntoVenta."-".$numeroPre;
+				//$detalle = "PRE"." ".$letra." ".$puntoVenta."-".$numeroPre;
 				
 				// Lee numerador de operacion contable
-				$numeroOperacion = $this->facturacionService->leeNumeroOperacionSubdiario();
+				//$numeroOperacion = $this->facturacionService->leeNumeroOperacionSubdiario();
 
 				// Graba subdiario
-				$apiAnita = new ApiAnita();
+				//$apiAnita = new ApiAnita();
 
-				$data = array( 	'tabla' => 'subdiario', 
-						'acc' => 'insert',
-						'campos' => ' 
-									subd_sistema, subd_fecha, subd_tipo, subd_letra, subd_sucursal, subd_nro,
-									subd_emisor, subd_tipo_mov, subd_cuenta, subd_contrapartida,
-									subd_nro_operacion, subd_ref_tipo, subd_ref_letra, subd_ref_sucursal,
-									subd_ref_nro, subd_ref_sistema, subd_importe, subd_cod_mon,
-									subd_cotizacion, subd_desc_mov, subd_nro_asiento,
-									subd_procesado, subd_ccosto_cta, subd_ccosto_con,
-									subd_nro_interno
-								',
-						'valores' => "
-						'".'V'."',
-						'".date('Ymd', strtotime($fecha))."',
-						'"."PRE"."',
-						'".$letra."',
-						'".$puntoVenta."',
-						'".$numeroPre."',
-						'".substr($cuentaFinanciera,-6)."',
-						'".'H'."',
-						'".$cuentaTarjeta."',
-						'".$cuentaContable."',
-						'".$numeroOperacion."',
-						'"."PRE"."',
-						'".$letra."',
-						'".$puntoVenta."',
-						'".$numeroPre."',
-						'".'V'."',
-						'".$total."',
-						'".$moneda_id."',
-						'".'1'."',
-						'".$detalle."',
-						'".'0'."',
-						'".' '."',
-						'".'0'."',
-						'".'0'."',
-						'".'0'."'
-						"
-				);
-				$subdiario = $apiAnita->apiCall($data);
+				//$data = array( 	'tabla' => 'subdiario', 
+				//		'acc' => 'insert',
+				//		'campos' => ' 
+				//					subd_sistema, subd_fecha, subd_tipo, subd_letra, subd_sucursal, subd_nro,
+				//					subd_emisor, subd_tipo_mov, subd_cuenta, subd_contrapartida,
+				//					subd_nro_operacion, subd_ref_tipo, subd_ref_letra, subd_ref_sucursal,
+				//					subd_ref_nro, subd_ref_sistema, subd_importe, subd_cod_mon,
+				//					subd_cotizacion, subd_desc_mov, subd_nro_asiento,
+				//					subd_procesado, subd_ccosto_cta, subd_ccosto_con,
+				//					subd_nro_interno
+				//				',
+				//		'valores' => "
+				//		'".'V'."',
+				//		'".date('Ymd', strtotime($fecha))."',
+				//		'"."PRE"."',
+				//		'".$letra."',
+				//		'".$puntoVenta."',
+				//		'".$numeroPre."',
+				//		'".substr($cuentaFinanciera,-6)."',
+				//		'".'H'."',
+				//		'".$cuentaTarjeta."',
+				//		'".$cuentaContable."',
+				//		'".$numeroOperacion."',
+				//		'"."PRE"."',
+				//		'".$letra."',
+				//		'".$puntoVenta."',
+				//		'".$numeroPre."',
+				//		'".'V'."',
+				//		'".$total."',
+				//		'".$moneda_id."',
+				//		'".'1'."',
+				//		'".$detalle."',
+				//		'".'0'."',
+				//		'".' '."',
+				//		'".'0'."',
+				//		'".'0'."',
+				//		'".'0'."'
+				//		"
+				//);
+				//$subdiario = $apiAnita->apiCall($data);
 
-				if (strpos($subdiario, 'Error') !== false)
-					return 'Error';
+				//if (strpos($subdiario, 'Error') !== false)
+				//	return 'Error';
 
 				// Numera el remito
 				if ($this->ventaRepository->numeraAnita('PRE', $letra, $puntoVenta) == 'Error')

@@ -14,7 +14,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Anita ERP'),
-    'empresa' => env('EMPRESA', 'Calzados Ferli'),
+    'empresa' => env('EMPRESA', 'Iguassu Travel'),
     'empresa_link' => env('EMPRESA_LINK', '/anitaERP/public'),
 
     /*

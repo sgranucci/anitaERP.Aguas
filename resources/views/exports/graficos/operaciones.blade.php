@@ -32,6 +32,7 @@
 		<th>P and L (en $)</th>
 		<th>MPC</th>
 		<th>MPF</th>
+		<th>Salida</th>
 	</tr>
   	</thead>
     <tbody>
@@ -67,6 +68,7 @@
 		<td align="right">{{number_format(floatval($data['plPesos']), 2, ",", ".")}}</td>
 		<td align="right">{{number_format(floatval($data['mpc']), 2, ",", ".")}}</td>
 		<td align="right">{{number_format(floatval($data['mpf']), 2, ",", ".")}}</td>
+		<td>{{$data['operacion']}}</td>
 	</tr>
 	@endforeach
 	</tbody>

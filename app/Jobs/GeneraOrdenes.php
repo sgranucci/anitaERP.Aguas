@@ -99,6 +99,7 @@ class GeneraOrdenes implements ShouldQueue
         $indicadoresService->acumFechaStr = "01-01-2001";
         $indicadoresService->acumFechaLectura = "01-01-2001";
         $indicadoresService->cantLectura = 0;
+        $indicadoresService->comision = 2.25;
 
         $indicadoresService->acumFlBuscaEntrada = $indicadoresService->acumFlAbrePosicion = false;
         $indicadoresService->acumOff0 = $indicadoresService->acumOff1oA = -1;

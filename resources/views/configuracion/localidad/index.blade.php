@@ -45,7 +45,7 @@ Localidades
                             <td>{{$data->abreviatura}}</td>
                             <td>{{$data->jurisdiccion}}</td>
                             <td>{{$data->codigo}}</td>
-                            <td>{{$data->provincias->nombre}}</td>
+                            <td>{{$data->provincias->nombre??''}}</td>
                             <td>
                        			@if (can('editar-localidades', false))
                                 	<a href="{{route('editar_localidad', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">

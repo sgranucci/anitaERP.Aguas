@@ -16,6 +16,7 @@ class Zonavta extends Model
     public function sincronizarConAnita(){
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 'campos' => $this->keyField, 
+                        'sistema' => 'ventas',
 						'tabla' => $this->table, 
 						'orderBy' => 'zonv_codigo' );
         $dataAnita = json_decode($apiAnita->apiCall($data));
@@ -37,6 +38,7 @@ class Zonavta extends Model
         $apiAnita = new ApiAnita();
         $data = array( 
             'acc' => 'list', 'tabla' => $this->table, 
+            'sistema' => 'ventas',
             'campos' => '
                 zonv_codigo,
 				zonv_desc
@@ -58,6 +60,7 @@ class Zonavta extends Model
         $apiAnita = new ApiAnita();
 
         $data = array( 'tabla' => 'zonavta', 'acc' => 'insert',
+            'sistema' => 'ventas',
             'campos' => ' zonv_codigo, zonv_desc ',
             'valores' => " '".$id."', 
 						   '".$request->nombre."' "
@@ -68,6 +71,7 @@ class Zonavta extends Model
 	public function actualizarAnita($request, $id) {
         $apiAnita = new ApiAnita();
 		$data = array( 'acc' => 'update', 'tabla' => 'zonavta', 
+                    'sistema' => 'ventas',
 					'valores' => " 
 								zonv_desc = '".  $request->nombre."' ",
 					'whereArmado' => " WHERE zonv_codigo = '".$id."' " );
@@ -77,6 +81,7 @@ class Zonavta extends Model
 	public function eliminarAnita($id) {
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'delete', 
+                        'sistema' => 'ventas',
 						'tabla' => 'zonavta', 
 						'whereArmado' => " WHERE zonv_codigo = '".$id."' " );
         $apiAnita->apiCall($data);

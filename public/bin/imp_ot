@@ -66,8 +66,8 @@ rm -f $SPOOL/$2.sed
 # Convierto el archivo
 #$DIR_PATH/bin/ncifpu < $1 > $TMP
 scp $1 160.132.0.254:./$TMP2
-ssh 160.132.0.254 bash -c "/usr2/ferli/bin/ncifpu < $TMP2 > $TMP2.ifpu"
-scp 160.132.0.254:$TMP2.ifpu .
+ssh -oKexAlgorithms=+diffie-hellman-group1-sha1 160.132.0.254 bash -c "/usr2/ferli/bin/ncifpu < $TMP2 > $TMP2.ifpu"
+scp -oKexAlgorithms=+diffie-hellman-group1-sha1 160.132.0.254:$TMP2.ifpu .
 mv $TMP2.ifpu $TMP
 
 # Setea el nombre del archivo a imprimir

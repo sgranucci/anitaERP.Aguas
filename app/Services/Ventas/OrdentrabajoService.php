@@ -1697,13 +1697,13 @@ class OrdentrabajoService
 						}
 						else 
 						{
-							 //dd($mventa.' '.$numeracion.' '.$valor['medida']);
+							//dd($mventa.' '.$numeracion.' '.$valor['medida']);
 							$d_med = "tag @".chr(97+$valor['medida']-config('consprod.HASTA_MEDIDA_CHICO')).sprintf("%01d", $valor['medida'])."@ ";
 							$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
 							$d_med = "tag @".sprintf("%02d", $valor['medida']).chr(97+$posicion-1)."@ ";
 							$reporte .= $d_med.'{'.number_format($valor['cantidad'],0).'}'."\n";
 							if ($mventa == 5 && $numeracion != 'DAMA')
-								$d_med = "tag @".sprintf("%02d", $valor['medida']-
+								$d_med = "tag @".sprintf("%02d", $valor['medida']+1-
 									config('consprod.DESDE_MEDIDA_TOMAHAWK'))."@ ";
 							else
 								$d_med = "tag @".sprintf("%01d", $valor['medida'])."@ ";
@@ -1759,8 +1759,8 @@ class OrdentrabajoService
 								$reporte .= $d_med.'{'.' '.'}'."\n";
 								$d_med = "tag @".sprintf("%02d", $ii).chr(97+$posicion-1)."@ ";
 								$reporte .= $d_med.'{'.' '.'}'."\n";
-								if ($mventa == 5)
-									$d_med = "tag @".sprintf("%01d", $ii-config('consprod.DESDE_MEDIDA_TOMAHAWK'))."@ ";
+								if ($mventa == 5 && $numeracion != 'DAMA')
+									$d_med = "tag @".sprintf("%01d", $ii+1-config('consprod.DESDE_MEDIDA_TOMAHAWK'))."@ ";
 								else
 									$d_med = "tag @".sprintf("%01d", $ii)."@ ";
 								$reporte .= $d_med.'{'.' '.'}'."\n";

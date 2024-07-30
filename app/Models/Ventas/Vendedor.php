@@ -16,6 +16,7 @@ class Vendedor extends Model
     public function sincronizarConAnita(){
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 'campos' => $this->keyField, 
+                        'sistema' => 'ventas',
 						'tabla' => $this->table, 
 						'orderBy' => 'vend_codigo' );
         $dataAnita = json_decode($apiAnita->apiCall($data));
@@ -37,6 +38,7 @@ class Vendedor extends Model
         $apiAnita = new ApiAnita();
         $data = array( 
             'acc' => 'list', 'tabla' => $this->table, 
+            'sistema' => 'ventas',
             'campos' => '
                 vend_codigo,
 				vend_nombre,
@@ -62,6 +64,7 @@ class Vendedor extends Model
         $apiAnita = new ApiAnita();
 
         $data = array( 'tabla' => 'vendedor', 'acc' => 'insert',
+            'sistema' => 'ventas',
             'campos' => ' vend_codigo, vend_nombre, vend_comision_vta, vend_aplicacion, vend_empresa, vend_letra, vend_comision_cob, vend_mercaderia ',
             'valores' => " '".$id."', 
 						   '".$request->nombre."',
@@ -78,6 +81,7 @@ class Vendedor extends Model
 	public function actualizarAnita($request, $id) {
         $apiAnita = new ApiAnita();
 		$data = array( 'acc' => 'update', 'tabla' => 'vendedor', 
+                    'sistema' => 'ventas',
 					'valores' => " 
 								vend_nombre = '".  $request->nombre."',
 								vend_comision_vta = '".  $request->comisionventa."', 
@@ -89,6 +93,7 @@ class Vendedor extends Model
 	public function eliminarAnita($id) {
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'delete', 
+                        'sistema' => 'ventas',
 						'tabla' => 'vendedor', 
 						'whereArmado' => " WHERE vend_codigo = '".$id."' " );
         $apiAnita->apiCall($data);

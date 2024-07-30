@@ -17,6 +17,7 @@ class Subzonavta extends Model
     public function sincronizarConAnita(){
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 'campos' => $this->keyField, 
+                        'sistema' => 'ventas',
 						'tabla' => $this->tableAnita,
 						'orderBy' => 'subz_codigo' );
         $dataAnita = json_decode($apiAnita->apiCall($data));
@@ -38,6 +39,7 @@ class Subzonavta extends Model
         $apiAnita = new ApiAnita();
         $data = array( 
             'acc' => 'list', 'tabla' => $this->tableAnita, 
+            'sistema' => 'ventas',
             'campos' => '
                 subz_codigo,
 				subz_desc
@@ -60,6 +62,7 @@ class Subzonavta extends Model
 
         $data = array( 'tabla' => $this->tableAnita, 
 			'acc' => 'insert',
+            'sistema' => 'ventas',
             'campos' => ' subz_codigo, subz_desc ',
             'valores' => " '".$id."', 
 						   '".$request->nombre."' "
@@ -71,6 +74,7 @@ class Subzonavta extends Model
         $apiAnita = new ApiAnita();
 		$data = array( 'acc' => 'update', 
 					'tabla' => $this->tableAnita, 
+                    'sistema' => 'ventas',
 					'valores' => " 
 						subz_desc = '".  $request->nombre."' ",
 					'whereArmado' => " WHERE subz_codigo = '".$id."' " );
@@ -80,6 +84,7 @@ class Subzonavta extends Model
 	public function eliminarAnita($id) {
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'delete', 
+                        'sistema' => 'ventas',
 						'tabla' => 'subzonavta', 
 						'whereArmado' => " WHERE subz_codigo = '".$id."' " );
         $apiAnita->apiCall($data);

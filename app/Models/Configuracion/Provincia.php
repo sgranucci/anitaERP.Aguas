@@ -22,6 +22,7 @@ class Provincia extends Model
     public function sincronizarConAnita(){
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 
+                    'sistema' => 'shared',
 					'campos' => $this->keyFieldAnita, 
 					'orderBy' => $this->keyFieldAnita, 
 					'tabla' => $this->table );
@@ -47,6 +48,7 @@ class Provincia extends Model
         $apiAnita = new ApiAnita();
         $data = array( 
             'acc' => 'list', 'tabla' => $this->table, 
+            'sistema' => 'shared',
             'campos' => '
                 provi_provincia,
 				provi_desc,
@@ -76,6 +78,7 @@ class Provincia extends Model
 
         $data = array( 'tabla' => $this->table, 
 						'acc' => 'insert',
+                        'sistema' => 'shared',
             			'campos' => ' provi_provincia, provi_desc, provi_abrev, provi_jurisdiccion, provi_cod_externo',
             			'valores' => " '".$id."', 
 										'".$request->nombre."',  
@@ -89,6 +92,7 @@ class Provincia extends Model
 	public function actualizarAnita($request, $id) {
         $apiAnita = new ApiAnita();
 		$data = array( 'acc' => 'update', 
+                        'sistema' => 'shared',
 						'tabla' => $this->table, 
 						'valores' => 
 							" provi_desc = '".$request->nombre."',
@@ -102,6 +106,7 @@ class Provincia extends Model
 	public function eliminarAnita($id) {
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'delete', 
+                    'sistema' => 'shared',
 					'tabla' => $this->table,
 					'whereArmado' => " WHERE ".$this->keyFieldAnita." = '".$id."' " );
         $apiAnita->apiCall($data);

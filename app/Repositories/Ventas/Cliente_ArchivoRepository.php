@@ -146,6 +146,7 @@ class Cliente_ArchivoRepository implements Cliente_ArchivoRepositoryInterface
 
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 
+						'sistema' => 'ventas',
 						'campos' => "
 							clima_cliente, 
 							clima_nro_linea, 
@@ -166,6 +167,7 @@ class Cliente_ArchivoRepository implements Cliente_ArchivoRepositoryInterface
         $apiAnita = new ApiAnita();
         $data = array( 
             'acc' => 'list', 'tabla' => $this->tableAnita, 
+			'sistema' => 'ventas',
             'campos' => '
 							clima_cliente, 
 							clima_nro_linea, 
@@ -210,6 +212,7 @@ class Cliente_ArchivoRepository implements Cliente_ArchivoRepositoryInterface
 		$hora = $fecha->format('Hi');
 
         $data = array( 'tabla' => $this->tableAnita, 'acc' => 'insert',
+			'sistema' => 'ventas',
             'campos' => ' 
 							clima_cliente, 
 							clima_nro_linea, 
@@ -232,6 +235,7 @@ class Cliente_ArchivoRepository implements Cliente_ArchivoRepositoryInterface
 	private function eliminarAnita($cliente) {
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita, 
+				'sistema' => 'ventas',
 				'whereArmado' => " WHERE clima_cliente = '".str_pad($cliente, 6, "0", STR_PAD_LEFT)."' ");
         $apiAnita->apiCall($data);
 	}

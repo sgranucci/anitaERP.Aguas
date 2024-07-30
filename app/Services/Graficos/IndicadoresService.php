@@ -25,6 +25,7 @@ class IndicadoresService
     public $item;
 
     // Variables de job para generar ordenes
+    public $comision;
     public $acumOpen = 0;
     public $acumClose = 0;
     public $acumLow = 0;
@@ -151,6 +152,7 @@ class IndicadoresService
         $this->totalContratos = $totalContratos;
         $this->ticker = 0.25;
         $this->valorTicker = 12.5;
+        $this->comision = 2.25;
         $this->administracionPosicion = $administracionposicion;
         $this->tiempo = $tiempo;
         $this->flSinFiltros = ($filtrosMatematicos == 'S' ? false : true);
@@ -958,6 +960,26 @@ class IndicadoresService
                             $this->datas[$off]['setup'] = 'DT';
                     }
                 }
+                if ($swing == 'MINIMO')
+                {
+                    $minimoAnterior = $this->datas[$this->acumBnMinimoAnterior]['min'];
+                    if ($this->datas[$off]['min'] < $minimoAnterior)
+                        $this->datas[$off]['setup'] = 'LL';
+                    if ($this->datas[$off]['min'] > $minimoAnterior)
+                        $this->datas[$off]['setup'] = 'HL';
+                    if ($this->datas[$off]['min'] == $minimoAnterior)
+                        $this->datas[$off]['setup'] = 'DB';                    
+                }
+                if ($swing == 'MAXIMO')
+                {
+                    $maximoAnterior = $this->datas[$this->acumBnMaximoAnterior]['max'];
+                    if ($this->datas[$off]['max'] > $maximoAnterior)
+                        $this->datas[$off]['setup'] = 'HH';
+                    if ($this->datas[$off]['max'] < $maximoAnterior)
+                        $this->datas[$off]['setup'] = 'LH';                    
+                    if ($this->datas[$off]['max'] == $maximoAnterior)
+                        $this->datas[$off]['setup'] = 'DT';                                        
+                }
             }
         }
     }
@@ -1058,16 +1080,16 @@ class IndicadoresService
             $this->datas[$i]['evento'] = $this->datas[$i-1]['evento'];
 
             // Redefine si es alcista o bajista
-            if ($this->datas[$i]['evento'] == 'Compra')
-            {
-                $this->acumFlAcista = true;
-                $this->acumFlBajista = false;
-            }
-            else
-            {
-                $this->acumFlAcista = false;
-                $this->acumFlBajista = true; 
-            }
+            //if ($this->datas[$i]['evento'] == 'Compra')
+            //{
+            //    $this->acumFlAcista = true;
+            //   $this->acumFlBajista = false;
+            //}
+            //else
+            //{
+            //    $this->acumFlAcista = false;
+            //    $this->acumFlBajista = true; 
+            //}
             $this->datas[$i]['stoploss'] = $this->acumStopLoss;
 
             // Mueve SL si hay cambio de dirección de señal
@@ -1170,7 +1192,6 @@ class IndicadoresService
                         $this->acumFlCerroPorTiempoBajista = true;
                 }
             }
-
             // Controla si cumple eventos de cierre (TGT Hit / SL)
             $mpc = $mpf = 0;
             $this->controlaCierreTgtSl($i, $this->acumFlAcista, $this->acumFlBajista, $this->acumFlAbrePosicion, 
@@ -1290,6 +1311,11 @@ class IndicadoresService
                 $this->acumFlBuscaEntrada = false;
             }
 
+            if ($this->acumIdTrade > 1)
+            {
+
+            }
+
             // calcula riesgo retorno
             if ($this->acumFlAbrePosicionEntrada)
             {
@@ -1402,8 +1428,19 @@ class IndicadoresService
                         else    
                             $relacionVelas = 0;
 
+                        // Configura retroceso
+                        $retroceso = $this->datas[$i-1]['provRet'];
+                        if ($retroceso == 0)
+                        {
+                            for ($j = $i-1; $j > 0 && $retroceso == 0; $j--)
+                            {
+                                if ($this->datas[$j]['provRet'] != 0)
+                                    $retroceso = $this->datas[$j]['provRet'];
+                            }
+                        }
+
                         $this->acumTipoOperacion = ($this->acumFlAcista ? "Buy to Open" : "Sell to Open");
-                        $this->armaTablaOperaciones($this->datas[$i]['fecha'],
+                        $ret = $this->armaTablaOperaciones($this->datas[$i]['fecha'],
                                                     ++$this->acumIdTrade, 
                                                     $direccion,
                                                     $this->cantidadActivaContratos,  
@@ -1415,10 +1452,18 @@ class IndicadoresService
                                                     $swingBars,
                                                     $contraSwingBars,
                                                     $relacionVelas,
-                                                    $this->datas[$i-1]['provRet'],
+                                                    $retroceso,
                                                     $riesgoTicks,
                                                     $retornoTicks,
                                                     '', '', '', $this->acumTipoOperacion, $i);
+
+                        if ($ret === 'ERROR')
+                        {
+                            $this->acumIdTrade--;
+                            $this->datas[$i]['p'] = '0';
+                            $this->datas[$i]['evento'] = 'TR';
+                            $this->acumFlAbrePosicion = false;                            
+                        }
 
                         // Chequea cierre de operacion por si es en la misma vela de apertura
                         // Controla si cumple eventos de cierre (TGT Hit / SL)
@@ -1624,8 +1669,8 @@ class IndicadoresService
                 // Inicia señal de anulacion alcista
                 if (!$this->flSpAlcista)
                 {
-                    $this->datas[$i]['filtroActivo'] .= " SROJA";
-                    $this->flSpAlcista = true;
+                    //$this->datas[$i]['filtroActivo'] .= " SROJA";
+                    //$this->flSpAlcista = true;
                 }
                 $recorrido1oA = abs($maximo - $minimo);
                 $this->tgtSpAlcista1 = Round(($this->datas[$i]['provMax'] - ($recorrido1oA * 0.618))/$this->ticker,0)*$this->ticker;
@@ -1644,8 +1689,8 @@ class IndicadoresService
                 // Inicia señal de anulacion bajista
                 if (!$this->flSpBajista)
                 {
-                    $this->datas[$i]['filtroActivo'] .= " SBLANCA";
-                    $this->flSpBajista = true;
+                    //$this->datas[$i]['filtroActivo'] .= " SBLANCA";
+                    //$this->flSpBajista = true;
                 }
                 $recorrido1oA = abs($maximo - $minimo);
                 $this->tgtSpBajista1 = Round(($this->datas[$i]['provMin'] - ($recorrido1oA * 0.618))/$this->ticker,0)*$this->ticker;
@@ -1816,7 +1861,13 @@ class IndicadoresService
             if (!$this->acumFlAnulacionW4BajistaActiva)
                 $this->datas[$i]['entrada'] .= ' Cierra BLANCA W4';
         }
-
+//if ($i == 934)
+//{
+    //dd($this->datas[$i]['low'].' '.$this->datas[$i]['provRet'].' '.$this->datas[$i]['regimenVolatilidad'].' '.
+    //$this->datas[$i]['horainicio'].' x1 '.$this->acumFlCerroPorTiempoAlcista.' x2'.$this->acumFlCerroPorTiempoBajista.
+    //' x3'.$this->acumFlBuscaEntrada.
+    //' x4'.$this->acumconFiltrosCandidato.' x5'.$this->flAnulaCandidato.' x6'.$this->acumFlFiltroOutBound);
+//}
         if (($this->filtroSetup != 'T' ? !$this->acumFlAbrePosicion : true) &&
             $this->datas[$i]['provRet'] >= 0.382 && $this->datas[$i]['provRet'] <= 1 &&
             $this->datas[$i]['regimenVolatilidad'] == 1 &&
@@ -1824,7 +1875,7 @@ class IndicadoresService
             $this->datas[$i]['horainicio'] <= ($flDayLight ? '17:00:00' : '16:00:00') &&
             !$this->acumFlCerroPorTiempoAlcista && !$this->acumFlCerroPorTiempoBajista && 
             !$this->acumFlBuscaEntrada &&
-            ($this->acumconFiltrosCandidato ? !$this->flAnulaCandidato : true) &&
+            //($this->acumconFiltrosCandidato ? !$this->flAnulaCandidato : true) &&
             !$this->acumFlFiltroOutBound)
         {
             // Calcula filtros de inertia y volatilidad
@@ -1834,7 +1885,7 @@ class IndicadoresService
                 	$this->calculaFiltrosVolatilidadInertia($i, $this->datas[$i]['provMin'] ? "ALCISTA" : "BAJISTA");
 			}
 
-            if (!$this->flVolatilidad && !$this->flInertia)
+            //if (!$this->flVolatilidad && !$this->flInertia)
             {
                 $minimoActual = $this->datas[$i]['low'];
                 $maximoActual = $this->datas[$i]['high'];
@@ -1933,7 +1984,8 @@ class IndicadoresService
                             $this->acumOff0 = $this->acumOff1oA = -1;
                     }
                 }
-                
+                //if ($i == 2604)
+                  //  dd($this->acumOff1oA.' e '.$this->acumOff0.' d '.$retroceso.' x '.$relacionVelas);
                 // Si obtiene maximo y minimo verifica gatillo
                 if ($this->acumOff1oA != -1 && $this->acumOff0 != -1)
                 {
@@ -1958,8 +2010,8 @@ class IndicadoresService
                     $this->datas[$i]['extT4'] = $this->acumT4;
                 }
             }
-            else
-                $this->datas[$i]['entrada'] .= ' Volatilidad '.$this->flVolatilidad.' Inertia '.$this->flInertia;
+            //else
+                //$this->datas[$i]['entrada'] .= ' Volatilidad '.$this->flVolatilidad.' Inertia '.$this->flInertia;
         }
 
         $sp = $this->datas[$i]['setup'];
@@ -1994,30 +2046,30 @@ class IndicadoresService
         {
             if ($op == 'BAJISTA')
             {
-                $this->acumFlAnulacionW4BajistaActiva = true;
+                //$this->acumFlAnulacionW4BajistaActiva = true;
 
-                $this->datas[$i]['filtroActivo'] .= ' W4 BLANCA';
+                //$this->datas[$i]['filtroActivo'] .= ' W4 BLANCA';
             }
             else
             {
-                $this->acumFlAnulacionW4AlcistaActiva = true;
+                //$this->acumFlAnulacionW4AlcistaActiva = true;
 
-                $this->datas[$i]['filtroActivo'] .= ' W4 ROJA';
+                //$this->datas[$i]['filtroActivo'] .= ' W4 ROJA';
             }
         }     
         if (self::calculaAbCd($i, $op, true))
         {
             if ($op == 'BAJISTA')
             {
-                $this->acumFlAnulacionAbCdBajistaActiva = true;
+                //$this->acumFlAnulacionAbCdBajistaActiva = true;
 
-                $this->datas[$i]['filtroActivo'] .= ' AB=CD BLANCA';
+                //$this->datas[$i]['filtroActivo'] .= ' AB=CD BLANCA';
             }
             else
             {
-                $this->acumFlAnulacionAbCdAlcistaActiva = true;
+                //$this->acumFlAnulacionAbCdAlcistaActiva = true;
 
-                $this->datas[$i]['filtroActivo'] .= ' AB=CD ROJA';
+                //$this->datas[$i]['filtroActivo'] .= ' AB=CD ROJA';
             }
         }
         // Calcula filtros ABC / AB=CD
@@ -2025,15 +2077,15 @@ class IndicadoresService
         {
             if ($op == 'BAJISTA')
             {
-                $this->acumFlAnulacionAbcBajistaActiva = true;
+                //$this->acumFlAnulacionAbcBajistaActiva = true;
 
-                $this->datas[$i]['filtroActivo'] .= ' ABC BLANCA';
+                //$this->datas[$i]['filtroActivo'] .= ' ABC BLANCA';
             }
             else
             {
-                $this->acumFlAnulacionAbcAlcistaActiva = true;
+                //$this->acumFlAnulacionAbcAlcistaActiva = true;
 
-                $this->datas[$i]['filtroActivo'] .= ' ABC ROJA';
+                //$this->datas[$i]['filtroActivo'] .= ' ABC ROJA';
             }
         }
     }
@@ -2064,6 +2116,8 @@ class IndicadoresService
     private function cierraPosicion($i, $flAlcista, $flBajista, $offAbrePosicion, 
                                     $idSenial, $idTrade, $cantidadActivaContratos, $tipoOperacion, &$mpc, &$mpf)
     {
+        //if ($i == 4767)
+            //dd('Cierra pos'.$this->datas[$i]['evento']);
         if ($this->datas[$i]['evento'] == 'NM')
         {
             $precioCierre = $this->datas[$i]['open'];
@@ -2110,6 +2164,19 @@ class IndicadoresService
     private function controlaCierreTgtSl($i, $flAlcista, $flBajista, &$flAbrePosicion, $idTrade, $mpc, $mpf)
     {
         $contratoActivo = $this->totalContratos - $this->cantidadActivaContratos + 1;
+
+        for ($j = 0, $off = -1; $j < count($this->operaciones) && $off != $j; $j++)
+        {
+            if ($this->operaciones[$j]['idTrade'] == $idTrade)
+                $off = $j;
+        }
+        // Configura direccion en funcion de como esta el trade actual
+        $flAlcista = $flBajista = false;
+        if ($this->operaciones[$off]['direccion'] == 1)
+            $flAlcista = true;
+        else    
+            $flBajista = true;
+
         if ($flAlcista)
         {
             if ($this->datas[$i]['open'] >= $this->tgt[$contratoActivo] ||
@@ -2166,6 +2233,8 @@ class IndicadoresService
         }
         if ($flBajista)
         {
+            //if ($i == 4767)
+                //echo ("SL ANT ".$this->datas[$i]['stoploss']);
             // Chequea Target 1
             if ($this->datas[$i]['open'] <= $this->tgt[$contratoActivo] ||
                 $this->datas[$i]['close'] <= $this->tgt[$contratoActivo] ||
@@ -2195,6 +2264,8 @@ class IndicadoresService
                 	$this->acumFlCierraPorTiempo = false;
 				}
             }
+            //if ($i == 4767)
+                //echo ("SLLLL".$this->datas[$i]['open'].' '.$this->datas[$i]['stoploss']);
             // Chequea con SL
             if ($this->datas[$i]['open'] >= $this->datas[$i]['stoploss'] ||
                 $this->datas[$i]['close'] >= $this->datas[$i]['stoploss'] ||
@@ -2205,6 +2276,9 @@ class IndicadoresService
                 $this->datas[$i]['evento'] = 'SL '.$this->datas[$i]['stoploss'].' B i'.$i;
                 $flAbrePosicion = false;
                 $this->acumFlCierraPorTiempo = false;
+
+                //if ($i == 4767)
+                    //echo ("SL x".$this->datas[$i]['stoploss']);
 
                 $this->armaTablaOperaciones($this->datas[$i]['fecha'],
                     $idTrade, 
@@ -3852,6 +3926,8 @@ class IndicadoresService
                                         $rv, $retroceso, $riesgoTicks, $retornoTicks, $precioCierre, 
                                         $mpc, $mpf, $operacion, $i)
     {
+        //if ($i == 4767)
+            //dd($operacion);
         if ($operacion == 'CIERRA SL' || $operacion == 'CIERRA TGT' || $operacion == 'CIERRA NM')
         {
             for ($j = 0, $off = -1; $j < count($this->operaciones) && $off != $j; $j++)
@@ -3864,6 +3940,9 @@ class IndicadoresService
             $totalTicks = $this->operaciones[$off]['acumTicks'];
             $plPesos = 0;
 
+            if ($this->operaciones[$off]['operacion'] == ' ')
+                $this->operaciones[$off]['operacion'] = $operacion;
+
             switch($operacion)
             {
             case 'CIERRA SL':
@@ -3872,36 +3951,24 @@ class IndicadoresService
                 {
                     $lblPrecio = 'precioCierre'.$contrato;
                     $lblHora = 'horaCierre'.$contrato;
-
                     $this->operaciones[$off][$lblPrecio] = $precioCierre;
                     $this->operaciones[$off][$lblHora] = $desdeHora;
                     $totalTicks += ($this->operaciones[$off][$lblPrecio] - $this->operaciones[$off]['valorEntrada']);
                 }
                 break;
             case 'CIERRA TGT':
-                switch($numeroContratos)
+                for ($contrato = 1; $contrato <= 4; $contrato++)
                 {
-                case 1:
-                    $this->operaciones[$off]['precioCierre4'] = $precioCierre;
-                    $this->operaciones[$off]['horaCierre4'] = $desdeHora;
-                    $totalTicks += ($this->operaciones[$off]['precioCierre4'] - $this->operaciones[$off]['valorEntrada']);
-                    break;                
-                case 2:
-                    $this->operaciones[$off]['precioCierre3'] = $precioCierre;
-                    $this->operaciones[$off]['horaCierre3'] = $desdeHora;
-                    $totalTicks += ($this->operaciones[$off]['precioCierre3'] - $this->operaciones[$off]['valorEntrada']);
-                    break;
-                case 3:
-                    $this->operaciones[$off]['precioCierre2'] = $precioCierre;
-                    $this->operaciones[$off]['horaCierre2'] = $desdeHora;
-                    $totalTicks += ($this->operaciones[$off]['precioCierre2'] - $this->operaciones[$off]['valorEntrada']);
-                    break;
-                case 4:
-                default:
-                    $this->operaciones[$off]['precioCierre1'] = $precioCierre;
-                    $this->operaciones[$off]['horaCierre1'] = $desdeHora;
-                    $totalTicks += ($this->operaciones[$off]['precioCierre1'] - $this->operaciones[$off]['valorEntrada']);
-                    break;
+                    $lblPrecio = 'precioCierre'.$contrato;
+                    $lblHora = 'horaCierre'.$contrato;
+
+                    if ($this->operaciones[$off][$lblHora] == ' ')
+                    {
+                        $this->operaciones[$off][$lblPrecio] = $precioCierre;
+                        $this->operaciones[$off][$lblHora] = $desdeHora;
+                        $totalTicks += ($this->operaciones[$off][$lblPrecio] - $this->operaciones[$off]['valorEntrada']);  
+                        break;
+                    }
                 }
                 break;
             }
@@ -3912,7 +3979,8 @@ class IndicadoresService
                 $this->operaciones[$off]['totalTicks'] = $totalTicks / $this->ticker * -1;
             else
                 $this->operaciones[$off]['totalTicks'] = $totalTicks / $this->ticker;
-            $this->operaciones[$off]['plPesos'] = $this->operaciones[$off]['totalTicks'] * $this->valorTicker;
+            $this->operaciones[$off]['plPesos'] = ($this->operaciones[$off]['totalTicks'] * $this->valorTicker) - 
+                                                ($this->totalContratos * $this->comision * 2);
 
             if ($operacion == 'CIERRA SL')
                 $evento = 'SL';
@@ -3940,6 +4008,19 @@ class IndicadoresService
         }
         else
         {
+            // Controla trade con minimo y maximo repetido
+            $this->buscaUltimoMaximo($i, $offMax, $maximo);
+            $this->buscaUltimoMinimo($i, $offMin, $minimo);
+
+            if ($idTrade > 1)
+            {
+                if ($minimo == $this->operaciones[$idTrade-2]['min'] &&
+                    $maximo == $this->operaciones[$idTrade-2]['max'] &&
+                    $offMin == $this->operaciones[$idTrade-2]['offmin'] &&
+                    $offMax == $this->operaciones[$idTrade-2]['offmax'])
+                    return 'Error';
+            }
+
             $fechaLectura = date('Y-m-d', ceil($fecha/1000));
             $dataOperacion = [
                 'i' => $i,
@@ -3972,12 +4053,18 @@ class IndicadoresService
                 'totalTicks' => 0,
                 'acumTicks' => 0,
                 'plPesos' => 0,
+                'operacion' => ' ',
                 'mpc' => $mpc,
-                'mpf' => $mpf
+                'mpf' => $mpf,
+                'min' => $minimo,
+                'max' => $maximo,
+                'offmin' => $offMin,
+                'offmax' => $offMax
             ];
             $this->operaciones[] = $dataOperacion;
 
-            //dd($this->operaciones);
+            //if ($idTrade == 7)
+              //  dd($this->operaciones);
 
             // Si es batch envia correo de apertura de posicion
             if ($this->flBatch)
@@ -3988,6 +4075,7 @@ class IndicadoresService
                 Log::info($dataOperacion);
             }
         }
+        return 0;
     }
 
     private function calculaProfitAndLoss($idTrade, $numeroContratos, $precioCierre)

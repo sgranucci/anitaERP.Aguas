@@ -23,6 +23,13 @@ function limpiaFiltros(){
         }
     });
 }
+
+function eliminarPedido(event) {
+  var opcion = confirm("Desea eliminar el pedido?");
+  if(!opcion) {
+    event.preventDefault();
+  }
+}
 </script>
 
 @endsection
@@ -112,7 +119,7 @@ function limpiaFiltros(){
                        			@if (can('borrar-pedidos', false) && $pedido['estado'] == 'Pendiente')
                                 	<form action="{{route('eliminar_pedido', ['id' => $pedido['id']])}}" class="d-inline form-eliminar" method="POST">
                                    		@csrf @method("delete")
-                                   		<button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">
+                                   		<button type="submit" onclick="eliminarPedido(event)" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">
                                        	<i class="fa fa-times-circle text-danger"></i>
                                    	</button>
                                 	</form>

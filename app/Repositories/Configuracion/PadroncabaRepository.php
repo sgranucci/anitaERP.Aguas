@@ -76,6 +76,7 @@ class PadroncabaRepository implements PadroncabaRepositoryInterface
         $apiAnita = new ApiAnita();
         $data = array( 
             'acc' => 'list', 
+            'sistema' => 'compras',
 			'tabla' => 'retpercaba',
             'campos' => '
                 rpcaba_retencion as retencion,
@@ -86,7 +87,7 @@ class PadroncabaRepository implements PadroncabaRepositoryInterface
         );
         $datas = json_decode($apiAnita->apiCall($data));
 		$tasa = '';
-		if (count($datas) > 0)
+		if (isset($datas))
 			$tasa = ($tipo == "percepcion" ? $datas[0]->percepcion : $datas[0]->retencion);
 
 		return $tasa;

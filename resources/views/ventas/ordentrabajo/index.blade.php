@@ -133,6 +133,9 @@ function limpiaFiltros(){
                                    	<i class="fa fa-print"></i>
                                 	</a>
 								@endif
+                                <button type="submit" class="btn-accion-tabla borraot tooltipsC" title="Eliminar este registro">
+                                    <i class="fa fa-times-circle text-danger"></i>
+                                </button>
 							</td>
                         </tr>
                         @endforeach

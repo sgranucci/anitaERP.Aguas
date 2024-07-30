@@ -15,11 +15,11 @@ class TablaPermisoSeeder extends Seeder
     {
         $now = Carbon::now()->toDateTimeString();
         $permisos = [
-            array('id' => '330', 'nombre' => 'Importar Tienda Nube', 'slug' => 'importar-tiendanube', 'created_at' => $now, 'updated_at' => $now),
-            //array('id' => '325', 'nombre' => 'Listar precios', 'slug' => 'listar-precios', 'created_at' => $now, 'updated_at' => $now),
-            //array('id' => '326', 'nombre' => 'Editar precios', 'slug' => 'editar-precios', 'created_at' => $now, 'updated_at' => $now),
-            //array('id' => '327', 'nombre' => 'Actualizar precios', 'slug' => 'actualizar-precios', 'created_at' => $now, 'updated_at' => $now),
-            //array('id' => '328', 'nombre' => 'Borrar precios', 'slug' => 'borrar-precios', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '351', 'nombre' => 'Ingresar talonario de rendicion', 'slug' => 'crear-talonario-de-rendicion', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '352', 'nombre' => 'Listar talonario de rendicion', 'slug' => 'listar-talonario-de-rendicion', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '353', 'nombre' => 'Editar talonario de rendicion', 'slug' => 'editar-talonario-de-rendicion', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '354', 'nombre' => 'Actualizar talonario de rendicion', 'slug' => 'actualizar-talonario-de-rendicion', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '355', 'nombre' => 'Borrar talonario de rendicion', 'slug' => 'borrar-talonario-de-rendicion', 'created_at' => $now, 'updated_at' => $now),
 
         ];
         DB::table('permiso')->insert($permisos);

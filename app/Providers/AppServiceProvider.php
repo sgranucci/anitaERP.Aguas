@@ -171,6 +171,31 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 		$this->app->bind(
+        	'App\Repositories\Caja\CuentacajaRepositoryInterface',
+        	'App\Repositories\Caja\CuentacajaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\ConceptogastoRepositoryInterface',
+        	'App\Repositories\Caja\ConceptogastoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\OrigenvoucherRepositoryInterface',
+        	'App\Repositories\Caja\OrigenvoucherRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\TalonariovoucherRepositoryInterface',
+        	'App\Repositories\Caja\TalonariovoucherRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\TalonariorendicionRepositoryInterface',
+        	'App\Repositories\Caja\TalonariorendicionRepository',
+    	);
+
+		$this->app->bind(
         	'App\Repositories\Ventas\FormapagoRepositoryInterface',
         	'App\Repositories\Ventas\FormapagoRepository',
     	);

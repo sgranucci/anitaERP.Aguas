@@ -8,6 +8,7 @@ Pedidos de Clientes
 <script src="{{asset("assets/pages/scripts/ventas/pedido/filtro.js")}}" type="text/javascript"></script>
 
 <script>
+
 function limpiaFiltros(){
 	$('#estado').val('');
 
@@ -22,6 +23,13 @@ function limpiaFiltros(){
 			window.location.replace(window.location.pathname);
         }
     });
+}
+
+function eliminarPedido(event) {
+  var opcion = confirm("Desea borrar el pedido?");
+  if(!opcion) {
+    event.preventDefault();
+  }
 }
 </script>
 

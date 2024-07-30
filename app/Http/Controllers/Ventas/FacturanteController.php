@@ -83,10 +83,13 @@ class FacturanteController extends Controller
               $arraySalida = [];
               for ($i = 0; $i < count($datas); $i++)
               {
+                if (!isset($datas[$i]->Prefijo))
+                  continue;
+                
                 if ($datas[$i]->Prefijo == 21)
                   $datas[$i]->mediopago = '1';
                 elseif ($datas[$i]->Prefijo == 23)
-                  $datas[$i]->mediopago = '2';
+                  $datas[$i]->mediopago = '1';
                 else
                   $datas[$i]->mediopago = '5';
 
@@ -152,8 +155,11 @@ class FacturanteController extends Controller
                                           $request->caes[$ii*2], 
                                           $request->fechaVencimientoCaes[$ii], $request->clientes[$ii*2],
                                           $request->mediospago[$ii]);
-
-              $this->facturanteService->generaPre($request->totales[$ii], $request->mediospago[$ii]);
+              $signo = 1;
+              if (substr($request->tipoComprobantes[$ii], 0, 2) == "NC")
+                $signo = -1;
+              $total = $request->totales[$ii]*$signo;
+              $this->facturanteService->generaPre($total, $request->mediospago[$ii]);
             }
         }
 

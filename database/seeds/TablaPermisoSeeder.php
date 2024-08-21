@@ -15,11 +15,11 @@ class TablaPermisoSeeder extends Seeder
     {
         $now = Carbon::now()->toDateTimeString();
         $permisos = [
-            array('id' => '351', 'nombre' => 'Ingresar talonario de rendicion', 'slug' => 'crear-talonario-de-rendicion', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '352', 'nombre' => 'Listar talonario de rendicion', 'slug' => 'listar-talonario-de-rendicion', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '353', 'nombre' => 'Editar talonario de rendicion', 'slug' => 'editar-talonario-de-rendicion', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '354', 'nombre' => 'Actualizar talonario de rendicion', 'slug' => 'actualizar-talonario-de-rendicion', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '355', 'nombre' => 'Borrar talonario de rendicion', 'slug' => 'borrar-talonario-de-rendicion', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '426', 'nombre' => 'Ingresar medio de pago', 'slug' => 'crear-medio-pago', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '427', 'nombre' => 'Listar medio de pago', 'slug' => 'listar-medio-pago', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '428', 'nombre' => 'Editar medio de pago', 'slug' => 'editar-medio-pago', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '429', 'nombre' => 'Actualizar medio de pago', 'slug' => 'actualizar-medio-pago', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '430', 'nombre' => 'Borrar medio de pago', 'slug' => 'borrar-medio-pago', 'created_at' => $now, 'updated_at' => $now),
 
         ];
         DB::table('permiso')->insert($permisos);

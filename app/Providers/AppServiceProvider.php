@@ -196,6 +196,86 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 		$this->app->bind(
+        	'App\Repositories\Caja\TipocuentacajaRepositoryInterface',
+        	'App\Repositories\Caja\TipocuentacajaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\MediopagoRepositoryInterface',
+        	'App\Repositories\Caja\MediopagoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\BancoRepositoryInterface',
+        	'App\Repositories\Caja\BancoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\CondicionpagoRepositoryInterface',
+        	'App\Repositories\Compras\CondicionpagoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\CondicionpagocuotaRepositoryInterface',
+        	'App\Repositories\Compras\CondicionpagocuotaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\CondicioncompraRepositoryInterface',
+        	'App\Repositories\Compras\CondicioncompraRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\CondicionentregaRepositoryInterface',
+        	'App\Repositories\Compras\CondicionentregaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\TipoempresaRepositoryInterface',
+        	'App\Repositories\Compras\TipoempresaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\RetenciongananciaRepositoryInterface',
+        	'App\Repositories\Compras\RetenciongananciaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\Retencionganancia_EscalaRepositoryInterface',
+        	'App\Repositories\Compras\Retencionganancia_EscalaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\RetencionivaRepositoryInterface',
+        	'App\Repositories\Compras\RetencionivaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\RetencionsussRepositoryInterface',
+        	'App\Repositories\Compras\RetencionsussRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\RetencionIIBBRepositoryInterface',
+        	'App\Repositories\Compras\RetencionIIBBRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\RetencionIIBB_CondicionRepositoryInterface',
+        	'App\Repositories\Compras\RetencionIIBB_CondicionRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\TiposuspensionproveedorRepositoryInterface',
+        	'App\Repositories\Compras\TiposuspensionproveedorRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\ProveedorRepositoryInterface',
+        	'App\Repositories\Compras\ProveedorRepository',
+    	);
+
+		$this->app->bind(
         	'App\Repositories\Ventas\FormapagoRepositoryInterface',
         	'App\Repositories\Ventas\FormapagoRepository',
     	);
@@ -313,8 +393,19 @@ class AppServiceProvider extends ServiceProvider
         	'App\Services\Configuracion\IIBBService',
     	);
 
+		$this->app->bind(
+        	'App\Repositories\Configuracion\CondicionIIBBRepositoryInterface',
+        	'App\Repositories\Configuracion\CondicionIIBBRepository',
+    	);
+
 	    $this->app->bind(
         	'App\Services\Configuracion\ImpuestoService',
     	);
+
+		$this->app->bind(
+        	'App\Repositories\Contable\CentrocostoRepositoryInterface',
+        	'App\Repositories\Contable\CentrocostoRepository',
+    	);
+
     }
 }

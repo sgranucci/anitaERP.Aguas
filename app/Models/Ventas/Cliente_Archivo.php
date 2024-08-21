@@ -3,7 +3,6 @@
 namespace App\Models\Ventas;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Ventas\Cliente_Archivo;
 
 class Cliente_Archivo extends Model
 {

@@ -25,6 +25,9 @@ class ValidacionCuentacaja extends FormRequest
     {
         return [
             'nombre' => 'required|max:255|unique:cuentacaja,nombre,' . $this->route('id'),
+            'banco_id' => ['integer', 'nullable'],
+            'cuentacontable_id' => 'required|integer',
+            'empresa_id' => ['integer', 'nullable'],
         ];
     }
 }

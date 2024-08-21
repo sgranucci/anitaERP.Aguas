@@ -51,7 +51,7 @@ class Cliente_Entrega extends Model
 
     public function subzonavtas()
     {
-        return $this->belongsTo(Subsonavta::class, 'subzonavta_id');
+        return $this->belongsTo(Subzonavta::class, 'subzonavta_id');
     }
 
     public function vendedores()

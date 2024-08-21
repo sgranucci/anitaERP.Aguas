@@ -49,6 +49,10 @@
 
 		// Llena variable desc_localidad
 		$(document).on('change', '#localidad_id', function(event) {
-     			$('#desc_localidad').val($("#localidad_id option:selected").text());
+     		$('#desc_localidad').val($("#localidad_id option:selected").text());
 		});
+        // Llena variable desc_provincia
+		$(document).on('change', '#provincia_id', function(event) {
+            $('#desc_provincia').val($("#provincia_id option:selected").text());
+   });
     });

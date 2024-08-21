@@ -30,6 +30,12 @@
                         <tr>
                             <th class="width20">ID</th>
                             <th>Nombre</th>
+                            <th>Código</th>
+                            <th>Tipo cuenta</th>
+                            <th>Banco</th>
+                            <th>Empresa</th>
+                            <th>Cuenta contable</th>
+                            <th>CBU</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>
                     </thead>
@@ -38,6 +44,17 @@
                         <tr>
                             <td>{{$data->id}}</td>
                             <td>{{$data->nombre}}</td>
+                            <td>{{$data->codigo}}</td>
+                            <td>@foreach($tipocuenta_enum as $tipocuenta)
+									@if ($tipocuenta['valor'] == $data->tipocuenta)
+										{{ $tipocuenta['nombre'] }}
+									@endif
+								@endforeach
+                            </td>
+                            <td>{{$data->bancos->nombre ?? ''}}</td>
+                            <td>{{$data->empresas->nombre ?? ''}}</td>
+                            <td>{{$data->cuentacontables->codigo ?? ''}}-{{$data->cuentacontables->nombre??''}}</td>
+                            <td>{{$data->cbu}}</td>
                             <td>
                        			@if (can('editar-cuentas-de-caja', false))
                                 	<a href="{{route('editar_cuentacaja', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">

@@ -4,18 +4,24 @@ namespace App\Http\Controllers\Caja;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Caja\Cuentacaja;
+use App\Models\Configuracion\Empresa;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ValidacionCuentacaja;
+use App\Models\Caja\Cuentacaja;
+use App\Models\Contable\Cuentacontable;
 use App\Repositories\Caja\CuentacajaRepositoryInterface;
+use App\Repositories\Caja\BancoRepositoryInterface;
 
 class CuentacajaController extends Controller
 {
 	private $repository;
+    private $bancoRepository;
 
-    public function __construct(CuentacajaRepositoryInterface $repository)
+    public function __construct(CuentacajaRepositoryInterface $repository,
+                                BancoRepositoryInterface $bancorepository)
     {
         $this->repository = $repository;
+        $this->bancoRepository = $bancorepository;
     }
 
     /**
@@ -27,8 +33,9 @@ class CuentacajaController extends Controller
     {
         can('listar-cuentas-de-caja');
 		$datas = $this->repository->all();
+        $tipocuenta_enum = Cuentacaja::$enumTipocuenta;
 
-        return view('caja.cuentacaja.index', compact('datas'));
+        return view('caja.cuentacaja.index', compact('datas', 'tipocuenta_enum'));
     }
 
     /**
@@ -39,8 +46,13 @@ class CuentacajaController extends Controller
     public function crear()
     {
         can('crear-cuentas-de-caja');
+        $empresa_query = Empresa::orderBy('nombre')->get();
+        $banco_query = $this->bancoRepository->all();
+        $cuentacontable_query = Cuentacontable::orderBy('nombre')->get();
+        $tipocuenta_enum = Cuentacaja::$enumTipocuenta;
 
-        return view('caja.cuentacaja.crear');
+        return view('caja.cuentacaja.crear', compact('empresa_query', 'banco_query', 'cuentacontable_query',
+                                                    'tipocuenta_enum'));
     }
 
     /**
@@ -67,8 +79,13 @@ class CuentacajaController extends Controller
     {
         can('editar-cuentas-de-caja');
         $data = $this->repository->findOrFail($id);
+        $empresa_query = Empresa::orderBy('nombre')->get();
+        $banco_query = $this->bancoRepository->all();
+        $cuentacontable_query = Cuentacontable::orderBy('nombre')->get();
+        $tipocuenta_enum = Cuentacaja::$enumTipocuenta;
 
-        return view('caja.cuentacaja.editar', compact('data'));
+        return view('caja.cuentacaja.editar', compact('data', 'empresa_query', 'banco_query', 'cuentacontable_query',   
+                                                    'tipocuenta_enum'));
     }
 
     /**

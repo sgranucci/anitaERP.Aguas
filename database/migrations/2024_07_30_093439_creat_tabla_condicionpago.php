@@ -16,6 +16,7 @@ class CreatTablaCondicionpago extends Migration
         Schema::create('condicionpago', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('nombre',255);
+            $table->string('codigo',10);
             $table->string('aplicacion', 1);
             $table->timestamps();
             $table->charset = 'utf8mb4';

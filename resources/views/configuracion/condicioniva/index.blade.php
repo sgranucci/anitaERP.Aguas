@@ -1,6 +1,6 @@
 @extends("theme.$theme.layout")
 @section('titulo')
-Provincias
+Condiciones de Iva
 @endsection
 
 @section("scripts")

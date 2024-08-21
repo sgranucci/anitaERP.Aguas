@@ -99,7 +99,8 @@ class Cuentacontable extends Model
     }
     public function sincronizarConAnita(){
         $apiAnita = new ApiAnita();
-        $data = array( 'acc' => 'list', 'campos' => 'ctam_empresa, '.$this->keyFieldAnita, 
+        $data = array( 'acc' => 'list', 'sistema' => 'contab',
+                        'campos' => 'ctam_empresa, '.$this->keyFieldAnita, 
 						'tabla' => $this->tableAnita, 
 						'orderBy' => 'ctam_empresa, '.$this->keyFieldAnita  );
         $dataAnita = json_decode($apiAnita->apiCall($data));
@@ -126,6 +127,7 @@ class Cuentacontable extends Model
         $apiAnita = new ApiAnita();
         $data = array( 
             'acc' => 'list', 'tabla' => $this->tableAnita, 
+            'sistema' => 'contab',
             'campos' => '
                 ctam_empresa,
 				ctam_cuenta,
@@ -197,6 +199,7 @@ class Cuentacontable extends Model
 		cambia_para_grabar($request, $codigo, $tipocuenta, $ajustable, $manejaccosto, $cuenta);
 
         $data = array( 'tabla' => $this->tableAnita, 
+                        'sistema' => 'contab',
 						'acc' => 'insert',
             			'campos' => ' ctam_empresa, ctam_cuenta, ctam_tipo, ctam_desc, ctam_nivel, ctam_salto_pag, ctam_ajustable, ctam_ley_debe1, ctam_ley_debe2, ctam_ley_haber1, ctam_ley_haber2, ctam_rubro, ctam_fl_ccosto, ctam_cuenta_alta, ctam_aju_mon_ext, ctam_cta_dif_cbio',
             			'valores' => " '".$request->empresa_id."', '".$codigo."', '".$tipocuenta."', '".$request->nombre."', '".$request->nivel."', '".'N'.", ".$ajustable."', '".' '."', ".' '.", '".' '."', '".' '."', '".$request->rubrocontable_id."', '".$manejaccosto."', '".$cuenta."', '".'N'.", '".'0'."' "
@@ -210,6 +213,7 @@ class Cuentacontable extends Model
 		cambia_para_grabar($request, $codigo, $tipocuenta, $ajustable, $manejaccosto, $cuenta);
 
 		$data = array( 'acc' => 'update', 
+                        'sistema' => 'contab',
 						'tabla' => $this->tableAnita, 
             			'valores' => " ctam_empresa = '".$request->empresa_id."', ctam_cuenta = '".$codigo."', ctam_tipo = '".$tipocuenta."', ctam_desc = '".$request->nombre."', ctam_nivel = '".$request->nivel."', ctam_ajustable = '".$ajustable."', ctam_rubro ='".$request->rubro."', ctam_fl_ccosto = '".$manejaccosto."', ctam_cuenta_alfa ='".$cuenta."' ",
 						'whereArmado' => " WHERE ".$this->keyFieldAnita." = '".$id."' " );
@@ -219,6 +223,7 @@ class Cuentacontable extends Model
 	public function eliminarAnita($id) {
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita,
+                    'sistema' => 'contab',
 					'whereArmado' => " WHERE ".$this->keyFieldAnita." = '".$id."' " );
         $apiAnita->apiCall($data);
 	}

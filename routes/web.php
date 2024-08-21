@@ -138,6 +138,17 @@ Route::put('configuracion/condicioniva/{id}', 'Configuracion\CondicionivaControl
 Route::delete('configuracion/condicioniva/{id}', 'Configuracion\CondicionivaController@eliminar')->name('eliminar_condicioniva');
 
 /* 
+ * Condiciones de IIBB
+ */
+
+ Route::get('configuracion/condicionIIBB', 'Configuracion\CondicionIIBBController@index')->name('condicionIIBB');
+ Route::get('configuracion/condicionIIBB/crear', 'Configuracion\CondicionIIBBController@crear')->name('crear_condicionIIBB');
+ Route::post('configuracion/condicionIIBB', 'Configuracion\CondicionIIBBController@guardar')->name('guardar_condicionIIBB');
+ Route::get('configuracion/condicionIIBB/{id}/editar', 'Configuracion\CondicionIIBBController@editar')->name('editar_condicionIIBB');
+ Route::put('configuracion/condicionIIBB/{id}', 'Configuracion\CondicionIIBBController@actualizar')->name('actualizar_condicionIIBB');
+ Route::delete('configuracion/condicionIIBB/{id}', 'Configuracion\CondicionIIBBController@eliminar')->name('eliminar_condicionIIBB');
+ 
+/* 
  * Fondos
  */
 
@@ -532,6 +543,17 @@ Route::get('contable/rubrocontable/{id}/editar', 'Contable\RubrocontableControll
 Route::put('contable/rubrocontable/{id}', 'Contable\RubrocontableController@actualizar')->name('actualizar_rubrocontable');
 Route::delete('contable/rubrocontable/{id}', 'Contable\RubrocontableController@eliminar')->name('eliminar_rubrocontable');
 
+/* 
+ * Centros de costo
+ */
+
+ Route::get('contable/centrocosto', 'Contable\CentrocostoController@index')->name('centrocosto');
+ Route::get('contable/centrocosto/crear', 'Contable\CentrocostoController@crear')->name('crear_centrocosto');
+ Route::post('contable/centrocosto', 'Contable\CentrocostoController@guardar')->name('guardar_centrocosto');
+ Route::get('contable/centrocosto/{id}/editar', 'Contable\CentrocostoController@editar')->name('editar_centrocosto');
+ Route::put('contable/centrocosto/{id}', 'Contable\CentrocostoController@actualizar')->name('actualizar_centrocosto');
+ Route::delete('contable/centrocosto/{id}', 'Contable\CentrocostoController@eliminar')->name('eliminar_centrocosto');
+ 
 /* 
  * Cuentas contables
  */
@@ -968,6 +990,148 @@ Route::post('graficos/generaordenes', 'Graficos\GraficosController@generaOrdenes
  Route::put('caja/talonariorendicion/{id}', 'Caja\TalonariorendicionController@actualizar')->name('actualizar_talonariorendicion');
  Route::delete('caja/talonariorendicion/{id}', 'Caja\TalonariorendicionController@eliminar')->name('eliminar_talonariorendicion');
  
+/* 
+ * Talonarios de rendiciones
+ */
+
+ Route::get('caja/banco', 'Caja\BancoController@index')->name('banco');
+ Route::get('caja/banco/crear', 'Caja\BancoController@crear')->name('crear_banco');
+ Route::post('caja/banco', 'Caja\BancoController@guardar')->name('guardar_banco');
+ Route::get('caja/banco/{id}/editar', 'Caja\BancoController@editar')->name('editar_banco');
+ Route::put('caja/banco/{id}', 'Caja\BancoController@actualizar')->name('actualizar_banco');
+ Route::delete('caja/banco/{id}', 'Caja\BancoController@eliminar')->name('eliminar_banco');
+
+/* 
+ * Tipo de cuenta de caja
+ */
+
+ Route::get('caja/tipocuentacaja', 'Caja\TipocuentacajaController@index')->name('tipocuentacaja');
+ Route::get('caja/tipocuentacaja/crear', 'Caja\TipocuentacajaController@crear')->name('crear_tipocuentacaja');
+ Route::post('caja/tipocuentacaja', 'Caja\TipocuentacajaController@guardar')->name('guardar_tipocuentacaja');
+ Route::get('caja/tipocuentacaja/{id}/editar', 'Caja\TipocuentacajaController@editar')->name('editar_tipocuentacaja');
+ Route::put('caja/tipocuentacaja/{id}', 'Caja\TipocuentacajaController@actualizar')->name('actualizar_tipocuentacaja');
+ Route::delete('caja/tipocuentacaja/{id}', 'Caja\TipocuentacajaController@eliminar')->name('eliminar_tipocuentacaja'); 
+
+/*
+ * Medio de pago
+ */
+
+ Route::get('caja/mediopago', 'Caja\MediopagoController@index')->name('mediopago');
+ Route::get('caja/mediopago/crear', 'Caja\MediopagoController@crear')->name('crear_mediopago');
+ Route::post('caja/mediopago', 'Caja\MediopagoController@guardar')->name('guardar_mediopago');
+ Route::get('caja/mediopago/{id}/editar', 'Caja\MediopagoController@editar')->name('editar_mediopago');
+ Route::put('caja/mediopago/{id}', 'Caja\MediopagoController@actualizar')->name('actualizar_mediopago');
+ Route::delete('caja/mediopago/{id}', 'Caja\MediopagoController@eliminar')->name('eliminar_mediopago'); 
 
  // Modulo de compras
  
+/* 
+ * Condiciones de pago
+ */
+
+ Route::get('compras/condicionpago', 'Compras\CondicionpagoController@index')->name('condicionpago');
+ Route::get('compras/condicionpago/crear', 'Compras\CondicionpagoController@crear')->name('crear_condicionpago');
+ Route::post('compras/condicionpago', 'Compras\CondicionpagoController@guardar')->name('guardar_condicionpago');
+ Route::get('compras/condicionpago/{id}/editar', 'Compras\CondicionpagoController@editar')->name('editar_condicionpago');
+ Route::put('compras/condicionpago/{id}', 'Compras\CondicionpagoController@actualizar')->name('actualizar_condicionpago');
+ Route::delete('compras/condicionpago/{id}', 'Compras\CondicionpagoController@eliminar')->name('eliminar_condicionpago');
+ 
+/* 
+ * Condiciones de compra
+ */
+
+ Route::get('compras/condicioncompra', 'Compras\CondicioncompraController@index')->name('condicioncompra');
+ Route::get('compras/condicioncompra/crear', 'Compras\CondicioncompraController@crear')->name('crear_condicioncompra');
+ Route::post('compras/condicioncompra', 'Compras\CondicioncompraController@guardar')->name('guardar_condicioncompra');
+ Route::get('compras/condicioncompra/{id}/editar', 'Compras\CondicioncompraController@editar')->name('editar_condicioncompra');
+ Route::put('compras/condicioncompra/{id}', 'Compras\CondicioncompraController@actualizar')->name('actualizar_condicioncompra');
+ Route::delete('compras/condicioncompra/{id}', 'Compras\CondicioncompraController@eliminar')->name('eliminar_condicioncompra');
+  
+/* 
+ * Condiciones de entrega
+ */
+
+ Route::get('compras/condicionentrega', 'Compras\CondicionentregaController@index')->name('condicionentrega');
+ Route::get('compras/condicionentrega/crear', 'Compras\CondicionentregaController@crear')->name('crear_condicionentrega');
+ Route::post('compras/condicionentrega', 'Compras\CondicionentregaController@guardar')->name('guardar_condicionentrega');
+ Route::get('compras/condicionentrega/{id}/editar', 'Compras\CondicionentregaController@editar')->name('editar_condicionentrega');
+ Route::put('compras/condicionentrega/{id}', 'Compras\CondicionentregaController@actualizar')->name('actualizar_condicionentrega');
+ Route::delete('compras/condicionentrega/{id}', 'Compras\CondicionentregaController@eliminar')->name('eliminar_condicionentrega'); 
+
+/* 
+ * Tipos de empresa
+ */
+
+ Route::get('compras/tipoempresa', 'Compras\TipoempresaController@index')->name('tipoempresa');
+ Route::get('compras/tipoempresa/crear', 'Compras\TipoempresaController@crear')->name('crear_tipoempresa');
+ Route::post('compras/tipoempresa', 'Compras\TipoempresaController@guardar')->name('guardar_tipoempresa');
+ Route::get('compras/tipoempresa/{id}/editar', 'Compras\TipoempresaController@editar')->name('editar_tipoempresa');
+ Route::put('compras/tipoempresa/{id}', 'Compras\TipoempresaController@actualizar')->name('actualizar_tipoempresa');
+ Route::delete('compras/tipoempresa/{id}', 'Compras\TipoempresaController@eliminar')->name('eliminar_tipoempresa'); 
+
+ /* 
+ * Retenciones de ganancia
+ */
+
+ Route::get('compras/retencionganancia', 'Compras\RetenciongananciaController@index')->name('retencionganancia');
+ Route::get('compras/retencionganancia/crear', 'Compras\RetenciongananciaController@crear')->name('crear_retencionganancia');
+ Route::post('compras/retencionganancia', 'Compras\RetenciongananciaController@guardar')->name('guardar_retencionganancia');
+ Route::get('compras/retencionganancia/{id}/editar', 'Compras\RetenciongananciaController@editar')->name('editar_retencionganancia');
+ Route::put('compras/retencionganancia/{id}', 'Compras\RetenciongananciaController@actualizar')->name('actualizar_retencionganancia');
+ Route::delete('compras/retencionganancia/{id}', 'Compras\RetenciongananciaController@eliminar')->name('eliminar_retencionganancia'); 
+
+/* 
+ * Retenciones de iva
+ */
+
+ Route::get('compras/retencioniva', 'Compras\RetencionivaController@index')->name('retencioniva');
+ Route::get('compras/retencioniva/crear', 'Compras\RetencionivaController@crear')->name('crear_retencioniva');
+ Route::post('compras/retencioniva', 'Compras\RetencionivaController@guardar')->name('guardar_retencioniva');
+ Route::get('compras/retencioniva/{id}/editar', 'Compras\RetencionivaController@editar')->name('editar_retencioniva');
+ Route::put('compras/retencioniva/{id}', 'Compras\RetencionivaController@actualizar')->name('actualizar_retencioniva');
+ Route::delete('compras/retencioniva/{id}', 'Compras\RetencionivaController@eliminar')->name('eliminar_retencioniva'); 
+
+/* 
+ * Retenciones de suss
+ */
+
+ Route::get('compras/retencionsuss', 'Compras\RetencionsussController@index')->name('retencionsuss');
+ Route::get('compras/retencionsuss/crear', 'Compras\RetencionsussController@crear')->name('crear_retencionsuss');
+ Route::post('compras/retencionsuss', 'Compras\RetencionsussController@guardar')->name('guardar_retencionsuss');
+ Route::get('compras/retencionsuss/{id}/editar', 'Compras\RetencionsussController@editar')->name('editar_retencionsuss');
+ Route::put('compras/retencionsuss/{id}', 'Compras\RetencionsussController@actualizar')->name('actualizar_retencionsuss');
+ Route::delete('compras/retencionsuss/{id}', 'Compras\RetencionsussController@eliminar')->name('eliminar_retencionsuss'); 
+
+/* 
+ * Retenciones de IIBB
+ */
+
+ Route::get('compras/retencionIIBB', 'Compras\RetencionIIBBController@index')->name('retencionIIBB');
+ Route::get('compras/retencionIIBB/crear', 'Compras\RetencionIIBBController@crear')->name('crear_retencionIIBB');
+ Route::post('compras/retencionIIBB', 'Compras\RetencionIIBBController@guardar')->name('guardar_retencionIIBB');
+ Route::get('compras/retencionIIBB/{id}/editar', 'Compras\RetencionIIBBController@editar')->name('editar_retencionIIBB');
+ Route::put('compras/retencionIIBB/{id}', 'Compras\RetencionIIBBController@actualizar')->name('actualizar_retencionIIBB');
+ Route::delete('compras/retencionIIBB/{id}', 'Compras\RetencionIIBBController@eliminar')->name('eliminar_retencionIIBB'); 
+
+/* 
+ * Tipo de suspension de proveedores
+ */
+
+ Route::get('compras/tiposuspensionproveedor', 'Compras\TiposuspensionproveedorController@index')->name('tiposuspensionproveedor');
+ Route::get('compras/tiposuspensionproveedor/crear', 'Compras\TiposuspensionproveedorController@crear')->name('crear_tiposuspensionproveedor');
+ Route::post('compras/tiposuspensionproveedor', 'Compras\TiposuspensionproveedorController@guardar')->name('guardar_tiposuspensionproveedor');
+ Route::get('compras/tiposuspensionproveedor/{id}/editar', 'Compras\TiposuspensionproveedorController@editar')->name('editar_tiposuspensionproveedor');
+ Route::put('compras/tiposuspensionproveedor/{id}', 'Compras\TiposuspensionproveedorController@actualizar')->name('actualizar_tiposuspensionproveedor');
+ Route::delete('compras/tiposuspensionproveedor/{id}', 'Compras\TiposuspensionproveedorController@eliminar')->name('eliminar_tiposuspensionproveedor'); 
+
+/* 
+ * Proveedores
+ */
+
+Route::get('compras/proveedor', 'Compras\ProveedorController@index')->name('proveedor');
+Route::get('compras/proveedor/crear/{tipoalta?}', 'Compras\ProveedorController@crear')->name('crear_proveedor');
+Route::post('compras/proveedor', 'Compras\ProveedorController@guardar')->name('guardar_proveedor');
+Route::post('compras/proveedorprovisorio', 'Compras\ProveedorController@guardarClienteProvisorio')->name('guardar_proveedor_provisorio');
+Route::get('compras/proveedor/{id}/editar', 'Compras\ProveedorController@editar')->name('editar_proveedor');
+Route::put('compras/proveedor/{id}', 'Compras\ProveedorController@actualizar')->name('actualizar_proveedor');
+Route::delete('compras/proveedor/{id}', 'Compras\ProveedorController@eliminar')->name('eliminar_proveedor');

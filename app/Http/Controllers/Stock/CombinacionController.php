@@ -150,7 +150,7 @@ class CombinacionController extends Controller
 		}
 		else
 		{
-			$articulo = Articulo::where("id",$id)->first();
+			$articulo = Articulo::where("id",$data['articulo_id'])->first();
 
         	$plarmado_id = null;
 

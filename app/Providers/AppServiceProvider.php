@@ -64,7 +64,7 @@ class AppServiceProvider extends ServiceProvider
         	'App\Queries\Ventas\ClienteQueryInterface',
         	'App\Queries\Ventas\ClienteQuery',
     	);
-		
+
 	    $this->app->bind(
         	'App\Queries\Ventas\Cliente_ComisionQueryInterface',
         	'App\Queries\Ventas\Cliente_ComisionQuery',
@@ -276,6 +276,26 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 		$this->app->bind(
+        	'App\Repositories\Compras\Proveedor_FormapagoRepositoryInterface',
+        	'App\Repositories\Compras\Proveedor_FormapagoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\Proveedor_ExclusionRepositoryInterface',
+        	'App\Repositories\Compras\Proveedor_ExclusionRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\Proveedor_ArchivoRepositoryInterface',
+        	'App\Repositories\Compras\Proveedor_ArchivoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Queries\Compras\ProveedorQueryInterface',
+        	'App\Queries\Compras\ProveedorQuery',
+    	);
+
+		$this->app->bind(
         	'App\Repositories\Ventas\FormapagoRepositoryInterface',
         	'App\Repositories\Ventas\FormapagoRepository',
     	);
@@ -407,5 +427,39 @@ class AppServiceProvider extends ServiceProvider
         	'App\Repositories\Contable\CentrocostoRepository',
     	);
 
+		$this->app->bind(
+        	'App\Repositories\Receptivo\TiposervicioterrestreRepositoryInterface',
+        	'App\Repositories\Receptivo\TiposervicioterrestreRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Receptivo\ServicioterrestreRepositoryInterface',
+        	'App\Repositories\Receptivo\ServicioterrestreRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Receptivo\Proveedor_ServicioterrestreRepositoryInterface',
+        	'App\Repositories\Receptivo\Proveedor_ServicioterrestreRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Receptivo\IdiomaRepositoryInterface',
+        	'App\Repositories\Receptivo\IdiomaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Receptivo\GuiaRepositoryInterface',
+        	'App\Repositories\Receptivo\GuiaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Receptivo\Guia_IdiomaRepositoryInterface',
+        	'App\Repositories\Receptivo\Guia_IdiomaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Receptivo\Comision_ServicioterrestreRepositoryInterface',
+        	'App\Repositories\Receptivo\Comision_ServicioterrestreRepository',
+    	);
     }
 }

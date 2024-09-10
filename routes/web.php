@@ -1135,3 +1135,73 @@ Route::post('compras/proveedorprovisorio', 'Compras\ProveedorController@guardarC
 Route::get('compras/proveedor/{id}/editar', 'Compras\ProveedorController@editar')->name('editar_proveedor');
 Route::put('compras/proveedor/{id}', 'Compras\ProveedorController@actualizar')->name('actualizar_proveedor');
 Route::delete('compras/proveedor/{id}', 'Compras\ProveedorController@eliminar')->name('eliminar_proveedor');
+
+/* Modulo receptivo */
+
+/* 
+ * Tipo de servicio terrestre
+ */
+
+ Route::get('receptivo/tiposervicioterrestre', 'Receptivo\TiposervicioterrestreController@index')->name('tiposervicioterrestre');
+ Route::get('receptivo/tiposervicioterrestre/crear', 'Receptivo\TiposervicioterrestreController@crear')->name('crear_tiposervicioterrestre');
+ Route::post('receptivo/tiposervicioterrestre', 'Receptivo\TiposervicioterrestreController@guardar')->name('guardar_tiposervicioterrestre');
+ Route::get('receptivo/tiposervicioterrestre/{id}/editar', 'Receptivo\TiposervicioterrestreController@editar')->name('editar_tiposervicioterrestre');
+ Route::put('receptivo/tiposervicioterrestre/{id}', 'Receptivo\TiposervicioterrestreController@actualizar')->name('actualizar_tiposervicioterrestre');
+ Route::delete('receptivo/tiposervicioterrestre/{id}', 'Receptivo\TiposervicioterrestreController@eliminar')->name('eliminar_tiposervicioterrestre'); 
+
+/* 
+ * Servicio terrestre
+ */
+
+ Route::get('receptivo/servicioterrestre', 'Receptivo\ServicioterrestreController@index')->name('servicioterrestre');
+ Route::get('receptivo/servicioterrestre/crear', 'Receptivo\ServicioterrestreController@crear')->name('crear_servicioterrestre');
+ Route::post('receptivo/servicioterrestre', 'Receptivo\ServicioterrestreController@guardar')->name('guardar_servicioterrestre');
+ Route::get('receptivo/servicioterrestre/{id}/editar', 'Receptivo\ServicioterrestreController@editar')->name('editar_servicioterrestre');
+ Route::put('receptivo/servicioterrestre/{id}', 'Receptivo\ServicioterrestreController@actualizar')->name('actualizar_servicioterrestre');
+ Route::delete('receptivo/servicioterrestre/{id}', 'Receptivo\ServicioterrestreController@eliminar')->name('eliminar_servicioterrestre'); 
+
+/* 
+ * Servicios por proveedor
+ */
+
+ Route::get('receptivo/proveedor_servicioterrestre', 'Receptivo\Proveedor_ServicioterrestreController@index')->name('proveedor_servicioterrestre');
+ Route::get('receptivo/proveedor_servicioterrestre/crear', 'Receptivo\Proveedor_ServicioterrestreController@crear')->name('crear_proveedor_servicioterrestre');
+ Route::post('receptivo/proveedor_servicioterrestre', 'Receptivo\Proveedor_ServicioterrestreController@guardar')->name('guardar_proveedor_servicioterrestre');
+ Route::get('receptivo/proveedor_servicioterrestre/{id}/editar', 'Receptivo\Proveedor_ServicioterrestreController@editar')->name('editar_proveedor_servicioterrestre');
+ Route::put('receptivo/proveedor_servicioterrestre/{id}', 'Receptivo\Proveedor_ServicioterrestreController@actualizar')->name('actualizar_proveedor_servicioterrestre');
+ Route::delete('receptivo/proveedor_servicioterrestre/{id}', 'Receptivo\Proveedor_ServicioterrestreController@eliminar')->name('eliminar_proveedor_servicioterrestre'); 
+
+/* 
+ * Idiomas
+ */
+
+ Route::get('receptivo/idioma', 'Receptivo\IdiomaController@index')->name('idioma');
+ Route::get('receptivo/idioma/crear', 'Receptivo\IdiomaController@crear')->name('crear_idioma');
+ Route::post('receptivo/idioma', 'Receptivo\IdiomaController@guardar')->name('guardar_idioma');
+ Route::get('receptivo/idioma/{id}/editar', 'Receptivo\IdiomaController@editar')->name('editar_idioma');
+ Route::put('receptivo/idioma/{id}', 'Receptivo\IdiomaController@actualizar')->name('actualizar_idioma');
+ Route::delete('receptivo/idioma/{id}', 'Receptivo\IdiomaController@eliminar')->name('eliminar_idioma');
+
+/* 
+ * Guias
+ */
+
+ Route::get('receptivo/guia', 'Receptivo\GuiaController@index')->name('guia');
+ Route::get('receptivo/guia/crear', 'Receptivo\GuiaController@crear')->name('crear_guia');
+ Route::post('receptivo/guia', 'Receptivo\GuiaController@guardar')->name('guardar_guia');
+ Route::get('receptivo/guia/{id}/editar', 'Receptivo\GuiaController@editar')->name('editar_guia');
+ Route::put('receptivo/guia/{id}', 'Receptivo\GuiaController@actualizar')->name('actualizar_guia');
+ Route::delete('receptivo/guia/{id}', 'Receptivo\GuiaController@eliminar')->name('eliminar_guia');
+
+/* 
+ * Guias
+ */
+
+ Route::get('receptivo/comision_servicioterrestre', 'Receptivo\Comision_ServicioterrestreController@index')->name('comision_servicioterrestre');
+ Route::get('receptivo/comision_servicioterrestre/crear', 'Receptivo\Comision_ServicioterrestreController@crear')->name('crear_comision_servicioterrestre');
+ Route::post('receptivo/comision_servicioterrestre', 'Receptivo\Comision_ServicioterrestreController@guardar')->name('guardar_comision_servicioterrestre');
+ Route::get('receptivo/comision_servicioterrestre/{id}/editar', 'Receptivo\Comision_ServicioterrestreController@editar')->name('editar_comision_servicioterrestre');
+ Route::put('receptivo/comision_servicioterrestre/{id}', 'Receptivo\Comision_ServicioterrestreController@actualizar')->name('actualizar_comision_servicioterrestre');
+ Route::delete('receptivo/comision_servicioterrestre/{id}', 'Receptivo\Comision_ServicioterrestreController@eliminar')->name('eliminar_comision_servicioterrestre');
+
+

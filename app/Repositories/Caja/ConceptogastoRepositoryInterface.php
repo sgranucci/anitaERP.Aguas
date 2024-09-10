@@ -6,6 +6,7 @@ interface ConceptogastoRepositoryInterface extends RepositoryInterface
 {
 
     public function all();
+    public function findPorId($id);
 
 }
 

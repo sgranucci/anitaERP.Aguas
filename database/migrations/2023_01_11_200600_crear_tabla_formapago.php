@@ -16,6 +16,7 @@ class CrearTablaFormaPago extends Migration
         Schema::create('formapago', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('nombre',255);
+            $table->string('abreviatura',50);
             $table->timestamps();
             $table->charset = 'utf8mb4';
             $table->collation = 'utf8mb4_spanish_ci';

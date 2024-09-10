@@ -197,7 +197,10 @@ class Cliente_ArchivoRepository implements Cliente_ArchivoRepositoryInterface
 				$cmd = "mkdir /var/www/html/anitaERP/public/storage/archivos/clientes/".$cliente->id." 1>&2 2>/dev/null";
 				system($cmd);
 
-				$cmd = "scp sergio@160.132.0.254:/usr2/ferli/var/clim_files/CLIM-".$data->clima_cliente.".".$data->clima_archivo." /var/www/html/anitaERP/public/storage/archivos/clientes/".$cliente->id."/".$cliente->id."-".$data->clima_archivo;
+				$cmd = "scp sergio@".env('ANITA_SERVER').":".env('ANITA_BDD_PATH')."/var/clim_files/CLIM-".
+						$data->clima_cliente.".".$data->clima_archivo.
+						" /var/www/html/anitaERP/public/storage/archivos/clientes/".
+						$cliente->id."/".$cliente->id."-".$data->clima_archivo;
 				system($cmd);
 			}
         }

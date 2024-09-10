@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Storage;
 
 class Formapago extends Model
 {
-    protected $fillable = ['nombre'];
+    protected $fillable = ['nombre', 'abreviatura'];
     protected $table = 'formapago';
 }
 

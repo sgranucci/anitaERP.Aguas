@@ -54,6 +54,13 @@ class ConceptogastoRepository implements ConceptogastoRepositoryInterface
         return $conceptogasto;
     }
 
+    public function findPorId($id)
+    {
+		$retencionganancia = $this->model->where('id', $id)->first();
+
+		return $retencionganancia;
+    }
+
     public function findOrFail($id)
     {
         if (null == $conceptogasto = $this->model->findOrFail($id)) {

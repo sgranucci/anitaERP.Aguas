@@ -672,7 +672,7 @@ class PedidoService
 								"descuentointegrado" => $pedidoitem->descuentointegrado,
 								"descuentofinal" => $pedido->descuento,
 								"descuentointegradofinal" => $pedido->descuentointegrado,
-								"incluyeimpuesto" => $pedidoitem->incluyeimpuesto,
+								"incluyeimpuesto" => $precio[0]['incluyeimpuesto'],
 								"impuesto_id" => $articulo->impuesto_id,
 								"id" => $pedidoitem->id
 								];

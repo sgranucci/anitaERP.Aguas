@@ -130,6 +130,7 @@ class ClienteController extends Controller
      */
     public function guardar(ValidacionCliente $request)
     {
+        DB::beginTransaction();
         try
         {
             $cliente = $this->clienteRepository->create($request->all());
@@ -152,6 +153,7 @@ class ClienteController extends Controller
 
     public function guardarClienteProvisorio(ValidacionClienteProvisorio $request)
     {
+        DB::beginTransaction();
         try
         {
             $cliente = $this->clienteRepository->create($request->all());
@@ -218,6 +220,7 @@ class ClienteController extends Controller
     {
         can('actualizar-clientes');
 
+        DB::beginTransaction();
         try
         {
             // Graba cliente

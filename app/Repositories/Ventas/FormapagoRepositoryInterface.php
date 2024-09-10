@@ -6,6 +6,7 @@ interface FormapagoRepositoryInterface extends RepositoryInterface
 {
 
     public function all();
+    public function findPorAbreviatura($abreviatura);
 
 }
 

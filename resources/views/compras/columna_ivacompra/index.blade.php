@@ -1,6 +1,6 @@
 @extends("theme.$theme.layout")
 @section('titulo')
-    Cuentas Contables
+    Colúmnas del Libro de Iva Compras
 @endsection
 
 @section("scripts")
@@ -15,10 +15,10 @@
         @include('includes.mensaje')
         <div class="card card-info">
             <div class="card-header">
-                <h3 class="card-title">Cuentas Contables</h3>
+                <h3 class="card-title">Colúmnas del Libro de Iva Compras</h3>
                 <div class="card-tools">
-                    <a href="{{route('crear_cuentacontable')}}" class="btn btn-outline-secondary btn-sm">
-                       	@if (can('crear-cuentas-contables', false))
+                    <a href="{{route('crear_columna_ivacompra')}}" class="btn btn-outline-secondary btn-sm">
+                       	@if (can('crear-columna-iva-compra', false))
                         	<i class="fa fa-fw fa-plus-circle"></i> Nuevo registro
 						@endif
                     </a>
@@ -29,38 +29,27 @@
                     <thead>
                         <tr>
                             <th class="width20">ID</th>
-                            <th>Empresa</th>
-                            <th>Número de cuenta</th>
                             <th>Nombre</th>
-                            <th>Nivel</th>
-                            <th>Tipo de cuenta</th>
-                            <th>Rubro</th>
-                            <th>C.Costo</th>
-                            <th>Concepto</th>
+                            <th>Nombre de colúmna</th>
+                            <th>Número de colúmna</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($cuentacontables as $data)
+                        @foreach ($datas as $data)
                         <tr>
                             <td>{{$data->id}}</td>
-                            <td>{{$data->empresas->nombre}}</td>
-                            <td>{{$data->codigo}}</td>
                             <td>{{$data->nombre}}</td>
-                            <td>{{$data->nivel}}</td>
-                            <td>{{($data->tipocuenta==1?'Imputable':
-                                  ($data->tipocuenta==2?'No imputable':'Totalizadora'))}}</td>
-                            <td>{{$data->rubrocontables->nombre??''}}</td>
-                            <td>{{$data->manejaccosto == '1' ? 'Maneja C.Costo' : 'No maneja C.Costo'}}</td>
-                            <td>{{$data->conceptogastos->nombre??''}}</td>
+                            <td>{{$data->nombrecolumna}}</td>
+                            <td>{{$data->numerocolumna}}</td>
                             <td>
-                       			@if (can('editar-cuentas-contables', false))
-                                	<a href="{{route('editar_cuentacontable', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">
+                       			@if (can('editar-columna-iva-compra', false))
+                                	<a href="{{route('editar_columna_ivacompra', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">
                                     <i class="fa fa-edit"></i>
                                 	</a>
 								@endif
-                       			@if (can('borrar-cuentas-contables', false))
-                                <form action="{{route('eliminar_cuentacontable', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
+                       			@if (can('borrar-columna-iva-compra', false))
+                                <form action="{{route('eliminar_columna_ivacompra', ['id' => $data->id])}}" class="d-inline form-eliminar" method="POST">
                                     @csrf @method("delete")
                                     <button type="submit" class="btn-accion-tabla eliminar tooltipsC" title="Eliminar este registro">
                                         <i class="fa fa-times-circle text-danger"></i>

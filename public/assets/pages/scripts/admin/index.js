@@ -38,6 +38,8 @@ var idioma=
                 }
             };
 
+var titulo = $('.card-title').val();
+
 $(document).ready(function () {
     $("#tabla-data").on('submit', '.form-eliminar', function () {
         event.preventDefault();
@@ -113,7 +115,6 @@ $(document).ready(function () {
     }
 
   var table = $("#tabla-data").DataTable({
-    
 	"processing": true,
     "paging": true,
     "lengthChange": true,

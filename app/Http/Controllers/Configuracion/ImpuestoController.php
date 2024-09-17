@@ -7,10 +7,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Configuracion\Impuesto;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ValidacionImpuesto;
+use App\Repositories\Configuracion\ImpuestoRepositoryInterface;
 use Carbon\Carbon;
 
 class ImpuestoController extends Controller
 {
+    private $impuestoRepository;
+
+    public function __construct(ImpuestoRepositoryInterface $impuestorepository)
+    {
+        $this->impuestoRepository = $impuestorepository;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -19,15 +27,8 @@ class ImpuestoController extends Controller
     public function index()
     {
         can('listar-impuestos');
-        $datas = Impuesto::orderBy('id')->get();
 
-		if ($datas->isEmpty())
-		{
-			$Impuesto = new Impuesto();
-        	$Impuesto->sincronizarConAnita();
-	
-        	$datas = Impuesto::orderBy('id')->get();
-		}
+        $datas = $this->impuestoRepository->all();
 
         return view('configuracion.impuesto.index', compact('datas'));
     }
@@ -51,18 +52,7 @@ class ImpuestoController extends Controller
      */
     public function guardar(ValidacionImpuesto $request)
     {
-		$fechavigencia = Carbon::createFromFormat('d-m-Y', $request->fechavigencia);
-
-        $impuesto = Impuesto::create([
-       		"nombre" => $request->nombre,
-        	"valor" => $request->valor,
-			"fechavigencia" => $fechavigencia,
-            "codigo" => $request->codigo
-        ]);
-
-		// Graba anita
-		$Impuesto = new Impuesto();
-        $Impuesto->guardarAnita($request, $impuesto->id);
+        $this->impuestoRepository->create($request->all());
 
         return redirect('configuracion/impuesto')->with('mensaje', 'Impuesto creado con exito');
     }
@@ -77,7 +67,9 @@ class ImpuestoController extends Controller
     public function editar($id)
     {
         can('editar-impuestos');
-        $data = Impuesto::findOrFail($id);
+
+        $data = $this->impuestoRepository->findOrFail($id);
+
         return view('configuracion.impuesto.editar', compact('data'));
     }
 
@@ -91,18 +83,8 @@ class ImpuestoController extends Controller
     public function actualizar(ValidacionImpuesto $request, $id)
     {
         can('actualizar-impuestos');
-		$fechavigencia = Carbon::createFromFormat('d-m-Y', $request->fechavigencia);
 
-        Impuesto::where('id', $id)->update([
-       		"nombre" => $request->nombre,
-        	"valor" => $request->valor,
-			"fechavigencia" => $fechavigencia,
-            "codigo" => $request->codigo
-        ]);
-
-		// Actualiza anita
-		$Impuesto = new Impuesto();
-        $Impuesto->actualizarAnita($request, $id);
+        $this->impuestoRepository->update($request->all(), $id);
 
         return redirect('configuracion/impuesto')->with('mensaje', 'Impuesto actualizado con exito');
     }
@@ -117,12 +99,8 @@ class ImpuestoController extends Controller
     {
         can('borrar-impuestos');
 
-		// Elimina anita
-		$Impuesto = new Impuesto();
-        $Impuesto->eliminarAnita($id);
-
         if ($request->ajax()) {
-            if (Impuesto::destroy($id)) {
+            if ($this->impuestoRepository->delete($id)) {
                 return response()->json(['mensaje' => 'ok']);
             } else {
                 return response()->json(['mensaje' => 'ng']);
@@ -130,5 +108,6 @@ class ImpuestoController extends Controller
         } else {
             abort(404);
         }
+        return redirect('configuracion/impuesto')->with('mensaje', 'Impuesto eliminado con exito');
     }
 }

@@ -7,7 +7,6 @@ use App\Models\Configuracion\Impuesto;
 use App\Models\Configuracion\Localidad;
 use App\Models\Configuracion\Provincia;
 use App\Models\Configuracion\Pais;
-use App\Models\Contable\Cuentacontable;
 use App\Repositories\Compras\Proveedor_ExclusionRepositoryInterface;
 use App\Repositories\Compras\Proveedor_ArchivoRepositoryInterface;
 use App\Repositories\Compras\Proveedor_FormapagoRepositoryInterface;
@@ -17,6 +16,7 @@ use App\Repositories\Caja\TipocuentacajaRepositoryInterface;
 use App\Repositories\Caja\BancoRepositoryInterface;
 use App\Repositories\Caja\MediopagoRepositoryInterface;
 use App\Repositories\Configuracion\CondicionIIBBRepositoryInterface;
+use App\Repositories\Contable\CuentacontableRepositoryInterface;
 use App\Repositories\Contable\CentrocostoRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\ApiAnita;
@@ -46,6 +46,7 @@ class ProveedorRepository implements ProveedorRepositoryInterface
 	private $tipocuentacajaRepository;
 	private $bancoRepository;
 	private $mediopagoRepository;
+	private $cuentacontableRepository;
 
     /**
      * PostRepository constructor.
@@ -68,7 +69,8 @@ class ProveedorRepository implements ProveedorRepositoryInterface
 								FormapagoRepositoryInterface $formapagorepository,
 								TipocuentacajaRepositoryInterface $tipocuentacajarepository,
 								BancoRepositoryInterface $bancorepository,
-								MediopagoRepositoryInterface $mediopagorepository
+								MediopagoRepositoryInterface $mediopagorepository,
+								CuentacontableRepositoryInterface $cuentacontablerepository
 								)
     {
         $this->model = $proveedor;
@@ -88,6 +90,7 @@ class ProveedorRepository implements ProveedorRepositoryInterface
 		$this->bancoRepository = $bancorepository;
 		$this->mediopagoRepository = $mediopagorepository;
 		$this->tipocuentacajaRepository = $tipocuentacajarepository;
+		$this->cuentacontableRepository = $cuentacontablerepository;
     }
 
     public function create(array $data)
@@ -324,19 +327,19 @@ class ProveedorRepository implements ProveedorRepositoryInterface
 			else
 				$tipoempresa_id = 1;
 						
-        	$cuenta = Cuentacontable::select('id', 'codigo')->where('codigo' , $data->prom_cta_contable)->first();
+			$cuenta = $this->cuentacontableRepository->findPorCodigo($data->prom_cta_contable);
 			if ($cuenta)
 				$cuentacontable_id = $cuenta->id;
 			else
 				$cuentacontable_id = NULL;
-				
-			$cuenta = Cuentacontable::select('id', 'codigo')->where('codigo' , $data->prom_cta_cont_me)->first();
+
+			$cuenta = $this->cuentacontableRepository->findPorCodigo($data->prom_cta_contable_me);				
 			if ($cuenta)
 				$cuentacontableme_id = $cuenta->id;
 			else
 				$cuentacontableme_id = NULL;
 			
-			$cuenta = Cuentacontable::select('id', 'codigo')->where('codigo' , $data->prom_cta_default)->first();
+			$cuenta = $this->cuentacontableRepository->findPorCodigo($data->prom_cta_default);
 			if ($cuenta)
 				$cuentacontablecompra_id = $cuenta->id;
 			else
@@ -1110,7 +1113,7 @@ class ProveedorRepository implements ProveedorRepositoryInterface
 									&$retencioniva, &$retencionganancia, &$retencionsuss,
 									&$condicionpago, &$condicioncompra, &$condicionentrega) 
 	{
-		$cuenta = Cuentacontable::select('id', 'codigo')->where('id' , $data['cuentacontable_id'])->first();
+		$cuenta = $this->cuentacontableRepository->find($data['cuentacontable_id']);
 		if ($cuenta)
 			$cuentacontable = $cuenta->codigo;
 		else
@@ -1210,13 +1213,13 @@ class ProveedorRepository implements ProveedorRepositoryInterface
 			$tipoempresaalfa = '';
 		}
 
-		$cuenta = Cuentacontable::select('id', 'codigo')->where('id' , $data['cuentacontableme_id'])->first();
+		$cuenta = $this->cuentacontableRepository->findPorId($data['cuentacontableme_id']);
 		if ($cuenta)
 			$cuentacontableme = $cuenta->codigo;
 		else
 			$cuentacontableme = NULL;
 			
-		$cuenta = Cuentacontable::select('id', 'codigo')->where('id' , $data['cuentacontablecompra_id'])->first();
+		$cuenta = $this->cuentacontableRepository->findPorId($data['cuentacontablecompra_id']);
 		if ($cuenta)
 			$cuentacontablecompra = $cuenta->codigo;
 		else

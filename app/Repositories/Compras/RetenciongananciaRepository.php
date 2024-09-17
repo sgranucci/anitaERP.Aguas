@@ -249,6 +249,8 @@ class RetenciongananciaRepository implements RetenciongananciaRepositoryInterfac
 		{
 			if ($hastaMontos[$i_rango] > 0)
 			{
+				$apiAnita = new ApiAnita();
+
 				$data = array( 'tabla' => $this->tableAnita[1], 
 					'acc' => 'insert',
 					'sistema' => 'compras',
@@ -268,9 +270,10 @@ class RetenciongananciaRepository implements RetenciongananciaRepositoryInterfac
 							'".$porcentajeRetenciones[$i_rango]."' ,
 							'".$request['codigo']."' "
 					);
+
+				$apiAnita->apiCall($data);
 			}
 		}
-        $apiAnita->apiCall($data);
 	}
 
 	public function actualizarAnita($request, $id) {
@@ -333,8 +336,8 @@ class RetenciongananciaRepository implements RetenciongananciaRepositoryInterfac
 							'".$porcentajeRetenciones[$i_rango]."' ,
 							'".$request['codigo']."' "
 					);
+				$apiAnita->apiCall($data);
 			}
-        	$apiAnita->apiCall($data);
 		}
 	}
 

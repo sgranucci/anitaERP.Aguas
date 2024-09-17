@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ValidacionRetencioniva;
 use App\Models\Compras\Retencioniva;
 use App\Repositories\Compras\RetencionivaRepositoryInterface;
-use App\Repositories\Compras\Retencioniva_EscalaRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;

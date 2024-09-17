@@ -26,6 +26,12 @@
     </div>
 </div>
 <div class="form-group row">
+    <label for="nivel" class="col-lg-3 col-form-label requerido">Nivel</label>
+    <div class="col-lg-3">
+    <input type="text" name="nivel" id="nivel" class="form-control" value="{{old('nivel', $data->nivel ?? '')}}" required/>
+    </div>
+</div>
+<div class="form-group row">
 	<label for="rubrocontable_id" class="col-lg-3 col-form-label requerido">Rubro contable</label>
 	<div class="col-lg-8">
 		<select name="rubrocontable_id" id="rubrocontable_id" class="form-control" required>
@@ -85,3 +91,47 @@
 		@endfor
 	</select>
 </div>
+<div class="form-group row">
+    <label for="ajustamonedaextranjera" class="col-lg-3 col-form-label requerido">Ajusta m/e</label>
+	<select id="ajustamonedaextranjera" name="ajustamonedaextranjera" class="col-lg-4 form-control" required>
+    	<option value="">-- Elija si ajusta moneda extranjera --</option>
+       	@foreach($ajustamonedaextranjera_enum as $ajustamonedaextranjera)
+			@if ($ajustamonedaextranjera['valor'] == old('ajustamonedaextranjera',$data->ajustamonedaextranjera??''))
+       			<option value="{{ $ajustamonedaextranjera['valor'] }}" selected>{{ $ajustamonedaextranjera['nombre'] }}</option>    
+			@else
+			    <option value="{{ $ajustamonedaextranjera['valor'] }}">{{ $ajustamonedaextranjera['nombre'] }}</option>
+			@endif
+    	@endforeach
+	</select>
+</div>
+<div class="form-group row">
+	<label for="conceptogasto_id" class="col-lg-3 col-form-label requerido">Concepto Cash Flow</label>
+	<div class="col-lg-8">
+		<select name="conceptogasto_id" id="conceptogasto_id" class="form-control" required>
+			<option value="">Seleccione el concepto gasto</option>
+			@foreach($conceptogasto_query as $id => $conceptogasto)
+				@if( isset($data) && (int) $conceptogasto->id == (int) $data->conceptogasto_id )
+            		<option value="{{$conceptogasto->id}}" selected>{{$conceptogasto->nombre}}</option>
+            	@else
+            		<option value="{{$conceptogasto->id}}">{{$conceptogasto->nombre}}</option>
+				@endif
+			@endforeach
+		</select>
+	</div>
+</div>
+<div class="form-group row">
+	<label for="cuentacontable_difcambio_id" class="col-lg-3 col-form-label">Concepto Cash Flow</label>
+	<div class="col-lg-8">
+		<select name="cuentacontable_difcambio_id" id="cuentacontable_difcambio_id" class="form-control">
+			<option value="">Seleccione cuenta contable dif. cambio</option>
+			@foreach($cuentacontable_query as $id => $cuentacontable_difcambio)
+				@if( isset($data) && (int) $cuentacontable_difcambio->id == (int) $data->cuentacontable_difcambio_id )
+            		<option value="{{$cuentacontable_difcambio->id}}" selected>{{$cuentacontable_difcambio->nombre}}</option>
+            	@else
+            		<option value="{{$cuentacontable_difcambio->id}}">{{$cuentacontable_difcambio->nombre}}</option>
+				@endif
+			@endforeach
+		</select>
+	</div>
+</div>
+

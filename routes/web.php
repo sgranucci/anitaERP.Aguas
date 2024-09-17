@@ -1125,6 +1125,39 @@ Route::post('graficos/generaordenes', 'Graficos\GraficosController@generaOrdenes
  Route::delete('compras/tiposuspensionproveedor/{id}', 'Compras\TiposuspensionproveedorController@eliminar')->name('eliminar_tiposuspensionproveedor'); 
 
 /* 
+ * Columnas de iva compras
+ */
+
+ Route::get('compras/columna_ivacompra', 'Compras\Columna_IvacompraController@index')->name('columna_ivacompra');
+ Route::get('compras/columna_ivacompra/crear', 'Compras\Columna_IvacompraController@crear')->name('crear_columna_ivacompra');
+ Route::post('compras/columna_ivacompra', 'Compras\Columna_IvacompraController@guardar')->name('guardar_columna_ivacompra');
+ Route::get('compras/columna_ivacompra/{id}/editar', 'Compras\Columna_IvacompraController@editar')->name('editar_columna_ivacompra');
+ Route::put('compras/columna_ivacompra/{id}', 'Compras\Columna_IvacompraController@actualizar')->name('actualizar_columna_ivacompra');
+ Route::delete('compras/columna_ivacompra/{id}', 'Compras\Columna_IvacompraController@eliminar')->name('eliminar_columna_ivacompra'); 
+
+/* 
+ * Conceptos de iva compras
+ */
+
+ Route::get('compras/concepto_ivacompra', 'Compras\Concepto_IvacompraController@index')->name('concepto_ivacompra');
+ Route::get('compras/concepto_ivacompra/crear', 'Compras\Concepto_IvacompraController@crear')->name('crear_concepto_ivacompra');
+ Route::post('compras/concepto_ivacompra', 'Compras\Concepto_IvacompraController@guardar')->name('guardar_concepto_ivacompra');
+ Route::get('compras/concepto_ivacompra/{id}/editar', 'Compras\Concepto_IvacompraController@editar')->name('editar_concepto_ivacompra');
+ Route::put('compras/concepto_ivacompra/{id}', 'Compras\Concepto_IvacompraController@actualizar')->name('actualizar_concepto_ivacompra');
+ Route::delete('compras/concepto_ivacompra/{id}', 'Compras\Concepto_IvacompraController@eliminar')->name('eliminar_concepto_ivacompra'); 
+
+/* 
+ * Tipo de transaccion de compras
+ */
+
+ Route::get('compras/tipotransaccion_compra', 'Compras\Tipotransaccion_CompraController@index')->name('tipotransaccion_compra');
+ Route::get('compras/tipotransaccion_compra/crear', 'Compras\Tipotransaccion_CompraController@crear')->name('crear_tipotransaccion_compra');
+ Route::post('compras/tipotransaccion_compra', 'Compras\Tipotransaccion_CompraController@guardar')->name('guardar_tipotransaccion_compra');
+ Route::get('compras/tipotransaccion_compra/{id}/editar', 'Compras\Tipotransaccion_CompraController@editar')->name('editar_tipotransaccion_compra');
+ Route::put('compras/tipotransaccion_compra/{id}', 'Compras\CTipotransaccion_CompraController@actualizar')->name('actualizar_tipotransaccion_compra');
+ Route::delete('compras/tipotransaccion_compra/{id}', 'Compras\Tipotransaccion_CompraController@eliminar')->name('eliminar_tipotransaccion_compra'); 
+
+/* 
  * Proveedores
  */
 

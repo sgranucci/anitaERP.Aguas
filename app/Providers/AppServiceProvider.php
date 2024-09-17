@@ -296,6 +296,26 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 		$this->app->bind(
+        	'App\Repositories\Compras\Columna_IvacompraRepositoryInterface',
+        	'App\Repositories\Compras\Columna_IvacompraRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\Concepto_IvacompraRepositoryInterface',
+        	'App\Repositories\Compras\Concepto_IvacompraRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\Concepto_Ivacompra_CondicionivaRepositoryInterface',
+        	'App\Repositories\Compras\Concepto_Ivacompra_CondicionivaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\Tipotransaccion_CompraRepositoryInterface',
+        	'App\Repositories\Compras\Tipotransaccion_CompraRepository',
+    	);
+
+		$this->app->bind(
         	'App\Repositories\Ventas\FormapagoRepositoryInterface',
         	'App\Repositories\Ventas\FormapagoRepository',
     	);
@@ -418,6 +438,21 @@ class AppServiceProvider extends ServiceProvider
         	'App\Repositories\Configuracion\CondicionIIBBRepository',
     	);
 
+		$this->app->bind(
+        	'App\Repositories\Configuracion\EmpresaRepositoryInterface',
+        	'App\Repositories\Configuracion\EmpresaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Configuracion\ProvinciaRepositoryInterface',
+        	'App\Repositories\Configuracion\ProvinciaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Configuracion\ImpuestoRepositoryInterface',
+        	'App\Repositories\Configuracion\ImpuestoRepository',
+    	);
+
 	    $this->app->bind(
         	'App\Services\Configuracion\ImpuestoService',
     	);
@@ -425,6 +460,11 @@ class AppServiceProvider extends ServiceProvider
 		$this->app->bind(
         	'App\Repositories\Contable\CentrocostoRepositoryInterface',
         	'App\Repositories\Contable\CentrocostoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Contable\CuentacontableRepositoryInterface',
+        	'App\Repositories\Contable\CuentacontableRepository',
     	);
 
 		$this->app->bind(

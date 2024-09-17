@@ -7,9 +7,17 @@ use App\Http\Controllers\Controller;
 use App\Models\Configuracion\Empresa;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ValidacionEmpresa;
+use App\Repositories\Configuracion\EmpresaRepositoryInterface;
 
 class EmpresaController extends Controller
 {
+    private $empresaRepository;
+
+    public function __construct(EmpresaRepositoryInterface $empresarepository)
+    {
+        $this->empresaRepository = $empresarepository;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -18,15 +26,8 @@ class EmpresaController extends Controller
     public function index()
     {
         can('listar-empresas');
-        $datas = Empresa::orderBy('id')->get();
 
-		if ($datas->isEmpty())
-		{
-			$Empresa = new Empresa();
-        	$Empresa->sincronizarConAnita();
-	
-        	$datas = Empresa::orderBy('id')->get();
-		}
+        $datas = $this->empresaRepository->all();
 
         return view('configuracion.empresa.index', compact('datas'));
     }
@@ -39,6 +40,7 @@ class EmpresaController extends Controller
     public function crear()
     {
         can('crear-empresas');
+
         return view('configuracion.empresa.crear');
     }
 
@@ -50,11 +52,7 @@ class EmpresaController extends Controller
      */
     public function guardar(ValidacionEmpresa $request)
     {
-        $empresa = Empresa::create($request->all());
-
-		// Graba anita
-		$Empresa = new Empresa();
-        $Empresa->guardarAnita($request, $empresa->id);
+        $this->empresaRepository->create($request->all());
 
         return redirect('configuracion/empresa')->with('mensaje', 'Empresa creada con exito');
     }
@@ -69,7 +67,9 @@ class EmpresaController extends Controller
     public function editar($id)
     {
         can('editar-empresas');
-        $data = Empresa::findOrFail($id);
+
+        $data = $this->empresaRepository->findOrFail($id);
+        
         return view('configuracion.empresa.editar', compact('data'));
     }
 
@@ -83,11 +83,8 @@ class EmpresaController extends Controller
     public function actualizar(ValidacionEmpresa $request, $id)
     {
         can('actualizar-empresas');
-        Empresa::findOrFail($id)->update($request->all());
-
-		// Actualiza anita
-		$Empresa = new Empresa();
-        $Empresa->actualizarAnita($request, $id);
+        
+        $this->empresaRepository->update($request->all(), $id);
 
         return redirect('configuracion/empresa')->with('mensaje', 'Empresa actualizada con exito');
     }
@@ -102,14 +99,8 @@ class EmpresaController extends Controller
     {
         can('borrar-empresas');
 
-		$empresa = Empresa::findOrFail($id);
-
-		// Elimina anita
-		$Empresa = new Empresa();
-        $Empresa->eliminarAnita($empresa->codigo);
-
         if ($request->ajax()) {
-            if (Empresa::destroy($id)) {
+            if ($this->empresaRepository->delete($id)) {
                 return response()->json(['mensaje' => 'ok']);
             } else {
                 return response()->json(['mensaje' => 'ng']);
@@ -117,5 +108,6 @@ class EmpresaController extends Controller
         } else {
             abort(404);
         }
+        return redirect('configuracion/empresa')->with('mensaje', 'Empresa eliminada con exito');
     }
 }

@@ -4,13 +4,20 @@ namespace App\Http\Controllers\Configuracion;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Configuracion\Provincia;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ValidacionProvincia;
+use App\Repositories\Configuracion\ProvinciaRepositoryInterface;
 use App\Models\Configuracion\Pais;
 
 class ProvinciaController extends Controller
 {
+    private $provinciaRepository;
+
+    public function __construct(ProvinciaRepositoryInterface $provinciarepository)
+    {
+        $this->provinciaRepository = $provinciarepository;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -19,15 +26,8 @@ class ProvinciaController extends Controller
     public function index()
     {
         can('listar-provincias');
-        $datas = Provincia::with('paises')->orderBy('id')->get();
 
-		if ($datas->isEmpty())
-		{
-			$Provincia = new Provincia();
-        	$Provincia->sincronizarConAnita();
-	
-        	$datas = Provincia::with('paises')->orderBy('id')->get();
-		}
+        $datas = $this->provinciaRepository->all();
 
         return view('configuracion.provincia.index', compact('datas'));
     }
@@ -54,11 +54,7 @@ class ProvinciaController extends Controller
      */
     public function guardar(ValidacionProvincia $request)
     {
-        $provincia = Provincia::create($request->all());
-
-		// Graba anita
-		$Provincia = new Provincia();
-        $Provincia->guardarAnita($request, $provincia->id);
+        $this->provinciaRepository->create($request->all());
 
         return redirect('configuracion/provincia')->with('mensaje', 'Provincia creada con exito');
     }
@@ -74,7 +70,8 @@ class ProvinciaController extends Controller
     {
         can('editar-provincias');
 		$pais_query = Pais::all();
-		$data = Provincia::where('id', $id)->with('paises:id,nombre')->first();
+        $data = $this->provinciaRepository->findOrFail($id);
+		
         return view('configuracion.provincia.editar', compact('data', 'pais_query'));
     }
 
@@ -88,11 +85,8 @@ class ProvinciaController extends Controller
     public function actualizar(ValidacionProvincia $request, $id)
     {
         can('actualizar-provincias');
-        Provincia::findOrFail($id)->update($request->all());
 
-		// Actualiza anita
-		$Provincia = new Provincia();
-        $Provincia->actualizarAnita($request, $id);
+        $this->provinciaRepository->update($request->all(), $id);
 
         return redirect('configuracion/provincia')->with('mensaje', 'Provincia actualizada con exito');
     }
@@ -107,12 +101,8 @@ class ProvinciaController extends Controller
     {
         can('borrar-provincias');
 
-		// Elimina anita
-		$Provincia = new Provincia();
-        $Provincia->eliminarAnita($id);
-
         if ($request->ajax()) {
-            if (Provincia::destroy($id)) {
+            if ($this->provinciaRepository->delete($id)) {
                 return response()->json(['mensaje' => 'ok']);
             } else {
                 return response()->json(['mensaje' => 'ng']);
@@ -120,5 +110,6 @@ class ProvinciaController extends Controller
         } else {
             abort(404);
         }
+        return redirect('configuracion/provincia')->with('mensaje', 'Provincia eliminada con exito');
     }
 }

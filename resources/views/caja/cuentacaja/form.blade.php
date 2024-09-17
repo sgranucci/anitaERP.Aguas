@@ -63,7 +63,7 @@
 	</select>
 </div>
 <div class="form-group row">
-    <label for="cbu" class="col-lg-3 col-form-label requerido">Nro. de CBU</label>
+    <label for="cbu" class="col-lg-3 col-form-label">Nro. de CBU</label>
     <div class="col-lg-3">
     <input type="text" name="cbu" id="cbu" class="form-control" value="{{old('cbu', $data->cbu ?? '')}}"/>
     </div>

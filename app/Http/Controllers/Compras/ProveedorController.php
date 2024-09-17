@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Compras\Proveedor;
 use App\Models\Compras\Proveedor_Exclusion;
-use App\Models\Contable\Cuentacontable;
 use App\Models\Configuracion\Pais;
 use App\Models\Configuracion\Localidad;
 use App\Models\Configuracion\Provincia;
@@ -35,6 +34,7 @@ use App\Repositories\Compras\Proveedor_ExclusionRepositoryInterface;
 use App\Repositories\Compras\Proveedor_ArchivoRepositoryInterface;
 use App\Repositories\Compras\Proveedor_FormapagoRepositoryInterface;
 use App\Repositories\Contable\CentrocostoRepositoryInterface;
+use App\Repositories\Contable\CuentacontableRepositoryInterface;
 use App\Mail\Compras\ProveedorProvisorio;
 use App\Exports\Compras\ProveedorExport;
 use Carbon\Carbon;
@@ -64,6 +64,7 @@ class ProveedorController extends Controller
     private $bancoRepository;
     private $mediopagoRepository;
     private $centrocostoRepository;
+    private $cuentacontableRepository;
 
     public function __construct(
 		IIBBService $iibbService,
@@ -86,7 +87,8 @@ class ProveedorController extends Controller
         Proveedor_FormapagoRepositoryInterface $proveedor_formapagorepository, 
 		Proveedor_ArchivoRepositoryInterface $proveedor_archivorepository,
         ProveedorQueryInterface $proveedorquery,
-        CentrocostoRepositoryInterface $centrocostorepository)
+        CentrocostoRepositoryInterface $centrocostorepository,
+        CuentacontableRepositoryInterface $cuentacontablerepository)
     {
         $this->proveedorRepository = $proveedorrepository;
         $this->proveedor_exclusionRepository = $proveedor_exclusionrepository;
@@ -108,6 +110,7 @@ class ProveedorController extends Controller
         $this->bancoRepository = $bancorepository;
         $this->mediopagoRepository = $mediopagorepository;
         $this->centrocostoRepository = $centrocostorepository;
+        $this->cuentacontableRepository = $cuentacontablerepository;
 
         $this->proveedorQuery = $proveedorquery;
     }
@@ -344,7 +347,7 @@ class ProveedorController extends Controller
         $condicionentrega_query = $this->condicionentregaRepository->all();
         $centrocosto_query = $this->centrocostoRepository->all();
         $conceptogasto_query = $this->conceptogastoRepository->all();
-        $cuentacontable_query = Cuentacontable::orderBy('nombre')->get();
+        $cuentacontable_query = $this->cuentacontableRepository->all();
         $retieneiva_enum = Proveedor::$enumRetieneiva;
         $retieneganancia_enum = Proveedor::$enumRetieneganancia;
         $condicionganancia_enum = Proveedor::$enumCondicionganancia;

@@ -15,11 +15,11 @@ class TablaPermisoSeeder extends Seeder
     {
         $now = Carbon::now()->toDateTimeString();
         $permisos = [
-            array('id' => '465', 'nombre' => 'Ingresar comision de servicio terrestre', 'slug' => 'crear-comision-servicio-terrestre', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '466', 'nombre' => 'Listar comision de servicio terrestre', 'slug' => 'listar-comision-servicio-terrestre', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '467', 'nombre' => 'Editar comision de servicio terrestre', 'slug' => 'editar-comision-servicio-terrestre', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '468', 'nombre' => 'Actualizar comision de servicio terrestre', 'slug' => 'actualizar-comision-servicio-terrestre', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '469', 'nombre' => 'Borrar comision de servicio terrestre', 'slug' => 'borrar-comision-servicio-terrestre', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '480', 'nombre' => 'Ingresar tipo de transaccion compras', 'slug' => 'crear-tipo-transaccion-compra', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '481', 'nombre' => 'Listar tipo de transaccion compras', 'slug' => 'listar-tipo-transaccion-compra', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '482', 'nombre' => 'Editar tipo de transaccion compras', 'slug' => 'editar-tipo-transaccion-compra', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '483', 'nombre' => 'Actualizar tipo de transaccion compras', 'slug' => 'actualizar-tipo-transaccion-compra', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '484', 'nombre' => 'Borrar tipo de transaccion compras', 'slug' => 'borrar-tipo-transaccion-compra', 'created_at' => $now, 'updated_at' => $now),
 
         ];
         DB::table('permiso')->insert($permisos);

@@ -3,6 +3,8 @@
 namespace App\Repositories\Contable;
 
 use App\Models\Contable\Cuentacontable;
+use App\Repositories\Contable\Cuentacontable_CentrocostoRepositoryInterface;
+use App\Repositories\Contable\CentrocostoRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\ApiAnita;
 use Auth;
@@ -10,18 +12,25 @@ use Auth;
 class CuentacontableRepository implements CuentacontableRepositoryInterface
 {
     protected $model;
-    protected $tableAnita = 'ctamae';
+    protected $tableAnita = ['ctamae', 'ctaconc', 'ccosvalid'];
     protected $keyField = 'codigo';
     protected $keyFieldAnita = 'ctam_cuenta';
+
+    private $centrocostoRepository;
+    private $cuentacontable_centrocostoRepository;
 
     /**
      * PostRepository constructor.
      *
      * @param Post $post
      */
-    public function __construct(Cuentacontable $cuentacontable)
+    public function __construct(Cuentacontable $cuentacontable,
+                                CentrocostoRepositoryInterface $centrocostorepository,
+                                Cuentacontable_CentrocostoRepositoryInterface $cuentacontable_centrocostorepository)
     {
         $this->model = $cuentacontable;
+        $this->centrocostoRepository = $centrocostorepository;
+        $this->cuentacontable_centrocostoRepository = $cuentacontable_centrocostorepository;
     }
 
     public function all()
@@ -40,6 +49,8 @@ class CuentacontableRepository implements CuentacontableRepositoryInterface
 		//
 		// Graba anita
 		self::guardarAnita($data);
+
+        return($cuentacontable);
     }
 
     public function update(array $data, $id)
@@ -81,16 +92,16 @@ class CuentacontableRepository implements CuentacontableRepositoryInterface
         return $cuentacontable;
     }
 
-    public function findPorCodigo($codigo)
+    public function findPorCodigo($empresa_id, $codigo)
     {
-        $cuentacontable = $this->model->where('codigo', $codigo)->first();
+        $cuentacontable = $this->model->where('empresa_id', $empresa_id)->where('codigo', $codigo)->first();
 
         return $cuentacontable;
     }
 
     public function findOrFail($id)
     {
-        if (null == $cuentacontable = $this->model->findOrFail($id)) {
+        if (null == $cuentacontable = $this->model->with('cuentacontable_centrocostos')->findOrFail($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
 
@@ -101,7 +112,7 @@ class CuentacontableRepository implements CuentacontableRepositoryInterface
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 'sistema' => 'contab',
                         'campos' => 'ctam_empresa, '.$this->keyFieldAnita, 
-						'tabla' => $this->tableAnita, 
+						'tabla' => $this->tableAnita[0], 
 						'orderBy' => 'ctam_empresa, '.$this->keyFieldAnita  );
         $dataAnita = json_decode($apiAnita->apiCall($data));
 
@@ -124,7 +135,7 @@ class CuentacontableRepository implements CuentacontableRepositoryInterface
     public function traerRegistroDeAnita($empresa, $key){
         $apiAnita = new ApiAnita();
         $data = array( 
-            'acc' => 'list', 'tabla' => $this->tableAnita, 
+            'acc' => 'list', 'tabla' => $this->tableAnita[0], 
             'sistema' => 'contab',
             'campos' => '
                 ctam_empresa,
@@ -169,7 +180,7 @@ class CuentacontableRepository implements CuentacontableRepositoryInterface
             // Lee el concepto de gasto        
             $apiAnitaConc = new ApiAnita();
             $dataConc = array( 
-                'acc' => 'list', 'tabla' => 'ctaconc', 
+                'acc' => 'list', 'tabla' => $this->tableAnita[1], 
                 'sistema' => 'contab',
                 'campos' => '
                     ctaco_empresa,
@@ -199,13 +210,42 @@ class CuentacontableRepository implements CuentacontableRepositoryInterface
                 "nombre" => $data->ctam_desc,
                 "codigo" => $data->ctam_cuenta,
                 "tipocuenta" => $tipocuenta,
-                "monetaria" => ($data->ctam_ajustable == 'S' ? '1' : '2'),
-                "manejaccosto" => ($data->ctam_fl_ccosto == 'S' ? '1' : '2'),
+                "monetaria" => $data->ctam_ajustable,
+                "manejaccosto" => $data->ctam_fl_ccosto,
 				"usuarioultcambio_id" => $usuario_id,
                 "ajustamonedaextranjera" => $data->ctam_aju_mon_ext,
                 "conceptogasto_id" => $conceptogasto_id,
                 "cuentacontable_difcambio_id" => $data->ctam_cta_dif_cbio
             ]);
+
+			$data = array( 
+				'acc' => 'list', 'tabla' => $this->tableAnita[2], 
+				'sistema' => 'contab',
+				'campos' => '
+					ccosv_empresa,
+					ccosv_cuenta,
+                    ccosv_ccosto
+				',
+				'whereArmado' => " WHERE ccosv_empresa = '".$data->ctam_empresa.
+                                "' and ccosv_cuenta = '".$data->ctam_cuenta."' "
+			);
+			$dataAnita = json_decode($apiAnita->apiCall($data));
+
+			foreach ($dataAnita as $cuentacontable_centrocosto)
+			{
+				// Busca centro de costo
+				$centrocosto = $this->centrocostoRepository->findPorCodigo($cuentacontable_centrocosto->ccosv_ccosto);
+				if ($centrocosto)
+                {
+					$centrocosto_id = $centrocosto->id;
+				
+                    $arr_cuentacontable_centrocosto = [
+                        "cuentacontable_id" => $cuentacontable->id,
+                        "centrocosto_id" => $centrocosto_id
+                    ];
+                    $this->cuentacontable_centrocostoRepository->createUnRegistro($arr_cuentacontable_centrocosto);
+                }
+			}
         }
     }
 
@@ -215,7 +255,7 @@ class CuentacontableRepository implements CuentacontableRepositoryInterface
 		Self::cambia_para_grabar($request, $codigo, $tipocuenta, $ajustable, $manejaccosto, $cuenta,
                             $cuentacontable_difcambio);
 
-        $data = array( 'tabla' => $this->tableAnita, 
+        $data = array( 'tabla' => $this->tableAnita[0], 
                         'sistema' => 'contab',
 						'acc' => 'insert',
             			'campos' => ' ctam_empresa, ctam_cuenta, ctam_tipo, ctam_desc, ctam_nivel, 
@@ -261,9 +301,12 @@ class CuentacontableRepository implements CuentacontableRepositoryInterface
                             "' AND ctaco_empresa = '".$request['empresa_id']."' " 
         );
         $dataAnitaConc = json_decode($apiAnitaConc->apiCall($data));
+
+        // Graba centros de costo
+		Self::grabaCentrocosto($codigo, $request);
 	}
 
-	public function actualizarAnita($request) {
+	public function actualizarAnita($request, $codigo) {
         $apiAnita = new ApiAnita();
 
         Self::cambia_para_grabar($request, $codigo, $tipocuenta, $ajustable, $manejaccosto, $cuenta,
@@ -271,7 +314,7 @@ class CuentacontableRepository implements CuentacontableRepositoryInterface
 
         $data = array( 'acc' => 'update', 
                         'sistema' => 'contab',
-						'tabla' => $this->tableAnita, 
+						'tabla' => $this->tableAnita[0], 
             			'valores' => "
                             ctam_empresa = '".$request['empresa_id']."', 
                             ctam_cuenta = '".$codigo."', 
@@ -292,7 +335,7 @@ class CuentacontableRepository implements CuentacontableRepositoryInterface
 
 		$data = array( 'acc' => 'update', 
                         'sistema' => 'contab',
-						'tabla' => 'ctaconc', 
+						'tabla' => $this->tableAnita[1], 
             			'valores' => "
                             ctaco_empresa = '".$request['empresa_id']."', 
                             ctaco_cuenta = '".$codigo."', 
@@ -300,21 +343,72 @@ class CuentacontableRepository implements CuentacontableRepositoryInterface
 						'whereArmado' => " WHERE ctaco_cuenta = '".$codigo.
                                             "' AND ctaco_empresa='".$request['empresa_id']."' ");
         $apiAnitaConc->apiCall($data);
+
+        // Borra centros de costo
+        $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita[2], 
+				'sistema' => 'contab',
+				'whereArmado' => " WHERE ccosv_empresa = '".$request['empresa_id'].
+                                "' AND ccosv_cuenta = '".$codigo."' ");
+        $apiAnita->apiCall($data);
+
+		// Graba centros de costo
+		Self::grabaCentrocosto($codigo, $request);
+	}
+
+	private function grabaCentrocosto($codigo, $request)
+	{
+		// Graba exclusiones
+		if (isset($request['centrocosto_ids']))
+		{
+			$apiAnita = new ApiAnita();
+
+			$centrocosto_ids = $request['centrocosto_ids'];
+
+			if ($centrocosto_ids[0] != null)
+				$qCentrocosto = count($centrocosto_ids);
+			else
+				$qCentrocosto = 0;
+
+			for ($i_ccosto=0; $i_ccosto < $qCentrocosto; $i_ccosto++) 
+			{
+				$data = array( 'tabla' => $this->tableAnita[2], 
+                        'acc' => 'insert',
+						'sistema' => 'contab',
+							'campos' => '
+							ccosv_empresa,
+							ccosv_cuenta,
+                            ccosv_ccosto
+							',
+						'valores' => " 
+                                '".$request['empresa_id']."',
+                                '".$codigo."',
+								'".$centrocosto_ids[$i_ccosto]."' " 
+						);
+				$apiAnita->apiCall($data);
+			}
+		}
 	}
 
 	public function eliminarAnita($empresa, $id) {
         $apiAnita = new ApiAnita();
-        $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita,
+        $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita[0],
                     'sistema' => 'contab',
 					'whereArmado' => " WHERE ".$this->keyFieldAnita." = '".$id.
                     "' AND ctam_empresa = '".$empresa."'" );
         $apiAnita->apiCall($data);
 
         $apiAnitaConc = new ApiAnita();
-        $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita,
+        $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita[1],
                     'sistema' => 'contab',
 					'whereArmado' => " WHERE ctaco_cuenta = '".$id.
                     "' AND ctaco_empresa = '".$empresa."'");
+        $apiAnitaConc->apiCall($data);
+
+        $apiAnitaConc = new ApiAnita();
+        $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita[2],
+                    'sistema' => 'contab',
+					'whereArmado' => " WHERE ccosv_cuenta = '".$id.
+                    "' AND ccosv_empresa = '".$empresa."'");
         $apiAnitaConc->apiCall($data);
 	}
 
@@ -333,15 +427,8 @@ class CuentacontableRepository implements CuentacontableRepositoryInterface
 			$tipocuenta = '2';
 		}
 
-        if ($request['monetaria'] == '1')
-			$ajustable = 'S';
-		else
-			$ajustable = 'N';
-
-		if ($request['manejaccosto'] == '1')
-			$manejaccosto = 'S';
-		else
-			$manejaccosto = 'N';
+		$ajustable = $request['monetaria'];
+        $manejaccosto = $request['manejaccosto'];
 
 		// Convierte a formato cuenta de anita
 		sprintf($codigo, "%09ld", $request['codigo']);

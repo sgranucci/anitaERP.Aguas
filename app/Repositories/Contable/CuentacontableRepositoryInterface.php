@@ -9,10 +9,10 @@ interface CuentacontableRepositoryInterface extends RepositoryInterface
     public function sincronizarConAnita();
     public function traerRegistroDeAnita($empresa, $key);
 	public function guardarAnita($request);
-	public function actualizarAnita($request);
+	public function actualizarAnita($request, $codigo);
 	public function eliminarAnita($empresa, $id);
     public function findPorId($id);
-    public function findPorCodigo($codigo);
+    public function findPorCodigo($empresa_id, $codigo);
 
 }
 

@@ -133,4 +133,18 @@ class Comision_ServicioterrestreController extends Controller
             abort(404);
         }
     }
+
+    // lee comision por forma de pago / tipo de comision y servicio terrestre
+
+    public function leeComision($formapago_id, $tipocomision, $servicioterrestre_id)
+    {
+        $comision_servicioterrestre = $this->comision_servicioterrestreRepository
+                                        ->findComision($formapago_id, $tipocomision, $servicioterrestre_id);
+
+        $porcentajeComision = 0;
+        if ($comision_servicioterrestre)
+            $porcentajeComision = $comision_servicioterrestre->porcentajecomision;                    
+
+        return ['porcentajecomision' => $porcentajeComision];
+    }
 }

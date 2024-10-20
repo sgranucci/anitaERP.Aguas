@@ -5,15 +5,14 @@ namespace App\Traits\Compras;
 trait Tipotransaccion_CompraTrait {
 
 	public static $enumOperacion = [
-		'C' => 'Compra mercado local',
-		'D' => 'Devolución mercado local',
-		'E' => 'Importación',
-		'V' => 'Devolución de importación',
+		'L' => 'Mercado local',
+		'I' => 'Importación',
 		];
 	
 	public static $enumSigno = [
 		'S' => 'Suma',
 		'R' => 'Resta',
+		'N' => 'Nulo',
 		];
 
 	public static $enumSubdiario = [

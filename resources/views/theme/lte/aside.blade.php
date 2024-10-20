@@ -22,7 +22,7 @@
                     alt="User Image">
             </div>
             <div class="info">
-                <a href="#" class="d-block">{{session()->get('nombre_usuario', 'Inivitado')}}</a>
+                <a href="#" class="d-block">{{session()->get('nombre_usuario', 'Invitado')}}</a>
             </div>
         </div>
         <!-- sidebar menu: : style can be found in sidebar.less -->

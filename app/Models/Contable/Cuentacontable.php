@@ -8,7 +8,6 @@ use Illuminate\Support\Str;
 use App\Models\Configuracion\Empresa;
 use App\Models\Caja\Conceptogasto;
 use App\Traits\Contable\AjustamonedaextranjeraTrait;
-use App\ApiAnita;
 use Auth;
 
 class Cuentacontable extends Model
@@ -20,6 +19,12 @@ class Cuentacontable extends Model
                             'usuarioultcambio_id', 'ajustamonedaextrajera', 'conceptogasto_id',
                             'cuentacontable_difcambio_id'];
     protected $table = 'cuentacontable';
+
+    public function cuentacontable_centrocostos()
+	{
+    	return $this->hasMany(Cuentacontable_Centrocosto::class, 'cuentacontable_id')
+                    ->with('centrocostos');
+	}
 
     public function empresas()
     {

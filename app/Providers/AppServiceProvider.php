@@ -81,6 +81,11 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 	    $this->app->bind(
+        	'App\Queries\Contable\AsientoQueryInterface',
+        	'App\Queries\Contable\AsientoQuery',
+    	);
+
+	    $this->app->bind(
         	'App\Repositories\Ventas\OrdentrabajoRepositoryInterface',
         	'App\Repositories\Ventas\OrdentrabajoRepository',
     	);
@@ -316,6 +321,16 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 		$this->app->bind(
+        	'App\Repositories\Compras\Tipotransaccion_Compra_CentrocostoRepositoryInterface',
+        	'App\Repositories\Compras\Tipotransaccion_Compra_CentrocostoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Compras\Tipotransaccion_Compra_Concepto_IvacompraRepositoryInterface',
+        	'App\Repositories\Compras\Tipotransaccion_Compra_Concepto_IvacompraRepository',
+    	);
+
+		$this->app->bind(
         	'App\Repositories\Ventas\FormapagoRepositoryInterface',
         	'App\Repositories\Ventas\FormapagoRepository',
     	);
@@ -368,6 +383,26 @@ class AppServiceProvider extends ServiceProvider
 	    $this->app->bind(
         	'App\Repositories\Configuracion\PadroncabaRepositoryInterface',
         	'App\Repositories\Configuracion\PadroncabaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Configuracion\MonedaRepositoryInterface',
+        	'App\Repositories\Configuracion\MonedaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Configuracion\CotizacionRepositoryInterface',
+        	'App\Repositories\Configuracion\CotizacionRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Queries\Configuracion\CotizacionQueryInterface',
+        	'App\Queries\Configuracion\CotizacionQuery',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Configuracion\Cotizacion_MonedaRepositoryInterface',
+        	'App\Repositories\Configuracion\Cotizacion_MonedaRepository',
     	);
 
 	    $this->app->bind(
@@ -468,6 +503,31 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 		$this->app->bind(
+        	'App\Repositories\Contable\Cuentacontable_CentrocostoRepositoryInterface',
+        	'App\Repositories\Contable\Cuentacontable_CentrocostoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Contable\TipoasientoRepositoryInterface',
+        	'App\Repositories\Contable\TipoasientoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Contable\AsientoRepositoryInterface',
+        	'App\Repositories\Contable\AsientoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Contable\Asiento_MovimientoRepositoryInterface',
+        	'App\Repositories\Contable\Asiento_MovimientoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Contable\Asiento_ArchivoRepositoryInterface',
+        	'App\Repositories\Contable\Asiento_ArchivoRepository',
+    	);
+
+		$this->app->bind(
         	'App\Repositories\Receptivo\TiposervicioterrestreRepositoryInterface',
         	'App\Repositories\Receptivo\TiposervicioterrestreRepository',
     	);
@@ -500,6 +560,21 @@ class AppServiceProvider extends ServiceProvider
 		$this->app->bind(
         	'App\Repositories\Receptivo\Comision_ServicioterrestreRepositoryInterface',
         	'App\Repositories\Receptivo\Comision_ServicioterrestreRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Receptivo\ReservaRepositoryInterface',
+        	'App\Repositories\Receptivo\ReservaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\VoucherRepositoryInterface',
+        	'App\Repositories\Caja\VoucherRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\Voucher_GuiaRepositoryInterface',
+        	'App\Repositories\Caja\Voucher_GuiaRepository',
     	);
     }
 }

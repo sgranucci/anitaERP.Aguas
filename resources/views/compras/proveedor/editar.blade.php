@@ -55,6 +55,23 @@
             </div>
             <form action="{{route('actualizar_proveedor', ['id' => $data->id])}}" id="form-general" class="form-horizontal form--label-right" method="POST" enctype="multipart/form-data" autocomplete="off">
                 @csrf @method("put")
+                <div class="col-lg-8" align="right" style="margin: 5px;">
+                    <button type="button" id="botonform1" class="btn btn-primary btn-sm">
+                    <i class="fa fa-user"></i> Datos principales
+                    </button>
+                    <button type="button" id="botonform2" class="btn btn-info btn-sm">
+                        <span class="fa fa-cash-register"></span> Datos impuestos
+                    </button>
+                    <button type="button" id="botonform3" class="btn btn-info btn-sm">
+                        <span class="fa fa-truck"></span> Formas de pago
+                    </button>
+                    <button type="button" id="botonform4" class="btn btn-info btn-sm">
+                        <span class="fa fa-comment"></span> Leyendas
+                    </button>
+                    <button type="button" id="botonform5" class="btn btn-info btn-sm">
+                        <span class="fa fa-copy"></span> Archivos asociados
+                    </button>
+                </div>
                 <div class="card-body" style="padding-bottom: 0; padding-top: 5px;">
                     @include('compras.proveedor.form1')
                     @if (can('actualiza-impuestos', false))
@@ -72,23 +89,6 @@
                    		<div class="col-lg-4">
                         	<button type="submit" onclick="sub()" class="btn btn-success">Actualizar</button>
                     	</div>
-            			<div class="col-lg-8" align="right">
-							<button type="button" id="botonform1" class="btn btn-primary btn-sm">
-						   	<i class="fa fa-user"></i> Datos principales
-							</button>
-							<button type="button" id="botonform2" class="btn btn-info btn-sm">
-         						<span class="fa fa-cash-register"></span> Datos impuestos
-      						</button>
-							<button type="button" id="botonform3" class="btn btn-info btn-sm">
-         						<span class="fa fa-truck"></span> Formas de pago
-      						</button>
-							<button type="button" id="botonform4" class="btn btn-info btn-sm">
-         						<span class="fa fa-comment"></span> Leyendas
-      						</button>
-							<button type="button" id="botonform5" class="btn btn-info btn-sm">
-         						<span class="fa fa-copy"></span> Archivos asociados
-      						</button>
-            			</div>
             		</div>
             	</div>
             </form>

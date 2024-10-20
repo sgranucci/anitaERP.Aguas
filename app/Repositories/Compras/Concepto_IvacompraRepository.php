@@ -110,6 +110,14 @@ class Concepto_IvacompraRepository implements Concepto_IvacompraRepositoryInterf
         return $concepto_ivacompra;
     }
 
+    public function findPorCodigo($codigo)
+    {
+        return $this->model->with('concepto_ivacompra_condicionivas')->with('columna_ivacompras')
+                           ->with('empresas')
+                           ->with('cuentacontablesdebe')->with('cuentacontableshaber')
+                           ->with('provincias')->with('impuestos')->where('codigo', $codigo)->first(); 
+    }
+
     public function sincronizarConAnita(){
 		ini_set('max_execution_time', '300');
 
@@ -181,6 +189,7 @@ class Concepto_IvacompraRepository implements Concepto_IvacompraRepositoryInterf
             if ($columna_ivacompra)
                 $columna_ivacompra_id = $columna_ivacompra->id;
 
+            $retieneGanancia = 'N';
             switch($data->concc_contenido)
             {
             case 'C':

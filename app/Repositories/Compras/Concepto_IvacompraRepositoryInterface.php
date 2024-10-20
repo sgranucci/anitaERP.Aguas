@@ -6,6 +6,7 @@ interface Concepto_IvacompraRepositoryInterface extends RepositoryInterface
 {
 
     public function all();
+    public function findPorCodigo($codigo);
     public function sincronizarConAnita();
     public function traerRegistroDeAnita($key);
 	public function guardarAnita($request);

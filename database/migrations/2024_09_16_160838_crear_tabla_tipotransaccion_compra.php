@@ -23,7 +23,7 @@ class CrearTablaTipotransaccionCompra extends Migration
             $table->string('subdiario', 1);
             $table->string('asientocontable', 1);
             $table->string('retieneiva', 1);
-            $table->string('retieneganancias', 1);
+            $table->string('retieneganancia', 1);
             $table->string('retieneIIBB', 1);
             $table->string('estado', 1);
             $table->timestamps();

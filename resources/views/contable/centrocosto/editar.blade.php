@@ -24,7 +24,7 @@
             <form action="{{route('actualizar_centrocosto', ['id' => $data->id])}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
                 @csrf @method("put")
                 <div class="card-body">
-                    @include('compras.centrocosto.form')
+                    @include('contable.centrocosto.form')
                 </div>
                 <div class="card-footer">
                     <div class="row">

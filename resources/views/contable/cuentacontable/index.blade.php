@@ -51,7 +51,7 @@
                             <td>{{($data->tipocuenta==1?'Imputable':
                                   ($data->tipocuenta==2?'No imputable':'Totalizadora'))}}</td>
                             <td>{{$data->rubrocontables->nombre??''}}</td>
-                            <td>{{$data->manejaccosto == '1' ? 'Maneja C.Costo' : 'No maneja C.Costo'}}</td>
+                            <td>{{$data->manejaccosto == 'S' ? 'Maneja C.Costo' : 'No maneja C.Costo'}}</td>
                             <td>{{$data->conceptogastos->nombre??''}}</td>
                             <td>
                        			@if (can('editar-cuentas-contables', false))

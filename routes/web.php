@@ -92,6 +92,18 @@ Route::put('configuracion/moneda/{id}', 'Configuracion\MonedaController@actualiz
 Route::delete('configuracion/moneda/{id}', 'Configuracion\MonedaController@eliminar')->name('eliminar_moneda');
 
 /* 
+ * Cotizacion
+ */
+
+ Route::get('configuracion/cotizacion', 'Configuracion\CotizacionController@index')->name('cotizacion');
+ Route::get('configuracion/cotizacion/crear', 'Configuracion\CotizacionController@crear')->name('crear_cotizacion');
+ Route::post('configuracion/cotizacion', 'Configuracion\CotizacionController@guardar')->name('guardar_cotizacion');
+ Route::get('configuracion/cotizacion/{id}/editar', 'Configuracion\CotizacionController@editar')->name('editar_cotizacion');
+ Route::put('configuracion/cotizacion/{id}', 'Configuracion\CotizacionController@actualizar')->name('actualizar_cotizacion');
+ Route::delete('configuracion/cotizacion/{id}', 'Configuracion\CotizacionController@eliminar')->name('eliminar_cotizacion');
+ Route::get('configuracion/cotizacion/{formato?}/{busqueda?}', 'Configuracion\CotizacionController@listar')->name('lista_cotizacion');
+ Route::get('configuracion/leercotizacion/{fecha}/{moneda_id}', 'Configuracion\CotizacionController@leeCotizacionDiaria')->name('leer_cotizacion');
+/* 
  * Paises
  */
 
@@ -566,6 +578,39 @@ Route::put('contable/cuentacontable/{id}', 'Contable\CuentacontableController@ac
 Route::get('contable/cuentacontable/{id}/eliminar', 'Contable\CuentacontableController@eliminar')->name('eliminar_cuentacontable');
 Route::post('contable/cuentacontable/guardar-orden', 'Contable\CuentacontableController@guardarOrden')->name('guardar_orden');
 
+Route::post('contable/cuentacontable/consultacuentacontable', 'Contable\CuentacontableController@consultaCuentaContable')->name('consulta_cuentacontable');
+Route::get('contable/cuentacontable/leercuentacontableporcodigo/{empresa_id}/{codigo}', 'Contable\CuentacontableController@leerCuentaContablePorCodigo')->name('leer_cuentacontable_por_codigo');
+Route::get('contable/cuentacontable/leercuentacontablecentrocosto/{cuentacontable_id}', 'Contable\CuentacontableController@leerCuentaContableCentroCosto')->name('leer_cuentacontable_centrocosto');
+
+/* 
+ * Tipos de asiento
+ */
+
+ Route::get('contable/tipoasiento', 'Contable\TipoasientoController@index')->name('tipoasiento');
+ Route::get('contable/tipoasiento/crear', 'Contable\TipoasientoController@crear')->name('crear_tipoasiento');
+ Route::post('contable/tipoasiento', 'Contable\TipoasientoController@guardar')->name('guardar_tipoasiento');
+ Route::get('contable/tipoasiento/{id}/editar', 'Contable\TipoasientoController@editar')->name('editar_tipoasiento');
+ Route::put('contable/tipoasiento/{id}', 'Contable\TipoasientoController@actualizar')->name('actualizar_tipoasiento');
+ Route::delete('contable/tipoasiento/{id}', 'Contable\TipoasientoController@eliminar')->name('eliminar_tipoasiento');
+ 
+/* 
+ * Asientos contables
+ */
+
+ Route::get('contable/asiento', 'Contable\AsientoController@index')->name('asiento');
+ Route::get('contable/asiento/crear', 'Contable\AsientoController@crear')->name('crear_asiento');
+ Route::post('contable/asiento', 'Contable\AsientoController@guardar')->name('guardar_asiento');
+ Route::get('contable/asiento/{id}/editar', 'Contable\AsientoController@editar')->name('editar_asiento');
+ Route::put('contable/asiento/{id}', 'Contable\AsientoController@actualizar')->name('actualizar_asiento');
+ Route::delete('contable/asiento/{id}', 'Contable\AsientoController@eliminar')->name('eliminar_asiento');
+ Route::get('contable/listaasiento/{formato?}/{busqueda?}', 'Contable\AsientoController@listar')->name('lista_asiento');
+ Route::post('contable/copiar_asiento', 'Contable\AsientoController@copiarAsiento')->name('copiar_asiento');
+ Route::post('contable/revertir_asiento', 'Contable\AsientoController@revertirAsiento')->name('revertir_asiento');
+ 
+/*
+ * Productos
+ */
+
 Route::get('stock/producto/{id}', 'Stock\ArticuloController@consultaProducto')->name('consultar_producto');
 
 Route::get('stock/products', 'Stock\ArticuloController@index')->name('products.index');
@@ -1023,6 +1068,20 @@ Route::post('graficos/generaordenes', 'Graficos\GraficosController@generaOrdenes
  Route::put('caja/mediopago/{id}', 'Caja\MediopagoController@actualizar')->name('actualizar_mediopago');
  Route::delete('caja/mediopago/{id}', 'Caja\MediopagoController@eliminar')->name('eliminar_mediopago'); 
 
+/*
+ * Voucher
+ */
+
+ Route::get('caja/voucher', 'Caja\VoucherController@index')->name('voucher');
+ Route::get('caja/voucher/crear', 'Caja\VoucherController@crear')->name('crear_voucher');
+ Route::post('caja/voucher', 'Caja\VoucherController@guardar')->name('guardar_voucher');
+ Route::get('caja/voucher/{id}/editar', 'Caja\VoucherController@editar')->name('editar_voucher');
+ Route::put('caja/voucher/{id}', 'Caja\VoucherController@actualizar')->name('actualizar_voucher');
+ Route::delete('caja/voucher/{id}', 'Caja\VoucherController@eliminar')->name('eliminar_voucher'); 
+ Route::get('caja/listavoucher/{formato?}/{busqueda?}', 'Caja\VoucherController@listar')->name('lista_voucher');
+
+
+
  // Modulo de compras
  
 /* 
@@ -1154,7 +1213,7 @@ Route::post('graficos/generaordenes', 'Graficos\GraficosController@generaOrdenes
  Route::get('compras/tipotransaccion_compra/crear', 'Compras\Tipotransaccion_CompraController@crear')->name('crear_tipotransaccion_compra');
  Route::post('compras/tipotransaccion_compra', 'Compras\Tipotransaccion_CompraController@guardar')->name('guardar_tipotransaccion_compra');
  Route::get('compras/tipotransaccion_compra/{id}/editar', 'Compras\Tipotransaccion_CompraController@editar')->name('editar_tipotransaccion_compra');
- Route::put('compras/tipotransaccion_compra/{id}', 'Compras\CTipotransaccion_CompraController@actualizar')->name('actualizar_tipotransaccion_compra');
+ Route::put('compras/tipotransaccion_compra/{id}', 'Compras\Tipotransaccion_CompraController@actualizar')->name('actualizar_tipotransaccion_compra');
  Route::delete('compras/tipotransaccion_compra/{id}', 'Compras\Tipotransaccion_CompraController@eliminar')->name('eliminar_tipotransaccion_compra'); 
 
 /* 
@@ -1227,7 +1286,7 @@ Route::delete('compras/proveedor/{id}', 'Compras\ProveedorController@eliminar')-
  Route::delete('receptivo/guia/{id}', 'Receptivo\GuiaController@eliminar')->name('eliminar_guia');
 
 /* 
- * Guias
+ * Comisiones por servicio
  */
 
  Route::get('receptivo/comision_servicioterrestre', 'Receptivo\Comision_ServicioterrestreController@index')->name('comision_servicioterrestre');
@@ -1236,5 +1295,10 @@ Route::delete('compras/proveedor/{id}', 'Compras\ProveedorController@eliminar')-
  Route::get('receptivo/comision_servicioterrestre/{id}/editar', 'Receptivo\Comision_ServicioterrestreController@editar')->name('editar_comision_servicioterrestre');
  Route::put('receptivo/comision_servicioterrestre/{id}', 'Receptivo\Comision_ServicioterrestreController@actualizar')->name('actualizar_comision_servicioterrestre');
  Route::delete('receptivo/comision_servicioterrestre/{id}', 'Receptivo\Comision_ServicioterrestreController@eliminar')->name('eliminar_comision_servicioterrestre');
+ Route::get('receptivo/leecomision/{formapago_id}/{tipocomision}/{servicioterrestre_id}', 'Receptivo\Comision_ServicioterrestreController@leeComision')->name('lee_comision');
 
+/*
+ * Reserva
+ */
 
+ Route::get('receptivo/leereserva/{reserva}', 'Receptivo\ReservaController@leeReserva')->name('lee_reserva');

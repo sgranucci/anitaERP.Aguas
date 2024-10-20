@@ -24,7 +24,7 @@
             <form action="{{route('guardar_centrocosto')}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
                 @csrf
                 <div class="card-body">
-                    @include('compras.centrocosto.form')
+                    @include('contable.centrocosto.form')
                 </div>
                 <div class="card-footer">
                     <div class="row">

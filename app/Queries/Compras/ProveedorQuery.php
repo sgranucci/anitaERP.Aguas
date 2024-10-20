@@ -35,15 +35,22 @@ class ProveedorQuery implements ProveedorQueryInterface
 
     public function allQueryOrdenado(array $campos, $orden)
     {
-        return $this->model->select($campos)->orderBy($orden)->get();
+        return $this->model->select($campos)->orderBy($orden)->where('nombre', '!=', ' ')->get();
     }
 
-    public function allQueryporEstado(array $campos, $estado)
+    public function allQueryporEstado(array $campos, $estado, $orden = null)
     {
-        return $this->model->select($campos)
+        $proveedor = $this->model->select($campos)
                 ->orderBy('nombre','ASC')
                 ->where('estado',$estado)
-                ->where('nombre','!=',' ')->get();
+                ->where('nombre','!=',' ');
+
+        if ($orden)
+            $proveedor = $proveedor->orderBy($orden);
+
+        $proveedor = $proveedor->get();
+
+        return($proveedor);
     }
 
     public function traeProveedorporCodigo($codigo)

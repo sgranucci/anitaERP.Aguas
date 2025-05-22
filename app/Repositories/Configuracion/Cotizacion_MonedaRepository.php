@@ -68,7 +68,7 @@ class Cotizacion_MonedaRepository implements Cotizacion_MonedaRepositoryInterfac
 			$q_cotizacion_moneda = count($cotizacion_moneda);
 		}
 
-		// Graba cuentas contables
+		// Graba cotizaciones
 		if (isset($data['moneda_ids']))
 		{
 			$moneda_ids = $data['moneda_ids'];

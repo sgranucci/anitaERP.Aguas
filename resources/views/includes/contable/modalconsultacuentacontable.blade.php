@@ -13,9 +13,10 @@
       <div class="modal-body">
         <form action="" method="post">
 			      <div class="form-group row">
-   				    <label for="consulta" class="col-form-label">Buscar:</label>
-              <input type="text" name="consulta" id="consulta">
+   				    <label for="consulta_cuentacontable" class="col-form-label">Buscar:</label>
+              <input type="text" name="consultacuentacontable" id="consultacuentacontable" autofocus>
               <input type="hidden" name="consultacuenta" id="consultacuenta_id">
+              <input type="hidden" name="consultaempresa" id="consultaempresa_id">
 			      </div>
         </form>
         

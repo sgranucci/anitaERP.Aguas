@@ -37,3 +37,9 @@
         @endforeach
 	</select>
 </div>
+<div class="form-group row">
+    <label for="codigoexterno" class="col-lg-3 col-form-label requerido">Código ARCA</label>
+    <div class="col-lg-3">
+    <input type="text" name="codigoexterno" id="codigoexterno" class="form-control" value="{{old('codigoexterno', $data->codigoexterno ?? '')}}" required/>
+    </div>
+</div>

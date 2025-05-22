@@ -63,6 +63,19 @@
 	</select>
 </div>
 <div class="form-group row">
+	<label for="moneda" class="col-lg-3 col-form-label">Moneda</label>
+	<select name="moneda_id" id="moneda_id" data-placeholder="Moneda" class="col-lg-3 form-control" data-fouc>
+		<option value=""></option>
+		@foreach($moneda_query as $key => $value)
+			@if( (int) $value->id == (int) old('moneda_ids', $data->moneda_id ?? ''))
+				<option value="{{ $value->id }}" selected="select">{{ $value->abreviatura }}</option>    
+			@else
+				<option value="{{ $value->id }}">{{ $value->abreviatura }}</option>    
+			@endif
+		@endforeach
+	</select>
+</div>
+<div class="form-group row">
     <label for="cbu" class="col-lg-3 col-form-label">Nro. de CBU</label>
     <div class="col-lg-3">
     <input type="text" name="cbu" id="cbu" class="form-control" value="{{old('cbu', $data->cbu ?? '')}}"/>

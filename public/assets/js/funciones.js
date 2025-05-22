@@ -64,3 +64,15 @@ function fNumero(Pvalor, Pdecimal)
 
 	return pre;
 }
+
+function calculaCoeficienteMoneda(aMoneda, deMoneda, Cotizacion)
+{
+    if (aMoneda == deMoneda)
+        return 1.;
+
+    if (aMoneda == 1)
+        return Cotizacion;
+
+    return 1.;
+}
+

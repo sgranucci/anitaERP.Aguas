@@ -34,6 +34,11 @@ class MonedaRepository implements MonedaRepositoryInterface
         return $this->model->orderBy('nombre','ASC')->get();
     }
 
+    public function allOrdenadoPorId()
+    {
+        return $this->model->orderBy('id','ASC')->get();
+    }
+
     public function create(array $data)
     {
         $moneda = $this->model->create($data);

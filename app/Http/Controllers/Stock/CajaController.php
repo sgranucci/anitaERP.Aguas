@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Stock\Articulo;
 use App\Models\Stock\Caja;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Requests\ValidacionCaja;
+use App\Http\Requests\ValidacionCajaProducto;
 
 class CajaController extends Controller
 {
@@ -51,7 +51,7 @@ class CajaController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function guardar(ValidacionCaja $request)
+    public function guardar(ValidacionCajaProducto $request)
     {
         $caja = Caja::create($request->all());
 
@@ -86,7 +86,7 @@ class CajaController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function actualizar(ValidacionCaja $request, $id)
+    public function actualizar(ValidacionCajaProducto $request, $id)
     {
         can('actualizar-cajas');
         Caja::findOrFail($id)->update($request->all());

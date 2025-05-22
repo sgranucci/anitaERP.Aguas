@@ -14,11 +14,12 @@ use Exception;
 use App\ApiAnita;
 use Carbon\Carbon;
 use Auth;
+use DB;
 
 class AsientoRepository implements AsientoRepositoryInterface
 {
     protected $model;
-    protected $tableAnita = 'ctamov';
+    protected $tableAnita = ['ctamov', 'subdiario'];
     protected $keyField = 'numeroasiento';
     protected $keyFieldAnita = ['ctav_empresa', 'ctav_nro_asiento', 'ctav_nro_linea'];
 
@@ -61,7 +62,10 @@ class AsientoRepository implements AsientoRepositoryInterface
 		$asiento = $this->model->create($data);
 
 		// Graba anita
-		$anita = self::guardarAnita($data);
+		//$anita = self::guardarAnita($data);
+		
+		// Actualiza anita asi borra el asiento anterior por si ya existe
+		$anita = self::actualizarAnita($data);
 
 		if (strpos($anita, 'Error') !== false)
 			throw new Exception($anita);
@@ -72,7 +76,7 @@ class AsientoRepository implements AsientoRepositoryInterface
     public function update(array $data, $id)
     {
 		$data['usuario_id'] = Auth::user()->id;
-		
+
         $asiento = $this->model->findOrFail($id)->update($data);
 
 		// Actualiza anita
@@ -134,15 +138,25 @@ class AsientoRepository implements AsientoRepositoryInterface
         return $asiento;
     }
 
-    public function sincronizarConAnita(){
-		ini_set('max_execution_time', '300');
-	  	ini_set('memory_limit', '512M');
+	public function leeAsientoPorClave($id, $clave)
+	{
+		return $this->model->where($clave, $id)
+							->with("asiento_movimientos")
+							->with("asiento_archivos")
+							->with("tipoasientos")
+							->with("empresas")
+							->get();
+	}
 
+    public function sincronizarConAnita(){
+		ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', '0');
+		
         $apiAnita = new ApiAnita();
         $data = array( 'acc' => 'list', 
 						'sistema' => 'contab',
 						'campos' => $this->keyFieldAnita[0].",".$this->keyFieldAnita[1].",".$this->keyFieldAnita[2], 
-						'tabla' => $this->tableAnita );
+						'tabla' => $this->tableAnita[0] );
         $dataAnita = json_decode($apiAnita->apiCall($data));
 
 		$this->flGrabaAsiento = true;
@@ -152,12 +166,23 @@ class AsientoRepository implements AsientoRepositoryInterface
 										$value->{$this->keyFieldAnita[1]}, 
 										$value->{$this->keyFieldAnita[2]});
         }
+
+		$dataAnita = DB::table('anitasubdiario')
+		->select('subd_nro_operacion',
+				 'subd_fecha',
+				 'subd_cod_mon')
+		->orderBy('subd_nro_operacion')
+		->get();
+
+		$this->flGrabaAsiento = true;
+		foreach($dataAnita as $value)
+        	$this->traerRegistroDeAnitaSubdiario($value->subd_nro_operacion, $value->subd_fecha, $value->subd_cod_mon);
     }
 
     private function traerRegistroDeAnita($empresa, $asiento, $linea){
         $apiAnita = new ApiAnita();
         $data = array( 
-            'acc' => 'list', 'tabla' => $this->tableAnita, 
+            'acc' => 'list', 'tabla' => $this->tableAnita[0], 
 			'sistema' => 'contab',
             'campos' => '
 					ctav_empresa,
@@ -207,7 +232,7 @@ class AsientoRepository implements AsientoRepositoryInterface
 			else
 				$empresa_id = 1;
 						
-			$cuenta = $this->cuentacontableRepository->findPorCodigo($data->ctav_cuenta);
+			$cuenta = $this->cuentacontableRepository->findPorCodigo($data->ctav_empresa, $data->ctav_cuenta);
 			if ($cuenta)
 				$cuentacontable_id = $cuenta->id;
 			else
@@ -262,16 +287,176 @@ class AsientoRepository implements AsientoRepositoryInterface
 			}
 
 			// Graba tabla de movimientos de asientos
-			$arr_asimov = [
-				'asiento_id' => $asiento->id,
-				'cuentacontable_id' => $cuentacontable_id, 
-				'centrocosto_id' => $centrocosto_id, 
-				'monto' => ($data->d_h == 'D' ? $data->ctav_importe : -$data->ctav_importe), 
-				'moneda_id' => $moneda_id,
-				'cotizacion' => $data->ctav_cotizacion, 
-				'observacion' => $data->ctav_desc_mov
-			];
-			$this->asiento_movimientoRepository->create($arr_asimov);
+			if ($cuentacontable_id != NULL)
+			{
+				$arr_asimov = [
+					'asiento_id' => $asiento->id,
+					'cuentacontable_id' => $cuentacontable_id, 
+					'centrocosto_id' => $centrocosto_id, 
+					'monto' => ($data->ctav_d_h == 'D' ? $data->ctav_importe : -$data->ctav_importe), 
+					'moneda_id' => $moneda_id,
+					'cotizacion' => $data->ctav_cotizacion, 
+					'observacion' => $data->ctav_desc_mov
+				];
+				$this->asiento_movimientoRepository->createUnique($arr_asimov);
+			}
+        }
+    }
+
+	private function traerRegistroDeAnitaSubdiario($numeroOperacion, $fecha, $cod_mon) {
+		$dataAnita = DB::table('anitasubdiario')
+		->select(
+				'subd_sistema',
+				'subd_fecha',
+				'subd_tipo',
+				'subd_letra',
+				'subd_sucursal',
+				'subd_nro',
+				'subd_emisor',
+				'subd_tipo_mov',
+				'subd_cuenta',
+				'subd_contrapartida',
+				'subd_nro_operacion',
+				'subd_ref_tipo',
+				'subd_ref_letra',
+				'subd_ref_sucursal',
+				'subd_ref_nro',
+				'subd_ref_sistema',
+				'subd_importe',
+				'subd_cod_mon',
+				'subd_cotizacion',
+				'subd_desc_mov',
+				'subd_nro_asiento',
+				'subd_procesado',
+				'subd_ccosto_cta',
+				'subd_ccosto_con',
+				'subd_nro_interno',
+				'subd_empresa',
+				'subd_usuario',
+				'subd_fecha_ult_act',
+				'subd_hora_ult_act')
+		->where('subd_nro_operacion', $numeroOperacion)
+		->where('subd_fecha', $fecha)
+		->where('subd_cod_mon', $cod_mon)
+		->get();
+
+		$usuario_id = Auth::user()->id;
+		$this->numeroAsientoActual = 0;
+
+		foreach ($dataAnita as $data) {
+			if ($data->subd_nro_operacion != $this->numeroAsientoActual)
+			{
+				$this->numeroAsientoActual = $data->subd_nro_operacion;
+				$this->flGrabaAsiento = true;
+			}
+
+			$empresa = $this->empresaRepository->findPorCodigo($data->subd_empresa);
+			if ($empresa)
+				$empresa_id = $empresa->id;
+			else
+				$empresa_id = 1;
+						
+			$cuenta = $this->cuentacontableRepository->findPorCodigo($data->subd_empresa, $data->subd_cuenta);
+			if ($cuenta)
+				$cuentacontable_id = $cuenta->id;
+			else
+				$cuentacontable_id = NULL;
+
+			$centrocosto = $this->centrocostoRepository->findPorCodigo($data->subd_ccosto_cta);
+			if ($centrocosto)
+				$centrocosto_id = $centrocosto->id;
+			else
+				$centrocosto_id = 1;
+
+			$moneda = $this->monedaRepository->findPorCodigo($data->subd_cod_mon);
+			if ($moneda)
+				$moneda_id = $moneda->id;
+			else
+				$moneda_id = NULL;
+	
+			if ($this->flGrabaAsiento)
+			{
+				$observacion = $data->subd_sistema.' '.$data->subd_tipo.' '.$data->subd_letra.' '.
+								$data->subd_sucursal.' '.$data->subd_nro;
+
+				switch($data->subd_sistema)
+				{
+					case 'V':
+						$tipoasiento_id = 7;
+						break;
+					case 'C':
+						$tipoasiento_id = 8;
+						break;
+					case 'T':
+						$tipoasiento_id = 9;
+						break;
+					case 'S':
+						$tipoasiento_id = 10;
+						break;
+				}
+				$arr_campos = [
+					'empresa_id' => $empresa_id,
+					'tipoasiento_id' => $tipoasiento_id,
+					'numeroasiento' => $data->subd_nro_operacion,
+					'fecha' => $data->subd_fecha,
+					'venta_id' => null,
+					'movimientostock_id' => null,
+					'compra_id' => null,
+					'caja_movimiento_id' => null,
+					'ordencompra_id' => null,
+					'recepcionproveedor_id' => null,
+					'observacion' => $observacion,
+					'usuario_id' => $usuario_id,
+					];
+		
+				$asiento = $this->model->create($arr_campos);
+
+				$this->flGrabaAsiento = false;
+			}
+
+			// Graba tabla de movimientos de asientos
+			if ($cuentacontable_id != NULL)
+			{
+				$arr_asimov = [
+					'asiento_id' => $asiento->id,
+					'cuentacontable_id' => $cuentacontable_id, 
+					'centrocosto_id' => $centrocosto_id, 
+					'monto' => ($data->subd_tipo_mov == 'D' ? $data->subd_importe : -$data->subd_importe), 
+					'moneda_id' => $moneda_id,
+					'cotizacion' => $data->subd_cotizacion, 
+					'observacion' => $data->subd_desc_mov
+				];
+				$this->asiento_movimientoRepository->createUnique($arr_asimov);
+			}
+
+			// Genera contrapartida
+			$cuenta = $this->cuentacontableRepository->findPorCodigo($data->subd_empresa, $data->subd_contrapartida);
+			if ($cuenta)
+				$cuentacontable_id = $cuenta->id;
+			else
+				$cuentacontable_id = NULL;
+	
+			$centrocosto = $this->centrocostoRepository->findPorCodigo($data->subd_ccosto_con);
+			if ($centrocosto)
+				$centrocosto_id = $centrocosto->id;
+			else
+				$centrocosto_id = 1;
+
+			// Graba tabla de movimientos de asientos
+			if ($cuentacontable_id != NULL)
+			{
+				$arr_asimov = [
+					'asiento_id' => $asiento->id,
+					'cuentacontable_id' => $cuentacontable_id, 
+					'centrocosto_id' => $centrocosto_id, 
+					// Si va al debe la contrapartida va al haber
+					'monto' => ($data->subd_tipo_mov == 'D' ? -$data->subd_importe : $data->subd_importe), 
+					'moneda_id' => $moneda_id,
+					'cotizacion' => $data->subd_cotizacion, 
+					'observacion' => $data->subd_desc_mov
+				];
+				$this->asiento_movimientoRepository->createUnique($arr_asimov);
+			}
         }
     }
 
@@ -303,22 +488,10 @@ class AsientoRepository implements AsientoRepositoryInterface
 			else
 				$codigoTipoAsiento = 1;
 
-			$arrayObservacion = explode(" ", $request['observacion']);
+			$sistema = 'B';
+			$tipo = $letra = ' ';
+			$sucursal = $nro = 0;
 
-			if (count($arrayObservacion) == 5)
-			{
-				$sistema = $arrayObservacion[0];
-				$tipo = $arrayObservacion[1];
-				$letra = $arrayObservacion[2];
-				$sucursal = $arrayObservacion[3];
-				$nro = $arrayObservacion[4];
-			}
-			else
-			{
-				$sistema = 'B';
-				$tipo = $letra = ' ';
-				$sucursal = $nro = 0;
-			}
 			if ($cuentacontables[0] != null)
 				$qMovimiento = count($cuentacontables);
 			else
@@ -353,7 +526,7 @@ class AsientoRepository implements AsientoRepositoryInterface
 					$codigoMoneda = $moneda->codigo;
 				else
 					$codigoMoneda = '1';
-				$data = array( 'tabla' => $this->tableAnita, 
+				$data = array( 'tabla' => $this->tableAnita[0], 
 						'acc' => 'insert',
 						'sistema' => 'contab',
 						'campos' => '
@@ -404,7 +577,7 @@ class AsientoRepository implements AsientoRepositoryInterface
 						'".' '."',
 						'".'0'."',
 						'".' '."',
-						'".'0'."' "
+						".'0'." "
       			);
         		$asiento = $apiAnita->apiCall($data);
 				if (strpos($asiento, 'Error') !== false)
@@ -422,9 +595,9 @@ class AsientoRepository implements AsientoRepositoryInterface
 		else
 			$codigoEmpresa = 1;
 
-			// Borra asiento
+		// Borra asiento
 		$apiAnita = new ApiAnita();
-        $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita, 
+        $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita[0], 
 				'sistema' => 'contab',
 				'whereArmado' => " WHERE ctav_empresa = '".$codigoEmpresa."' and ctav_nro_asiento = '".
 									$request['numeroasiento']."' ");
@@ -442,7 +615,7 @@ class AsientoRepository implements AsientoRepositoryInterface
 	private function eliminarAnita($empresa, $codigo) 
 	{
         $apiAnita = new ApiAnita();
-        $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita, 
+        $data = array( 'acc' => 'delete', 'tabla' => $this->tableAnita[0], 
 				'sistema' => 'contab',
 				'whereArmado' => " WHERE ctav_empresa = '".$empresa."' and ctav_nro_asiento = '".$codigo."' ");
         $apiAnita->apiCall($data);

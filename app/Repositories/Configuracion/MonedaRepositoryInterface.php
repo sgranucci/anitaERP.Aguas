@@ -6,6 +6,7 @@ interface MonedaRepositoryInterface extends RepositoryInterface
 {
 
     public function all();
+    public function allOrdenadoPorId();
     public function sincronizarConAnita();
     public function traerRegistroDeAnita($key);
 	public function guardarAnita($request, $id);

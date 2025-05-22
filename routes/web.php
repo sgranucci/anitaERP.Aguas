@@ -90,6 +90,7 @@ Route::post('configuracion/moneda', 'Configuracion\MonedaController@guardar')->n
 Route::get('configuracion/moneda/{id}/editar', 'Configuracion\MonedaController@editar')->name('editar_moneda');
 Route::put('configuracion/moneda/{id}', 'Configuracion\MonedaController@actualizar')->name('actualizar_moneda');
 Route::delete('configuracion/moneda/{id}', 'Configuracion\MonedaController@eliminar')->name('eliminar_moneda');
+Route::get('configuracion/leermoneda', 'Configuracion\MonedaController@leerMoneda')->name('leer_moneda');
 
 /* 
  * Cotizacion
@@ -578,6 +579,7 @@ Route::put('contable/cuentacontable/{id}', 'Contable\CuentacontableController@ac
 Route::get('contable/cuentacontable/{id}/eliminar', 'Contable\CuentacontableController@eliminar')->name('eliminar_cuentacontable');
 Route::post('contable/cuentacontable/guardar-orden', 'Contable\CuentacontableController@guardarOrden')->name('guardar_orden');
 
+// Rutas de consulta de cuentas contables
 Route::post('contable/cuentacontable/consultacuentacontable', 'Contable\CuentacontableController@consultaCuentaContable')->name('consulta_cuentacontable');
 Route::get('contable/cuentacontable/leercuentacontableporcodigo/{empresa_id}/{codigo}', 'Contable\CuentacontableController@leerCuentaContablePorCodigo')->name('leer_cuentacontable_por_codigo');
 Route::get('contable/cuentacontable/leercuentacontablecentrocosto/{cuentacontable_id}', 'Contable\CuentacontableController@leerCuentaContableCentroCosto')->name('leer_cuentacontable_centrocosto');
@@ -601,11 +603,20 @@ Route::get('contable/cuentacontable/leercuentacontablecentrocosto/{cuentacontabl
  Route::get('contable/asiento/crear', 'Contable\AsientoController@crear')->name('crear_asiento');
  Route::post('contable/asiento', 'Contable\AsientoController@guardar')->name('guardar_asiento');
  Route::get('contable/asiento/{id}/editar', 'Contable\AsientoController@editar')->name('editar_asiento');
- Route::put('contable/asiento/{id}', 'Contable\AsientoController@actualizar')->name('actualizar_asiento');
+ Route::put('contable/actualizarasiento/{id}', 'Contable\AsientoController@actualizar')->name('actualizar_asiento');
  Route::delete('contable/asiento/{id}', 'Contable\AsientoController@eliminar')->name('eliminar_asiento');
  Route::get('contable/listaasiento/{formato?}/{busqueda?}', 'Contable\AsientoController@listar')->name('lista_asiento');
  Route::post('contable/copiar_asiento', 'Contable\AsientoController@copiarAsiento')->name('copiar_asiento');
  Route::post('contable/revertir_asiento', 'Contable\AsientoController@revertirAsiento')->name('revertir_asiento');
+ 
+ /* 
+ * Cuentas contables por usuario
+ */
+
+ Route::get('contable/usuario_cuentacontable', 'Contable\Usuario_CuentacontableController@index')->name('usuario_cuentacontable');
+ Route::get('contable/usuario_cuentacontable/{id}/editar', 'Contable\Usuario_CuentacontableController@editar')->name('editar_usuario_cuentacontable');
+ Route::put('contable/actualizar_usuario_cuentacontable', 'Contable\Usuario_CuentacontableController@actualizar')->name('actualizar_usuario_cuentacontable');
+ Route::delete('contable/usuario_cuentacontable/{id}', 'Contable\Usuario_CuentacontableController@eliminar')->name('eliminar_usuario_cuentacontable');
  
 /*
  * Productos
@@ -990,6 +1001,10 @@ Route::post('graficos/generaordenes', 'Graficos\GraficosController@generaOrdenes
  Route::get('caja/cuentacaja/{id}/editar', 'Caja\CuentacajaController@editar')->name('editar_cuentacaja');
  Route::put('caja/cuentacaja/{id}', 'Caja\CuentacajaController@actualizar')->name('actualizar_cuentacaja');
  Route::delete('caja/cuentacaja/{id}', 'Caja\CuentacajaController@eliminar')->name('eliminar_cuentacaja');
+
+ // Rutas de consulta de cuentas de caja
+Route::post('caja/cuentacaja/consultacuentacaja', 'Caja\CuentacajaController@consultaCuentaCaja')->name('consulta_cuentacaja');
+Route::get('caja/cuentacaja/leercuentacajaporcodigo/{codigo}', 'Caja\CuentacajaController@leerCuentaCajaPorCodigo')->name('leer_cuentacaja_por_codigo');
  
 /* 
  * Conceptos de gastos
@@ -1080,8 +1095,60 @@ Route::post('graficos/generaordenes', 'Graficos\GraficosController@generaOrdenes
  Route::delete('caja/voucher/{id}', 'Caja\VoucherController@eliminar')->name('eliminar_voucher'); 
  Route::get('caja/listavoucher/{formato?}/{busqueda?}', 'Caja\VoucherController@listar')->name('lista_voucher');
 
+/* 
+ * Tipos de transacciones de caja
+ */
 
+ Route::get('caja/tipotransaccion_caja', 'Caja\Tipotransaccion_CajaController@index')->name('tipotransaccion_caja');
+ Route::get('caja/tipotransaccion_caja/crear', 'Caja\Tipotransaccion_CajaController@crear')->name('crear_tipotransaccion_caja');
+ Route::post('caja/tipotransaccion_caja', 'Caja\Tipotransaccion_CajaController@guardar')->name('guardar_tipotransaccion_caja');
+ Route::get('caja/tipotransaccion_caja/{id}/editar', 'Caja\Tipotransaccion_CajaController@editar')->name('editar_tipotransaccion_caja');
+ Route::put('caja/tipotransaccion_caja/{id}', 'Caja\Tipotransaccion_CajaController@actualizar')->name('actualizar_tipotransaccion_caja');
+ Route::delete('caja/tipotransaccion_caja/{id}', 'Caja\Tipotransaccion_CajaController@eliminar')->name('eliminar_tipotransaccion_caja');
+ 
+/* 
+ * Cajas
+ */
 
+ Route::get('caja/caja', 'Caja\CajaController@index')->name('consulta_caja');
+ Route::get('caja/caja/crear', 'Caja\CajaController@crear')->name('crea_caja');
+ Route::post('caja/caja', 'Caja\CajaController@guardar')->name('guarda_caja');
+ Route::get('caja/caja/{id}/editar', 'Caja\CajaController@editar')->name('edita_caja');
+ Route::put('caja/caja/{id}', 'Caja\CajaController@actualizar')->name('actualiza_caja');
+ Route::delete('caja/caja/{id}', 'Caja\CajaController@eliminar')->name('elimina_caja');
+ 
+/* 
+ * Asignacion de Cajas
+ */
+
+ Route::get('caja/cajaasignacion', 'Caja\CajaAsignacionController@index')->name('consulta_cajaasignacion');
+ Route::get('caja/cajasignacion/crear', 'Caja\CajaAsignacionController@crear')->name('crea_cajaasignacion');
+ Route::post('caja/cajasignacion', 'Caja\CajaAsignacionController@guardar')->name('guarda_cajaasignacion');
+ Route::get('caja/cajasignacion/{id}/editar', 'Caja\CajaAsignacionController@editar')->name('edita_cajaasignacion');
+ Route::put('caja/cajasignacion/{id}', 'Caja\CajaAsignacionController@actualizar')->name('actualiza_cajaasignacion');
+ Route::delete('caja/cajasignacion/{id}', 'Caja\CajaAsignacionController@eliminar')->name('elimina_cajaasignacion');
+ 
+/* 
+ * Movimiento de Cajas
+ */
+
+Route::get('caja/movimientocaja', 'Caja\MovimientoCajaController@index')->name('consulta_movimiento_caja');
+
+/* 
+ * Ingresos y Egresos de Caja
+ */
+
+ Route::get('caja/ingresoegreso', 'Caja\IngresoEgresoController@index')->name('ingresoegreso');
+ Route::get('caja/ingresoegreso/crear/{caja?}', 'Caja\IngresoEgresoController@crear')->name('crear_ingresoegreso');
+ Route::post('caja/ingresoegreso', 'Caja\IngresoEgresoController@guardar')->name('guardar_ingresoegreso');
+ Route::get('caja/ingresoegreso/{id}/{origen?}/editar', 'Caja\IngresoEgresoController@editar')->name('editar_ingresoegreso');
+ Route::put('caja/actualizaringresoegreso/{id}', 'Caja\IngresoEgresoController@actualizar')->name('actualizar_ingresoegreso');
+ Route::delete('caja/ingresoegreso/{id}/{origen?}', 'Caja\IngresoEgresoController@eliminar')->name('eliminar_ingresoegreso');
+ Route::get('caja/listaingresoegreso/{formato?}/{busqueda?}', 'Caja\IngresoEgresoController@listar')->name('lista_ingresoegreso');
+ Route::post('caja/copiar_ingresoegreso', 'Caja\IngresoEgresoController@copiarIngresoEgreso')->name('copiar_ingresoegreso');
+ Route::post('caja/revertir_ingresoegreso', 'Caja\IngresoEgresoController@revertirIngresoEgreso')->name('revertir_ingresoegreso');
+ Route::post('caja/generaasientocontable_ingresoegreso', 'Caja\IngresoEgresoController@generaAsientoContable')->name('generaasientocontable_ingresoegreso');
+ 
  // Modulo de compras
  
 /* 
@@ -1302,3 +1369,4 @@ Route::delete('compras/proveedor/{id}', 'Compras\ProveedorController@eliminar')-
  */
 
  Route::get('receptivo/leereserva/{reserva}', 'Receptivo\ReservaController@leeReserva')->name('lee_reserva');
+ Route::post('receptivo/reserva/consultareserva', 'Receptivo\ReservaController@consultaReserva')->name('consulta_reserva');

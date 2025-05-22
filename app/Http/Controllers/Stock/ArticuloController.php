@@ -458,7 +458,7 @@ class ArticuloController extends Controller
 		// Envia correo de alta del articulo a Laura 
 		$receivers = "laura@ferli.com.ar";
 
-        Mail::to($receivers)->send(new AltaArticulo($request->all()));
+		Mail::to($receivers)->send(new AltaArticulo($request->all(), $request->mventa_id, $request->linea_id));
 
         return redirect()->route('products.index')->with('status', 'Producto creado');
     }
@@ -504,10 +504,10 @@ class ArticuloController extends Controller
 
         if( $type == "tecnica" )
 		{
-        	$caja_query = Caja::select('caja.id', 'caja.nombre', 
+        	$caja_query = Caja::select('cajaproducto.id', 'cajaproducto.nombre', 
 				'articulo.descripcion')
-            	->leftjoin('articulo','articulo.id','caja.articulo_id')
-				->orderBy('caja.nombre')->get();
+            	->leftjoin('articulo','articulo.id','cajaproducto.articulo_id')
+				->orderBy('cajaproducto.nombre')->get();
 
             return view('stock.product.tecnica.edit',compact('producto','id', 'categoria', 'marca','linea','compfondo','forro','usosArticulos','tipoCorte','punteras',
 												'capellada','unidadmedida','contrafuertes','filtros','caja_query',

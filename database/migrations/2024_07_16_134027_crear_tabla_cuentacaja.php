@@ -24,6 +24,8 @@ class CrearTablaCuentacaja extends Migration
             $table->foreign('empresa_id', 'fk_cuentacaja_empresa')->references('id')->on('empresa')->onDelete('set null')->onUpdate('set null');
             $table->unsignedBigInteger('cuentacontable_id');
             $table->foreign('cuentacontable_id', 'fk_cuentacaja_cuentacontable')->references('id')->on('cuentacontable')->onDelete('restrict')->onUpdate('restrict');
+            $table->unsignedBigInteger('moneda_id');
+            $table->foreign('moneda_id', 'fk_cuentacaja_moneda')->references('id')->on('moneda')->onDelete('restrict')->onUpdate('restrict');
             $table->string('cbu',50);
             $table->timestamps();
             $table->charset = 'utf8mb4';

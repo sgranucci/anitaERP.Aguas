@@ -1,1 +1,1 @@
-<button type="submit" class="btn btn-success">Actualizar</button>
+<button type="submit" class="btn botonsubmit btn-success">Actualizar</button>

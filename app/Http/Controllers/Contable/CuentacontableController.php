@@ -11,6 +11,7 @@ use App\Repositories\Caja\ConceptogastoRepositoryInterface;
 use App\Repositories\Contable\CuentacontableRepositoryInterface;
 use App\Repositories\Contable\Cuentacontable_CentrocostoRepositoryInterface;
 use App\Repositories\Contable\CentrocostoRepositoryInterface;
+use App\Repositories\Contable\Usuario_CuentacontableRepositoryInterface;
 use App\Repositories\Configuracion\EmpresaRepositoryInterface;
 use DB;
 
@@ -21,18 +22,21 @@ class CuentacontableController extends Controller
     private $empresaRepository;
     private $cuentacontable_centrocostoRepository;
     private $centrocostoRepository;
+    private $usuario_cuentacontableRepository;
  
     public function __construct(ConceptogastoRepositoryInterface $conceptogastorepository,
                                 CuentacontableRepositoryInterface $cuentacontablerepository,
                                 EmpresaRepositoryInterface $empresarepository,
                                 CentrocostoRepositoryInterface $centrocostorepository,
-                                Cuentacontable_CentrocostoRepositoryInterface $cuentacontable_centrocostorepository)
+                                Cuentacontable_CentrocostoRepositoryInterface $cuentacontable_centrocostorepository,
+                                Usuario_CuentaContableRepositoryInterface $usuario_cuentacontablerepository)
     {
         $this->conceptogastoRepository = $conceptogastorepository;
         $this->cuentacontableRepository = $cuentacontablerepository;
         $this->empresaRepository = $empresarepository;
         $this->centrocostoRepository = $centrocostorepository;
         $this->cuentacontable_centrocostoRepository = $cuentacontable_centrocostorepository;
+        $this->usuario_cuentacontableRepository = $usuario_cuentacontablerepository;
     }
 
     /**
@@ -172,43 +176,46 @@ class CuentacontableController extends Controller
     public function consultaCuentaContable(Request $request)
     {
 		$columns = ['cuentacontable.id', 'cuentacontable.codigo', 'cuentacontable.nombre', 'empresa.nombre'];
-		$columnsOut = ['cuentacontable_id', 'codigo', 'nombre', 'nombreempresa'];
+		$columnsOut = ['cuentacontable_id', 'codigocuentacontable', 'nombrecuentacontable', 'nombreempresa'];
 
-		$query = CuentaContable::select('cuentacontable.id as cuentacontable_id', 'cuentacontable.codigo', 
-                'cuentacontable.nombre', 'empresa.nombre as nombreempresa')
+        $empresaId = $request->empresa_id;
+        $consulta = $request->consulta;
+        $count = count($columns);
+
+        $query = CuentaContable::select('cuentacontable.id as cuentacontable_id', 'cuentacontable.codigo as codigocuentacontable', 
+                'cuentacontable.nombre as nombrecuentacontable', 'cuentacontable.empresa_id as empresa_id', 'empresa.nombre as nombreempresa',
+                'cuentacontable.tipocuenta')
 				->leftJoin('empresa','cuentacontable.empresa_id','=','empresa.id')
-                ->where('tipocuenta', '1');
+                ->orWhere(function ($query) use ($count, $consulta, $columns) {
+                        for ($i = 0; $i < $count; $i++)
+                            $query->orWhere($columns[$i], "LIKE", '%'. $consulta . '%');
+                })
+                ->get();
 
-		$consulta = $request->consulta;
-
-		/* Filtrado */
-		$cont = count($columns);
-		if ($consulta != null) 
-		{
-			$query = $query->where($columns[0], "LIKE", '%'. $consulta . '%');
-
-			for ($i = 1; $i < $cont; $i++) {
-				$query = $query->orWhere($columns[$i], "LIKE", '%'. $consulta . '%');
-			}
-		}
-		$query = $query->get();
-
-		$output = [];
+        $output = [];
 		$output['data'] = '';	
+        $flSinDatos = true;
 		if (count($query) > 0)
 		{
 			foreach ($query as $row)
 			{
-				$output['data'] .= '<tr>';
-				for ($i = 0; $i < $cont; $i++)
-				{
-					$output['data'] .= '<td class="'.$columnsOut[$i].'">' . $row[$columnsOut[$i]] . '</td>';	
-				}
-				$output['data'] .= '<td><a class="btn btn-warning btn-sm eligeconsulta">Elegir</a></td>';
-				$output['data'] .= '</tr>';
+                // Lee si tiene filtro por cuenta contable del usuario
+                $usuario_cuentacontable = $this->usuario_cuentacontableRepository
+                                            ->leePorUsuarioCuenta(auth()->id(), $row['cuentacontable_id']);
+
+                if ($row['tipocuenta'] == '1' && $row['empresa_id'] == $empresaId && count($usuario_cuentacontable) == 0)
+                {
+                    $flSinDatos = false;
+                    $output['data'] .= '<tr>';
+                    for ($i = 0; $i < $count; $i++)
+                        $output['data'] .= '<td class="'.$columnsOut[$i].'">' . $row[$columnsOut[$i]] . '</td>';	
+                    $output['data'] .= '<td><a class="btn btn-warning btn-sm eligeconsultacuentacontable">Elegir</a></td>';
+                    $output['data'] .= '</tr>';
+                }
 			}
 		}
-		else
+
+        if ($flSinDatos)
 		{
 			$output['data'] .= '<tr>';
 			$output['data'] .= '<td>Sin resultados</td>';

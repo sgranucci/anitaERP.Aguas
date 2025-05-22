@@ -45,6 +45,7 @@
     </div>
     <input type="hidden" id="numeroasiento" name="numeroasiento" value="{{ $data->numeroasiento ?? '' }}" />
     <input type="hidden" id="id" name="id" value="{{ $data->id ?? '' }}" />
+    <h2 id="loading"style="display:none">Guardando asiento ...</h2>
     <h3>Cuentas</h3>
     <div class="card-body">
         <table class="table" id="cuenta-table">
@@ -98,10 +99,10 @@
                             </select>
                         </td>
                         <td>
-                            <input type="number" name="debes[]" class="form-control debe" value="{{old('debes[]', ($cuenta->monto > 0 ? number_format($cuenta->monto, 2) : '') ?? '')}}">
+                            <input type="number" name="debes[]" class="form-control debe" value="{{old('debes[]', ($cuenta->monto > 0 ? $cuenta->monto : '') ?? '')}}">
                         </td>
                         <td>
-                            <input type="number" name="haberes[]" class="form-control haber" value="{{old('haberes[]', ($cuenta->monto < 0 ? number_format(abs($cuenta->monto), 2) : '') ?? '')}}">
+                            <input type="number" name="haberes[]" class="form-control haber" value="{{old('haberes[]', ($cuenta->monto < 0 ? abs($cuenta->monto) : '') ?? '')}}">
                         </td>
                         <td>
                             <input type="number" name="cotizaciones[]" class="form-control cotizacion" value="{{old('cotizaciones[]', $cuenta->cotizacion ?? '0')}}">

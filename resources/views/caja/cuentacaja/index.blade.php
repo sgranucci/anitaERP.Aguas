@@ -35,6 +35,7 @@
                             <th>Banco</th>
                             <th>Empresa</th>
                             <th>Cuenta contable</th>
+                            <th>Moneda</th>
                             <th>CBU</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>
@@ -54,6 +55,7 @@
                             <td>{{$data->bancos->nombre ?? ''}}</td>
                             <td>{{$data->empresas->nombre ?? ''}}</td>
                             <td>{{$data->cuentacontables->codigo ?? ''}}-{{$data->cuentacontables->nombre??''}}</td>
+                            <td>{{$data->monedas->nombre ?? ''}}</td>
                             <td>{{$data->cbu}}</td>
                             <td>
                        			@if (can('editar-cuentas-de-caja', false))

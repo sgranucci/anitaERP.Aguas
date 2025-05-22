@@ -4,6 +4,8 @@ namespace App\Models\Seguridad;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use App\Models\Admin\Rol;
+use App\Models\Contable\Usuario_Cuentacontable;
+use App\Models\Contable\Cuentacontable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Hash;
@@ -22,6 +24,11 @@ class Usuario extends Authenticatable
     {
         return $this->belongsToMany(Rol::class, 'usuario_rol');
     }
+
+    public function usuario_cuentacontables()
+	{
+    	return $this->hasMany(Usuario_Cuentacontable::class)->with('cuentacontables');
+	}
 
     public function setSession($roles)
     {

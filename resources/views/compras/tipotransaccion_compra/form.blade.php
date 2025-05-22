@@ -112,7 +112,21 @@
             </select>
         </div>
     </div>
-    <input type="hidden" id="estado" name="estado" value="{{$data->estado ?? 'A'}}" >
+    <div class="col-sm-12">
+        <div class="form-group row">
+            <label for="estado" class="col-lg-3 col-form-label requerido">Estado</label>
+            <select name="estado" class="col-lg-3 form-control" required>
+                <option value="">-- Elija estado --</option>
+                @foreach($estadoEnum as $value => $estado)
+                    @if( $value == old('estado', $data->estado ?? ''))
+                        <option value="{{ $value }}" selected="select">{{ $estado }}</option>    
+                    @else
+                        <option value="{{ $value }}">{{ $estado }}</option>    
+                    @endif
+                @endforeach
+            </select>
+        </div>
+    </div>
 	<div class="card-body">
     	<table class="table" id="centrocosto-table">
     		<thead>

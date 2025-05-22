@@ -14,17 +14,12 @@
             </select>
         </div>
         <div class="form-group row">
-            <label for="reserva" class="col-lg-3 col-form-label">Reserva</label>
-            <select name="reserva_id" id="reserva_id" data-placeholder="Reserva (file)" class="col-lg-9 form-control required" data-fouc>
-                <option value="">-- Seleccionar --</option>
-                @foreach($reserva_query as $key => $value)
-                    @if( (int) $value->id == (int) old('reserva_id', $data->reserva_id ?? ''))
-                        <option value="{{ $value->id }}" selected="select">{{ $value->id }} Pax {{ $value->nombrepasajero }} In {{date("d-m-Y", strtotime($value->fechaarribo ?? ''))}} Out {{date("d-m-Y", strtotime($value->fechapartida ?? ''))}}</option>    
-                    @else
-                        <option value="{{ $value->id }}">{{ $value->id }} Pax {{ $value->nombrepasajero }} In {{date("d-m-Y", strtotime($value->fechaarribo ?? ''))}} Out {{date("d-m-Y", strtotime($value->fechapartida ?? ''))}}</option>    
-                    @endif
-                @endforeach
-            </select>
+            <label for="reserva" class="col-lg-2 col-form-label">Reserva</label>
+            <input type="text" class="col-lg-9 reserva" id="reserva" name="reserva" value="{{$data->nombrepasajero ?? ''}}" readonly>
+            <button type="button" title="Consulta reservas" style="padding:1;" class="btn-accion-tabla consultareserva tooltipsC">
+                <i class="fa fa-search text-primary"></i>
+            </button>
+            <input type="hidden" class="reserva_id" id="reserva_id" name="reserva_id" value="{{$data->reserva_id ?? ''}}" >
             <input type="hidden" name="pasajero_id" id="pasajero_id" class="form-control" value="{{old('pasajero_id', $data->pasajero_id ?? '')}}">
             <input type="hidden" name="nombrepasajero" id="nombrepasajero" class="form-control" value="{{old('nombrepasajero', $data->nombrepasajero ?? '')}}">
             <input type="hidden" name="fechaarribo" id="fechaarribo" class="form-control" value="">
@@ -35,7 +30,7 @@
         <div class="form-group row">
             <label for="fecha" class="col-lg-3 col-form-label">Fecha</label>
             <div class="col-lg-3">
-                <input type="date" name="fecha" id="fecha" class="form-control" value="{{old('fecha', $data->fecha ?? '')}}">
+                <input type="date" name="fecha" id="fecha" class="form-control required" value="{{old('fecha', $data->fecha ?? '')}}">
             </div>
         </div>
     </div>
@@ -59,7 +54,7 @@
     </div>
     <div class="col-sm-3">
         <div class="form-group row">
-            <label for="incluido" class="col-lg-3 col-form-label">Incluidos</label>
+            <label for="incluido" class="col-lg-3 col-form-label">Incluido</label>
             <div class="col-lg-3">
                 <input type="number" name="incluido" id="incluido" class="form-control" value="{{old('incluido', $data->incluido ?? '0')}}">
             </div>
@@ -67,7 +62,7 @@
     </div>
     <div class="col-sm-3">
         <div class="form-group row">
-            <label for="opcional" class="col-lg-3 col-form-label">Opcionales</label>
+            <label for="opcional" class="col-lg-3 col-form-label">Opcional</label>
             <div class="col-lg-3">
                 <input type="number" name="opcional" id="opcional" class="form-control" value="{{old('opcional', $data->opcional ?? '0')}}">
             </div>
@@ -177,7 +172,7 @@
     <table class="table" id="guia-table">
         <thead>
             <tr>
-                <th style="width: 4%;"></th>
+                <th style="width: 5%;"></th>
                 <th style="width: 40%;">Guia</th>
                 <th style="width: 30%;">Tipo de comisión</th>
                 <th style="width: 10%;">Porcentaje</th>
@@ -235,4 +230,5 @@
         </div>
     </div>
 </div>
+@include('includes.receptivo.modalconsultareserva')
 

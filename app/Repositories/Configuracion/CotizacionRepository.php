@@ -43,7 +43,8 @@ class CotizacionRepository implements CotizacionRepositoryInterface
 
     public function create(array $data)
     {
-		$data['usuario_id'] = Auth::user()->id;
+		if (isset(Auth::user()->id))
+			$data['usuario_id'] = Auth::user()->id;
 
 		$cotizacion = $this->model->create($data);
 

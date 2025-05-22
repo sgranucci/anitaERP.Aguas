@@ -132,12 +132,11 @@ class VoucherController extends Controller
         $servicioterrestre_query = $this->servicioterrestreRepository->all();
         $moneda_query = $this->monedaRepository->all();
         $guia_query = $this->guiaRepository->all();
-        $reserva_query = $this->reservaRepository->all();
         $tipocomision_enum = Comision_Servicioterrestre::$enumTipoComision;
         
         return view('caja.voucher.crear', compact('proveedor_query', 'formapago_query', 'talonariovoucher_query', 
                                                 'servicioterrestre_query', 'moneda_query', 'guia_query',
-                                                'reserva_query', 'tipocomision_enum'));
+                                                'tipocomision_enum'));
     }
 
     /**
@@ -185,7 +184,6 @@ class VoucherController extends Controller
         $servicioterrestre_query = $this->servicioterrestreRepository->all();
         $moneda_query = $this->monedaRepository->all();
         $guia_query = $this->guiaRepository->all();
-        $reserva_query = $this->reservaRepository->all();
         $tipocomision_enum = Comision_Servicioterrestre::$enumTipoComision;
 
         // Trae reserva si no esta en array
@@ -197,7 +195,7 @@ class VoucherController extends Controller
         return view('caja.voucher.editar', compact('data', 
                                                     'proveedor_query', 'formapago_query', 'talonariovoucher_query', 
                                                     'servicioterrestre_query', 'moneda_query', 'guia_query',
-                                                    'reserva_query', 'tipocomision_enum'));
+                                                    'tipocomision_enum'));
     }
 
     /**

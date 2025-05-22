@@ -65,7 +65,6 @@ class Asiento_ArchivoRepository implements Asiento_ArchivoRepositoryInterface
 			// Borra los registros antes de grabar nuevamente
        		$this->delete($id, $request->codigo);
 		}
-
 		$nombrearchivos = $request->file('nombrearchivos');
 	  	$lineaAnita = 0;
 		// Recorre todos los files nuevos
@@ -81,7 +80,7 @@ class Asiento_ArchivoRepository implements Asiento_ArchivoRepositoryInterface
     				$fileName = $path . '-' . $archivo->getClientOriginalName();
 	
     				$archivo->move($path, $fileName);
-	
+
 					// Guarda en ERP
 					$asiento_archivo = $this->model->create([
 									'asiento_id' => $id,
@@ -122,6 +121,8 @@ class Asiento_ArchivoRepository implements Asiento_ArchivoRepositoryInterface
 				}
 			}
 		}
+		$retorno = $asiento_archivo ?? '1';
+		return $retorno;
 	}
 
 	public function copiaArchivo($id, $nombreArchivo, $idDestino)

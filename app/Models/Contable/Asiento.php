@@ -13,7 +13,8 @@ use Auth;
 class Asiento extends Model
 {
     protected $fillable = ['empresa_id', 'tipoasiento_id', 'numeroasiento', 'fecha', 'venta_id', 'movimientostock_id',
-                            'compra_id', 'ordencompra_id', 'recepcionproveedor_id', 'observacion', 'usuario_id'];
+                            'compra_id', 'caja_movimiento_id', 'ordencompra_id', 'recepcionproveedor_id', 'observacion', 
+                            'usuario_id'];
     protected $table = 'asiento';
 
     public function asiento_movimientos()

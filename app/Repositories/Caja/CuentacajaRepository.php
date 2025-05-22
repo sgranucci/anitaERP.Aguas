@@ -205,6 +205,7 @@ class CuentacajaRepository implements CuentacajaRepositoryInterface
                 "banco_id" => $banco_id,
                 "empresa_id" => $empresa_id,
                 "cuentacontable_id" => $cuentacontable_id,
+                "moneda_id" => $data->tesm_cod_mon,
                 "cbu" => $data->tesm_nro_cbu
                 ];
 
@@ -215,7 +216,7 @@ class CuentacajaRepository implements CuentacajaRepositoryInterface
 	public function guardarAnita($request) {
         $apiAnita = new ApiAnita();
         
-        Self::convierteDatosParaAnita($request, $banco, $tipoCuenta, $fecha, $cuentaContable, $empresa);
+        Self::convierteDatosParaAnita($request, $banco, $tipoCuenta, $fecha, $cuentaContable, $empresa, $moneda);
 
         $data = array( 'tabla' => $this->tableAnita, 'acc' => 'insert',
 			'sistema' => 'che_ban',
@@ -245,7 +246,7 @@ class CuentacajaRepository implements CuentacajaRepositoryInterface
 				'".'0'."',
 				'".'0'."',
 				'".$cuentaContable."',
-                '1',
+                '".$moneda."',
                 '0',
                 '0',
                 '".$request['cbu']."',
@@ -259,7 +260,7 @@ class CuentacajaRepository implements CuentacajaRepositoryInterface
 	public function actualizarAnita($request, $id) {
         $apiAnita = new ApiAnita();
 
-        Self::convierteDatosParaAnita($request, $banco, $tipoCuenta, $fecha, $cuentaContable, $empresa);
+        Self::convierteDatosParaAnita($request, $banco, $tipoCuenta, $fecha, $cuentaContable, $empresa, $moneda);
 
 		$data = array( 'acc' => 'update', 'tabla' => $this->tableAnita, 
 				'sistema' => 'che_ban',
@@ -268,6 +269,7 @@ class CuentacajaRepository implements CuentacajaRepositoryInterface
                         tesm_codigo_banco               = '".$banco."' ,
                         tesm_desc    	                = '".$request['nombre']."' ,
                         tesm_cta_contable               = '".$cuentaContable."' ,
+                        tesm_cod_mon                    = '".$moneda."' ,
                         tesm_nro_cbu                    = '".$request['cbu']."' ,
                         tesm_empresa 	                = '".$empresa."' "
 				,
@@ -311,7 +313,7 @@ class CuentacajaRepository implements CuentacajaRepositoryInterface
             $tipocuenta = 'V';
     }
 
-    private function convierteDatosParaAnita($data, &$banco, &$tipoCuenta, &$fecha, &$cuentaContable, &$empresa)
+    private function convierteDatosParaAnita($data, &$banco, &$tipoCuenta, &$fecha, &$cuentaContable, &$empresa, &$moneda)
     {
         $fecha = Carbon::now();
 		$fecha = $fecha->format('Ymd');
@@ -342,5 +344,6 @@ class CuentacajaRepository implements CuentacajaRepositoryInterface
                 $empresa = '0';
         }
 
+        $moneda = $data['moneda_id'];
     }
 }

@@ -13,9 +13,9 @@ class AsientoQuery implements AsientoQueryInterface
      *
      * @param Post $post
      */
-    public function __construct(Asiento $proveedor)
+    public function __construct(Asiento $asiento)
     {
-        $this->model = $proveedor;
+        $this->model = $asiento;
     }
 
     public function first()

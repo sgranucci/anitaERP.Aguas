@@ -16,7 +16,7 @@
             <input type="text" style="WIDTH: 250px; HEIGHT: 38px" class="nombre form-control" name="nombres[]" value="" readonly >
         </td>
         <td>
-            <select name="centrocosto_ids[]" data-placeholder="Centro de costo" class="centrocosto form-control" required data-fouc>
+            <select name="centrocosto_ids[]" data-placeholder="Centro de costo" class="centrocosto form-control" data-fouc>
                 <option value="">-- Seleccionar --</option>
                 @foreach($centrocosto_query as $key => $value)
                     <option value="{{ $value->id }}">{{ $value->nombre }}</option>    

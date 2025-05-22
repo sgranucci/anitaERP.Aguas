@@ -5,6 +5,7 @@ use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use App\Models\Configuracion\Empresa;
 use App\Services\Configuracion\ImpuestoService;
+use App\Repositories\Configuracion\CondicionivaRepositoryInterface;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -12,9 +13,11 @@ use Carbon\Carbon;
 
 class FacturaElectronicaService 
 {
-	public function __construct()
+	protected $condicionivaRepository;
+
+	public function __construct(CondicionivaRepositoryInterface $condicionivarepository)
     {
-        
+    	$this->condicionivaRepository = $condicionivarepository;
     }
 
 	public function traeUltimoNumeroComprobante($nroinscripcion, $tipotransaccion, $puntoventa)
@@ -97,6 +100,16 @@ class FacturaElectronicaService
 			Storage::disk('public')->delete($puntoventa->pathafip."/ent/$nombreXmlRespuesta");
 			$req = [];
 		}
+		else
+		{
+			// Lee condicion de iva del cliente
+			$condicioniva = $this->condicionivaRepository->find($datos['condicioniva_id']);
+
+			if ($condicioniva)
+				$condicionIvaReceptor_id = $condicioniva->codigoexterno;
+			else	
+				$condicionIvaReceptor_id = 1; // Asume inscripto por default
+		}
 
 		$req['solicitud']['servicio'] = $puntoventa->webservice;
 		$req['solicitud']['funcion'] = 'SolicitarCAE';
@@ -134,6 +147,9 @@ class FacturaElectronicaService
 				$req['encabezado']['incoterms_ds'] = '';
 			else
 				$req['encabezado']['incoterms_ds'] = ' ';
+
+			if ($datos['moneda'] != 'PES')
+				$req['encabezado']['CanMisMonExt'] = 'N';
 				
 			$req['encabezado']['idioma_cbte'] = '2';
 			$req['encabezado']['permisos'] = ' ';
@@ -195,6 +211,9 @@ class FacturaElectronicaService
 			$req['detalle']['fecha_vto_pago'] = '';
 			$req['detalle']['moneda_id'] = $datos['moneda'];
 			$req['detalle']['moneda_cotizac'] = $datos['cotizacion'];
+
+			if ($datos['fechacomprobante'] >= 20250406)
+				$req['detalle']['cond_iva_receptor_id'] = $condicionIvaReceptor_id;
 
 			if ($datos['fechaasignaciondesde'] > 0 && count($datos['comprobantesasociados']) == 0 &&
 				($tipotransaccion == 3 || $tipotransaccion == 8 || $tipotransaccion == 203 || $tipotransaccion == 53))
@@ -401,12 +420,16 @@ class FacturaElectronicaService
 		$path = Storage::path($nombrexml);
 
 		$cmd = "cd storage/$pathafip; ./afip.php ".str_replace(".xml", "", $nombrexml)." 1>&2 2>err";
-		$process = new Process($cmd);
-		$process->run();
-		if (!$process->isSuccessful()) {
-			throw new ProcessFailedException($process);
-		}
-		echo $process->getOutput();
+		//$array_cmd = explode(' ', $cmd);
+		//$process = new Process($array_cmd);
+		//$process->run();
+		//if (!$process->isSuccessful()) {
+		//	throw new ProcessFailedException($process);
+		//}
+		//echo $process->getOutput();
+		system($cmd, $retorno);
+
+		return($retorno);
 	}
 	
 	private function GenerarXML ($data, $xml) {

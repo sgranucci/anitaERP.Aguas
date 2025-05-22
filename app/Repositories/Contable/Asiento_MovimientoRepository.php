@@ -26,6 +26,11 @@ class Asiento_MovimientoRepository implements Asiento_MovimientoRepositoryInterf
 		return self::guardarAsiento_Movimiento($data, 'create', $id);
     }
 
+	public function createUnique(array $data)
+	{
+		$asiento_movimiento = $this->model->create($data);
+	}
+
     public function update(array $data, $id)
     {
 		return self::guardarAsiento_Movimiento($data, 'update', $id);
@@ -71,7 +76,7 @@ class Asiento_MovimientoRepository implements Asiento_MovimientoRepositoryInterf
 		}
 
 		// Graba cuentas contables
-		if (isset($data['cuentacontable_ids']))
+		if (isset($data))
 		{
 			$cuentacontable_ids = $data['cuentacontable_ids'];
 			$centrocosto_ids = $data['centrocosto_ids'];
@@ -136,7 +141,7 @@ class Asiento_MovimientoRepository implements Asiento_MovimientoRepositoryInterf
 					$asiento_movimiento = $this->model->create([
 									"asiento_id" => $id,
 									"cuentacontable_id" => $cuentacontable_ids[$i_movimiento],
-									"centrocosto_id" => $centrocosto_ids[$i] === '0' ? null : $centrocosto_ids[$i],
+									"centrocosto_id" => $centrocosto_ids[$i_movimiento] === '0' ? null : $centrocosto_ids[$i_movimiento],
 									"moneda_id" => $moneda_ids[$i_movimiento],
 									"monto" => $monto,
 									"cotizacion" => $cotizaciones[$i_movimiento],
@@ -149,5 +154,7 @@ class Asiento_MovimientoRepository implements Asiento_MovimientoRepositoryInterf
 		{
 			$asiento_movimiento = $this->model->where('asiento_id', $id)->delete();
 		}
+
+		return $asiento_movimiento;
 	}
 }

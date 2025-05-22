@@ -132,4 +132,10 @@ class ReservaController extends Controller
             abort(404);
         }
     }
+
+    public function consultaReserva(Request $request)
+    {
+        return ($this->reservaRepository->leeReserva($request->consulta));
+	}
+
 }

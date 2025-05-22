@@ -116,4 +116,9 @@ class MonedaController extends Controller
             abort(404);
         }
     }
+
+    public function leerMoneda()
+    {
+        return Moneda::orderBy('id')->get();
+    }
 }

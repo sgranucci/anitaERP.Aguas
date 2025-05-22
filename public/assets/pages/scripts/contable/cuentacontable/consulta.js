@@ -1,4 +1,9 @@
 function buscar_datos(consulta) {
+    let empresa_id = $("#consultaempresa_id").val();
+
+    if (empresa_id == 0)
+        empresa_id = $("#empresa_id").val();
+
     $.ajax({
         url: '/anitaERP/public/contable/cuentacontable/consultacuentacontable',
         type: 'POST',
@@ -8,10 +13,12 @@ function buscar_datos(consulta) {
     	},
         data: {
             consulta: consulta,
+            empresa_id: empresa_id
         },
     })
     .done (function(respuesta) {
 		const resp = respuesta.replace(/\\/g, '');
+        $("#datos").html("");
         $("#datos").html(resp);
     })
     .fail (function() {
@@ -26,13 +33,13 @@ $("input").keydown(function (e){
     // Si la tecla es el Intro/Enter
     if (keyCode == 13){
       // Evitamos que se ejecute eventos
-      event.preventDefault();
+      e.preventDefault();
       // Devolvemos falso
       return false;
     }
   });
 
-$(document).on('keyup', '#consulta', function () {
+$(document).on('keyup', '#consultacuentacontable', function () {
     var valor = $(this).val();
     if (valor != "") {
         buscar_datos(valor);

@@ -51,10 +51,61 @@ class ReservaRepository implements ReservaRepositoryInterface
             'orderBy' => "rese_fecha_arribo desc" 
         );
         $dataAnita = json_decode($apiAnita->apiCall($data));
-
         #return $this->model->orderBy('nombre','ASC')->get();
 
         return $dataAnita;
+    }
+
+    public function leeReserva($consulta)
+    {
+        $columns = ['rese_reserva', 'rese_fecha_arribo', 'rese_fecha_partida', 'rese_pasajero', 'pasajero_id'];
+        $columnsOut = ['id', 'fechaarribo', 'fechapartida', 'nombrepasajero', 'pasajero_id'];
+
+        $apiAnita = new ApiAnita();
+        $data = array( 
+            'acc' => 'list', 'tabla' => $this->tableAnita, 
+            'sistema' => 'receptivo',
+            'campos' => '
+                rese_reserva as id,
+                rese_fecha_arribo as fechaarribo,
+                rese_fecha_partida as fechapartida,
+                rese_pasajero as nombrepasajero,
+                (select resepa_pasajero from resepax where resepa_reserva=rese_reserva
+                and resepa_orden=0) as pasajero_id
+            ' , 
+            'whereArmado' => " WHERE (rese_pasajero like '%".$consulta."%' ".
+                                    (is_numeric($consulta) ? " or rese_fecha_arribo = ".$consulta." " : "").
+                                    (is_numeric($consulta) ? " or rese_fecha_partida = ".$consulta." " : "").
+                                    (is_numeric($consulta) ? " or rese_reserva = ".$consulta.") " : ")").
+                                    "and rese_fecha_arribo > 20240100",
+            'orderBy' => "rese_fecha_arribo desc" 
+        );
+        $dataAnita = json_decode($apiAnita->apiCall($data));
+
+        $output = [];
+		$output['data'] = '';	
+        $flSinDatos = true;
+        $count = count($columns);
+		if (count($dataAnita) > 0)
+		{
+			foreach ($dataAnita as $row)
+			{
+                $flSinDatos = false;
+                $output['data'] .= '<tr>';
+                for ($i = 0; $i < $count; $i++)
+                    $output['data'] .= '<td class="'.$columnsOut[$i].'">' . $row->{$columnsOut[$i]} . '</td>';	
+                $output['data'] .= '<td><a class="btn btn-warning btn-sm eligeconsultareserva">Elegir</a></td>';
+                $output['data'] .= '</tr>';
+			}
+		}
+
+        if ($flSinDatos)
+		{
+			$output['data'] .= '<tr>';
+			$output['data'] .= '<td>Sin resultados</td>';
+			$output['data'] .= '</tr>';
+		}
+		return(json_encode($output, JSON_UNESCAPED_UNICODE));
     }
 
     public function create(array $data)

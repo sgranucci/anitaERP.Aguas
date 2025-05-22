@@ -71,7 +71,6 @@ class AsientoController extends Controller
         $busqueda = $request->busqueda;
 
 		$asientos = $this->asientoQuery->leeAsiento($busqueda, true);
-
         $datas = ['asientos' => $asientos, 'busqueda' => $busqueda];
 
         return view('contable.asiento.index', $datas);
@@ -158,11 +157,10 @@ class AsientoController extends Controller
             if ($asiento == 'Error')
                 throw new Exception('Error en grabacion anita.');
 
-            // Guarda tablas asociadas
+                // Guarda tablas asociadas
             if ($asiento)
             {
                 $asiento_movimiento = $this->asiento_movimientoRepository->create($request->all(), $asiento->id);
-                
                 $asiento_archivo = $this->asiento_archivoRepository->create($request, $asiento->id);
             }
 
@@ -174,7 +172,7 @@ class AsientoController extends Controller
 
             return ['errores' => $e->getMessage()];
         }
-    	return redirect('contable/asiento')->with('mensaje', 'Asiento creado con exito');
+        return ['mensaje' => 'ok'];
 	}
 
     /**
@@ -212,6 +210,9 @@ class AsientoController extends Controller
     {
         can('actualizar-asiento');
 
+        session(['empresa_id' => $request->empresa_id]);
+        session(['tipoasiento_id' => $request->tipoasiento_id]);
+        
         DB::beginTransaction();
         try
         {
@@ -233,7 +234,7 @@ class AsientoController extends Controller
 
             return ['errores' => $e->getMessage()];
         }
-		return redirect('contable/asiento')->with('mensaje', 'Asiento actualizado con exito');
+        return ['mensaje' => 'ok'];
     }
 
     // Copiar o copia revirtiendo asiento

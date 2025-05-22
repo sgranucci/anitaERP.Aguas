@@ -10,6 +10,7 @@ use App\Models\Ventas\Ordentrabajo_Tarea;
 use App\Models\Ventas\Pedido_Combinacion_Estado;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use Illuminate\Pagination\Paginator;
 use App\Models\Admin\Menu;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+	Paginator::useBootstrap();
+
         View::composer("theme.lte.aside", function ($view) {
             $menus = Menu::getMenu(true);
             $view->with('menusComposer', $menus);
@@ -83,6 +86,11 @@ class AppServiceProvider extends ServiceProvider
 	    $this->app->bind(
         	'App\Queries\Contable\AsientoQueryInterface',
         	'App\Queries\Contable\AsientoQuery',
+    	);
+
+		$this->app->bind(
+        	'App\Queries\Caja\Caja_MovimientoQueryInterface',
+        	'App\Queries\Caja\Caja_MovimientoQuery',
     	);
 
 	    $this->app->bind(
@@ -214,6 +222,27 @@ class AppServiceProvider extends ServiceProvider
         	'App\Repositories\Caja\BancoRepositoryInterface',
         	'App\Repositories\Caja\BancoRepository',
     	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\CajaRepositoryInterface',
+        	'App\Repositories\Caja\CajaRepository',
+    	);
+		
+		$this->app->bind(
+        	'App\Repositories\Caja\Caja_AsignacionRepositoryInterface',
+        	'App\Repositories\Caja\Caja_AsignacionRepository',
+    	);
+		
+		$this->app->bind(
+        	'App\Queries\Caja\Caja_AsignacionQueryInterface',
+        	'App\Queries\Caja\Caja_AsignacionQuery',
+    	);
+		
+		$this->app->bind(
+        	'App\Repositories\Caja\Tipotransaccion_CajaRepositoryInterface',
+        	'App\Repositories\Caja\Tipotransaccion_CajaRepository',
+    	);
+
 
 		$this->app->bind(
         	'App\Repositories\Compras\CondicionpagoRepositoryInterface',
@@ -528,6 +557,11 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 		$this->app->bind(
+        	'App\Repositories\Contable\Usuario_CuentacontableRepositoryInterface',
+        	'App\Repositories\Contable\Usuario_CuentacontableRepository',
+    	);
+
+		$this->app->bind(
         	'App\Repositories\Receptivo\TiposervicioterrestreRepositoryInterface',
         	'App\Repositories\Receptivo\TiposervicioterrestreRepository',
     	);
@@ -576,5 +610,26 @@ class AppServiceProvider extends ServiceProvider
         	'App\Repositories\Caja\Voucher_GuiaRepositoryInterface',
         	'App\Repositories\Caja\Voucher_GuiaRepository',
     	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\Caja_MovimientoRepositoryInterface',
+        	'App\Repositories\Caja\Caja_MovimientoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\Caja_Movimiento_EstadoRepositoryInterface',
+        	'App\Repositories\Caja\Caja_Movimiento_EstadoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\Caja_Movimiento_CuentacajaRepositoryInterface',
+        	'App\Repositories\Caja\Caja_Movimiento_CuentacajaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\Caja_Movimiento_ArchivoRepositoryInterface',
+        	'App\Repositories\Caja\Caja_Movimiento_ArchivoRepository',
+    	);
+
     }
 }

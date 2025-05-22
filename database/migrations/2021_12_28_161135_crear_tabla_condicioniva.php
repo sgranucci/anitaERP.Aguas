@@ -19,6 +19,7 @@ class CrearTablaCondicioniva extends Migration
 			$table->string('letra',1);
 			$table->string('coniva',1);
 			$table->string('coniibb',1);
+            $table->string('codigoexterno',50);
             $table->timestamps();
             $table->charset = 'utf8mb4';
             $table->collation = 'utf8mb4_spanish_ci';

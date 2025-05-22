@@ -10,7 +10,7 @@ var codigoxcodigo;
 
 		activa_eventos(true);
 
-		// Completa combinaciones y modulos al abrir pedido
+		// Completa centros de costo al abrir asiento
 		$("#tbody-cuenta-table .codigo").each(function(index) {
 			var codigo = $(this);
 			var cuentacontable_id = $(this).parents("tr").find(".cuentacontable_id").val();
@@ -19,7 +19,7 @@ var codigoxcodigo;
 			completarCentroCosto(codigo, cuentacontable_id, centrocosto_id);
 		});
 
-		$("#botonfor1m1").click(function(){
+		$("#botonform1").click(function(){
             $(".form1").show();
             $(".form2").hide();
         });
@@ -28,7 +28,7 @@ var codigoxcodigo;
             $(".form2").show();
 
 			$("#titulo").html("");
-			$("#titulo").html("<span class='fa fa-cash-register'></span> Datos impuestos");
+			$("#titulo").html("<span class='fa fa-cash-register'></span> Cuentas");
         });
 
 		// copia asiento
@@ -91,6 +91,7 @@ var codigoxcodigo;
 			$('.codigo').off('change');
 			$('.debe').off('change');
 			$('.haber').off('change');
+			$('.moneda').off('change');
 		}
 		
 		$('.codigo').on('change', function (event) {
@@ -131,15 +132,14 @@ var codigoxcodigo;
 
         	// Abre modal de consulta
 			if (empresa_id)
-			{
 				$("#consultacuentaModal").modal('show');
-				$("#consulta").focus();
-			}
 			else	
 				alert('Debe ingresar empresa');
-			//var selectxcodigo = $("#cuentacontablexcodigo_id");
-        	//armaSelectCuenta(selectxcodigo, cuentacontablexcodigo, 2);
     	});
+
+		$('#consultacuentaModal').on('shown.bs.modal', function () {
+			$(this).find('[autofocus]').focus();
+		})
 
     	$('#aceptaconsultacuentaModal').on('click', function () {
         	$('#consultacuentaModal').modal('hide');
@@ -165,31 +165,40 @@ var codigoxcodigo;
 
 		$('.debe').on('change', function (event) {
 			event.preventDefault();
-			leeCotizacion(this);
 			sumaMonto();
 		});
 
 		$('.haber').on('change', function (event) {
 			event.preventDefault();
-			leeCotizacion(this);
 			sumaMonto();
 		});
 
-
-
+		$('.moneda').on('change', function (event) {
+			event.preventDefault();
+			leeCotizacion(this);
+		});
 	}
 
     function agregaRenglonCuenta(){
     	event.preventDefault();
-    	var renglon = $('#template-renglon-cuenta').html();
+    	let renglon = $('#template-renglon-cuenta').html();
+		let monedaDefault = $("#tbody-cuenta-table").children(':first').find('.moneda').val();
 
     	$("#tbody-cuenta-table").append(renglon);
     	actualizaRenglonesCuenta();
 
+		// Asigna default de moneda
+		$("#tbody-cuenta-table").last().find('.moneda').val(monedaDefault);
+
+		let ptrUltimoRenglon = $("#tbody-cuenta-table").last().find('.moneda');
+
+		// Lee cotizacion de la moneda
+		leeCotizacion(ptrUltimoRenglon);
+
 		activa_eventos(false);
     }
 
-    function borraRenglonCuenta() {
+    function borraRenglonCuenta(event) {
     	event.preventDefault();
     	$(this).parents('tr').remove();
     	actualizaRenglonesCuenta();
@@ -348,6 +357,7 @@ var codigoxcodigo;
 	
 		$.get(url_cot, function(data){
 			$(ptr).parents("tr").find('.cotizacion').val(data.cotizacionventa);
+			sumaMonto();
 		});
 	}
 
@@ -355,25 +365,145 @@ var codigoxcodigo;
 	{
 		let totDebe = 0;
 		let totHaber = 0;
+		let monedaDefault = $("#tbody-cuenta-table").children(':first').find('.moneda').val();
 
 		$("#tbody-cuenta-table .debe").each(function() {
             let valor = parseFloat($(this).val());
+			let moneda = $(this).parents("tr").find('.moneda').val();
+			let cotizacion = $(this).parents("tr").find('.cotizacion').val();
 
             if (valor >= 0)
-                totDebe += valor;
+			{
+				let coef = calculaCoeficienteMoneda(monedaDefault, moneda, cotizacion);
+
+                totDebe += valor * coef;
+			}
         });
 
         $("#tbody-cuenta-table .haber").each(function() {
             let valor = parseFloat($(this).val());
+			let moneda = $(this).parents("tr").find('.moneda').val();
+			let cotizacion = $(this).parents("tr").find('.cotizacion').val();
 
-            if (valor >= 0)
-                totHaber += valor;
+			if (valor >= 0)
+			{
+				let coef = calculaCoeficienteMoneda(monedaDefault, moneda, cotizacion);
+
+				totHaber += valor * coef;
+			}
     	});
 		$("#totaldebe").val(totDebe.toFixed(2));
 		$("#totalhaber").val(totHaber.toFixed(2));
 	}
 
+	$("#form-general").submit(function (e) {
+		e.preventDefault();
+		let token = $("meta[name='csrf-token']").attr("content");
+		let empresa_id = $("#empresa_id").val();
+		let tipoasiento_id = $("#tipoasiento_id").val();
+		let fecha = $("#fecha").val();
+		let observacion = $("#observacion").val();
+		let id = $("#id").val();
+		let numeroasiento = $("#numeroasiento").val();
+	
+		let datosCuentas=[];
+		let datosHeader=[];
+		var cuentacontable_ids, centrocosto_ids, moneda_ids,  debes, haberes;
+		var cotizaciones, observaciones;
+		var url;
 
+		datosHeader.push({
+			empresa_id,
+			tipoasiento_id,
+			fecha,
+			observacion,
+			numeroasiento
+		});
+		datosHeader = JSON.stringify(datosHeader);
+
+		$("#cuenta-table .item-cuenta").each(function() {
+			cuentacontable_ids = $(this).find(".cuentacontable_id").val();
+			centrocosto_ids = $(this).find(".centrocosto").val();
+			moneda_ids = $(this).find(".moneda").val();
+			debes = $(this).find(".debe").val();
+			haberes = $(this).find(".haber").val();
+			cotizaciones = $(this).find(".cotizacion").val();
+			observaciones = $(this).find(".observacion").val();
+
+			datosCuentas.push({
+				cuentacontable_ids,
+				centrocosto_ids,
+				moneda_ids,
+				debes,
+				haberes,
+				cotizaciones,
+				observaciones
+			});
+		});
+		datosCuentas = JSON.stringify(datosCuentas);
+		
+		$.ajaxSetup({
+			beforeSend: BeforeSend,
+			complete: CompleteFunc,
+		});
+
+
+		//$.post(url,
+		//	{
+		//		_token: token,
+		//		header: datosHeader,
+		//		datos: datosCuentas,
+		//	},           
+		//	function(data, status){
+		//		alert(data);
+		//		window.location.href = '/anitaERP/public/contable/asiento';
+		//	});
+
+		//FormData es necesario para el envio de archivo,
+		//y de la siguiente manera capturamos todos los elementos del formulario
+		//var parametros=new FormData($(this)[0]);
+		var parametros=new FormData($(this)[0])
+
+		parametros.append('_token', token);
+
+		//parametros.append('header', datosHeader);
+		//parametros.append('datos',datosCuentas);
+
+		if (id != '')
+			url = "/anitaERP/public/contable/actualizarasiento/"+id;
+		else
+			url = "/anitaERP/public/contable/asiento";
+
+		//realizamos la petición ajax con la función de jquery
+		$.ajax({
+			type: "POST",
+			url: url,
+			data: parametros,
+			contentType: false, //importante enviar este parametro en false
+			processData: false, //importante enviar este parametro en false
+			success: function (data) {
+				if (data.mensaje == 'ok')
+					alert("Se grabó el asiento con éxito");
+				else
+					alert("Error de grabacion");
+				window.location.href = '/anitaERP/public/contable/asiento';
+			},
+			error: function (r) {
+				alert("Error del servidor");
+			}
+		});
+	});
+	
+	function BeforeSend()
+	{
+		$("#loading").show();
+	}
+	
+	function CompleteFunc()
+	{
+		$("#loading").hide();
+	}
+	
 
 
 		

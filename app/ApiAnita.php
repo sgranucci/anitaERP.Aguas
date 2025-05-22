@@ -24,10 +24,7 @@ class ApiAnita {
         $data["IFX_DB_PATH"] = env('ANITA_BDD_PATH')."/".env('ANITA_BDD');
         //dd($data);
         $curl = curl_init();        
-        if ($data['tabla'] == 'subdiario')
-            $url = "http://".$this->servidorAnita."/apicontab.php";
-        else
-            $url = "http://".$this->servidorAnita."/api.php";
+        $url = "http://".$this->servidorAnita."/api.php";
         //dd("url", $url);
         $fl = false;
         $data = json_encode($data);

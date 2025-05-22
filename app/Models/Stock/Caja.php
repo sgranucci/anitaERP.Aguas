@@ -11,7 +11,7 @@ use App\Models\Stock\Articulo;
 class Caja extends Model
 {
     protected $fillable = ['nombre','desdenro','hastanro','articulo_id'];
-    protected $table = 'caja';
+    protected $table = 'cajaproducto';
     protected $tableAnita = 'numcaja';
     protected $keyFieldAnita = 'numca_codigo';
     protected $keyField = 'id';

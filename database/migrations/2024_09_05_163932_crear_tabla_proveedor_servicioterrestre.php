@@ -19,6 +19,9 @@ class CrearTablaProveedorServicioterrestre extends Migration
             $table->foreign('proveedor_id', 'fk_proveedor_servicioterrestre_proveedor')->references('id')->on('proveedor')->onDelete('restrict')->onUpdate('restrict');
             $table->unsignedBigInteger('servicioterrestre_id');
             $table->foreign('servicioterrestre_id', 'fk_proveedor_servicioterrestre_servicioterrestre')->references('id')->on('servicioterrestre')->onDelete('restrict')->onUpdate('restrict');
+            $table->decimal('costo',22,4);
+            $table->unsignedBigInteger('moneda_id');
+            $table->foreign('moneda_id', 'fk_proveedor_servicioterrestre_moneda')->references('id')->on('moneda')->onDelete('restrict')->onUpdate('restrict'); 
             $table->timestamps();
             $table->charset = 'utf8mb4';
             $table->collation = 'utf8mb4_spanish_ci';

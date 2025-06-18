@@ -77,7 +77,7 @@ class ReservaRepository implements ReservaRepositoryInterface
                                     (is_numeric($consulta) ? " or rese_fecha_arribo = ".$consulta." " : "").
                                     (is_numeric($consulta) ? " or rese_fecha_partida = ".$consulta." " : "").
                                     (is_numeric($consulta) ? " or rese_reserva = ".$consulta.") " : ")").
-                                    "and rese_fecha_arribo > 20240100",
+                                    "and rese_fecha_arribo > 20250100",
             'orderBy' => "rese_fecha_arribo desc" 
         );
         $dataAnita = json_decode($apiAnita->apiCall($data));

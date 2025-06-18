@@ -187,11 +187,13 @@ class VoucherController extends Controller
         $tipocomision_enum = Comision_Servicioterrestre::$enumTipoComision;
 
         // Trae reserva si no esta en array
+        $reserva_query = [];
         if (!in_array($data->reserva_id, $reserva_query, true))
         {
             $reservaActual = $this->reservaRepository->find($data['reserva_id']);
             $reserva_query[] = $reservaActual[0];
         }
+
         return view('caja.voucher.editar', compact('data', 
                                                     'proveedor_query', 'formapago_query', 'talonariovoucher_query', 
                                                     'servicioterrestre_query', 'moneda_query', 'guia_query',

@@ -149,4 +149,10 @@ class ServicioterrestreController extends Controller
             abort(404);
         }
     }
+
+    public function consultaServicioTerrestre(Request $request)
+    {
+        return ($this->servicioterrestreRepository->leeServicioTerrestre($request->consulta));
+	}
+
 }

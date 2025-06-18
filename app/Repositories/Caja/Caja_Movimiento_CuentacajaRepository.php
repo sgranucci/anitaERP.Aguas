@@ -133,8 +133,8 @@ class Caja_Movimiento_CuentacajaRepository implements Caja_Movimiento_Cuentacaja
 				if ($cuentacaja_ids[$i_movimiento] != '') 
 				{
 					$monto = 0;
-					if ($montos[$i] != null && $montos[$i] != 0)
-						$monto = $montos[$i] * $signo;
+					if ($montos[$i_movimiento] != null && $montos[$i_movimiento] != 0)
+						$monto = $montos[$i_movimiento] * $signo;
 
 					$caja_movimiento_cuentacaja = $this->model->create([
 						"caja_movimiento_id" => $id,

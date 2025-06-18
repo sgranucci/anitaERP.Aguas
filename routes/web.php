@@ -1295,6 +1295,8 @@ Route::get('compras/proveedor/{id}/editar', 'Compras\ProveedorController@editar'
 Route::put('compras/proveedor/{id}', 'Compras\ProveedorController@actualizar')->name('actualizar_proveedor');
 Route::delete('compras/proveedor/{id}', 'Compras\ProveedorController@eliminar')->name('eliminar_proveedor');
 
+Route::post('compras/proveedor/consultaproveedor', 'Compras\ProveedorController@consultaProveedor')->name('consulta_proveedor');
+
 /* Modulo receptivo */
 
 /* 
@@ -1319,6 +1321,8 @@ Route::delete('compras/proveedor/{id}', 'Compras\ProveedorController@eliminar')-
  Route::put('receptivo/servicioterrestre/{id}', 'Receptivo\ServicioterrestreController@actualizar')->name('actualizar_servicioterrestre');
  Route::delete('receptivo/servicioterrestre/{id}', 'Receptivo\ServicioterrestreController@eliminar')->name('eliminar_servicioterrestre'); 
 
+ Route::post('receptivo/servicioterrestre/consultaservicioterrestre', 'Receptivo\ServicioterrestreController@consultaServicioTerrestre')->name('consulta_servicioterrestre');
+
 /* 
  * Servicios por proveedor
  */
@@ -1329,7 +1333,9 @@ Route::delete('compras/proveedor/{id}', 'Compras\ProveedorController@eliminar')-
  Route::get('receptivo/proveedor_servicioterrestre/{id}/editar', 'Receptivo\Proveedor_ServicioterrestreController@editar')->name('editar_proveedor_servicioterrestre');
  Route::put('receptivo/proveedor_servicioterrestre/{id}', 'Receptivo\Proveedor_ServicioterrestreController@actualizar')->name('actualizar_proveedor_servicioterrestre');
  Route::delete('receptivo/proveedor_servicioterrestre/{id}', 'Receptivo\Proveedor_ServicioterrestreController@eliminar')->name('eliminar_proveedor_servicioterrestre'); 
-
+ 
+ Route::get('receptivo/leercostoproveedor_servicioterrestre/{servicioterrestre_id}/{proveedor_id}', 'Receptivo\Proveedor_ServicioterrestreController@leeCosto')->name('leer_costo_proveedor_servicioterrestre');
+ 
 /* 
  * Idiomas
  */
@@ -1340,6 +1346,17 @@ Route::delete('compras/proveedor/{id}', 'Compras\ProveedorController@eliminar')-
  Route::get('receptivo/idioma/{id}/editar', 'Receptivo\IdiomaController@editar')->name('editar_idioma');
  Route::put('receptivo/idioma/{id}', 'Receptivo\IdiomaController@actualizar')->name('actualizar_idioma');
  Route::delete('receptivo/idioma/{id}', 'Receptivo\IdiomaController@eliminar')->name('eliminar_idioma');
+
+/* 
+ * Moviles
+ */
+
+ Route::get('receptivo/movil', 'Receptivo\MovilController@index')->name('movil');
+ Route::get('receptivo/movil/crear', 'Receptivo\MovilController@crear')->name('crear_movil');
+ Route::post('receptivo/movil', 'Receptivo\MovilController@guardar')->name('guardar_movil');
+ Route::get('receptivo/movil/{id}/editar', 'Receptivo\MovilController@editar')->name('editar_movil');
+ Route::put('receptivo/movil/{id}', 'Receptivo\MovilController@actualizar')->name('actualizar_movil');
+ Route::delete('receptivo/movil/{id}', 'Receptivo\MovilController@eliminar')->name('eliminar_movil');
 
 /* 
  * Guias

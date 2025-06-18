@@ -17,11 +17,11 @@ class TablaPermisoSeeder extends Seeder
     {
         $now = Carbon::now()->toDateTimeString();
         $permisos = [
-            array('id' => '535', 'nombre' => 'Ingresa asignacion de caja', 'slug' => 'crea-asignacion-caja', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '536', 'nombre' => 'Lista asignacion de caja', 'slug' => 'lista-asignacion-caja', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '537', 'nombre' => 'Edita asignacion de caja', 'slug' => 'edita-asignacion-caja', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '538', 'nombre' => 'Actualiza asignacion de caja', 'slug' => 'actualiza-asignacion-caja', 'created_at' => $now, 'updated_at' => $now),
-            array('id' => '539', 'nombre' => 'Borra asignacion de caja', 'slug' => 'borra-asignacion-caja', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '545', 'nombre' => 'Ingresa movil', 'slug' => 'crea-movil', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '546', 'nombre' => 'Lista movil', 'slug' => 'lista-movil', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '547', 'nombre' => 'Edita movil', 'slug' => 'edita-movil', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '548', 'nombre' => 'Actualiza movil', 'slug' => 'actualiza-movil', 'created_at' => $now, 'updated_at' => $now),
+            array('id' => '549', 'nombre' => 'Borra movil', 'slug' => 'borra-movil', 'created_at' => $now, 'updated_at' => $now),
 
         ];
         DB::table('permiso')->insert($permisos);

@@ -427,4 +427,10 @@ class ProveedorController extends Controller
                 ->download('proveedor.'.$extension);
     }
     
+    // Consulta de proveedores (lupa)
+    public function consultaProveedor(Request $request)
+    {
+        return ($this->proveedorQuery->consultaProveedor($request->consulta));
+	}
+
 }

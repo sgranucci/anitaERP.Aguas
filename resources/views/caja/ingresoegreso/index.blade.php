@@ -55,7 +55,7 @@
                             <th>Fecha</th>
                             <th>Tipo de transacción</th>
                             <th>Detalle</th>
-                            <th>Monto</th>
+                            <th>Monto en $</th>
                             <th>Movimientos</th>
                             <th class="width40" data-orderable="false"></th>
                         </tr>
@@ -72,9 +72,14 @@
                             <td>
                                 @php $totalIngreso = 0; $totalEgreso= 0; @endphp
                                 @foreach($data->caja_movimiento_cuentacajas as $movimiento)
+                                    @if ($movimiento->moneda_id > 1)
+                                        @php $coef = $movimiento->cotizacion; @endphp
+                                    @else
+                                        @php $coef = 1.; @endphp
+                                    @endif
                                     @php 
-                                        $totalIngreso += ($movimiento->monto > 0 ? $movimiento->monto : 0);
-                                        $totalEgreso += ($movimiento->monto < 0 ? abs($movimiento->monto) : 0);
+                                        $totalIngreso += ($movimiento->monto > 0 ? $movimiento->monto * $coef : 0);
+                                        $totalEgreso += ($movimiento->monto < 0 ? abs($movimiento->monto * $coef) : 0);
                                     @endphp
                                 @endforeach
                                 @if ($totalIngreso != 0)

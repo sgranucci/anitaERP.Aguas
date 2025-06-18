@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ValidacionProveedor_Servicioterrestre extends FormRequest
 {
@@ -24,6 +25,12 @@ class ValidacionProveedor_Servicioterrestre extends FormRequest
     public function rules()
     {
         return [
+            'servicioterrestre_id' => [
+                                        'required',
+                                        Rule::unique('proveedor_servicioterrestre')->ignore($this->id)->where(function ($query) {
+                                            return $query->where('proveedor_id', $this->get('proveedor_id'));
+                                        }),
+                                    ]
         ];
     }
 }

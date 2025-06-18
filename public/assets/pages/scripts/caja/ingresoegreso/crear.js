@@ -421,9 +421,12 @@ var flCrear;
             if (valor >= 0)
                 totalDebe += valor * coef;
 			else
-				totalHaber += Math.abs(valor) * coef;
+			{
+				if (valor > -999999999999 && valor < 0)
+					totalHaber += Math.abs(valor) * coef;
+			}
 
-			totalMoneda[moneda] += valor * coef;
+			totalMoneda[moneda] += valor;
         });
 
 		$("#totaldebe").val(totalDebe.toFixed(2));

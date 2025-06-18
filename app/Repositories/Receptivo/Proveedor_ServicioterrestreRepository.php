@@ -23,7 +23,7 @@ class Proveedor_ServicioterrestreRepository implements Proveedor_Servicioterrest
 
     public function all()
     {
-        return $this->model->with('proveedores')->with('servicioterrestres')->orderBy('proveedor_id','ASC')->get();
+        return $this->model->with('proveedores')->with('servicioterrestres')->with('monedas')->orderBy('proveedor_id','ASC')->get();
     }
 
     public function create(array $data)
@@ -63,4 +63,11 @@ class Proveedor_ServicioterrestreRepository implements Proveedor_Servicioterrest
         return $proveedor_servicioterrestre;
     }
 
+    public function leeCosto($servicioterrestre_id, $proveedor_id)
+    {
+        $proveedor_servicioterrestre = $this->model->where('servicioterrestre_id', $servicioterrestre_id)
+                            ->where('proveedor_id', $proveedor_id)->first();
+
+        return($proveedor_servicioterrestre);
+    }
 }

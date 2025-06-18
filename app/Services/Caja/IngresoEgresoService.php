@@ -78,7 +78,6 @@ class IngresoEgresoService
 	   	$data['fechas'][] = Carbon::now();
 	   	$data['estados'][] = Caja_Movimiento_Estado::$enumEstado[0]['valor'];
 	   	$data['observacionestados'][] = "Alta de Movimiento de Caja";
-
 		DB::beginTransaction();
         try
         {
@@ -319,7 +318,6 @@ class IngresoEgresoService
 		$asiento = [];
 		if (count($datosContables) > 0)
 		{
-			dd($datosContables);
 			foreach($datosContables as $imputacionContable)
 			{
 				$cuentacontable = $this->cuentacontableRepository->find($imputacionContable->cuentacontable_ids);

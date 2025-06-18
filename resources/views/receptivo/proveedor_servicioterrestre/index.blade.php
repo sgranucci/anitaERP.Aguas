@@ -31,6 +31,8 @@
                             <th class="width20">ID</th>
                             <th>Proveedor</th>
                             <th>Servicio Terrestre</th>
+                            <th>Costo</th>
+                            <th>Moneda</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>
                     </thead>
@@ -40,6 +42,8 @@
                             <td>{{$data->id}}</td>
                             <td>{{$data->proveedores->nombre}}</td>
                             <td>{{$data->servicioterrestres->nombre}}</td>
+                            <td>{{$data->costo}}</td>
+                            <td>{{$data->monedas->nombre ?? ''}}</td>
                             <td>
                        			@if (can('editar-servicio-por-proveedor', false))
                                 	<a href="{{route('editar_proveedor_servicioterrestre', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">

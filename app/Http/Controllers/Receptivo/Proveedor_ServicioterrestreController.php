@@ -7,6 +7,7 @@ use App\Http\Requests\ValidacionProveedor_Servicioterrestre;
 use App\Repositories\Receptivo\Proveedor_ServicioterrestreRepositoryInterface;
 use App\Repositories\Receptivo\ServicioterrestreRepositoryInterface;
 use App\Queries\Compras\ProveedorQueryInterface;
+use App\Repositories\Configuracion\MonedaRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
@@ -16,14 +17,17 @@ class Proveedor_ServicioterrestreController extends Controller
 	private $proveedor_servicioterrestreRepository;
     private $servicioterrestreRepository;
     private $proveedorQuery;
+    private $monedaRepository;
 
 	public function __construct(Proveedor_ServicioterrestreRepositoryInterface $proveedor_servicioterrestrerepository,
                                 ServicioterrestreRepositoryInterface $servicioterrestrerepository,
-                                ProveedorQueryInterface $proveedorquery)
+                                ProveedorQueryInterface $proveedorquery,
+                                MonedaRepositoryInterface $monedarepository)
     {
         $this->proveedor_servicioterrestreRepository = $proveedor_servicioterrestrerepository;
         $this->servicioterrestreRepository = $servicioterrestrerepository;
         $this->proveedorQuery = $proveedorquery;
+        $this->monedaRepository = $monedarepository;
     }
 
     /**
@@ -51,8 +55,9 @@ class Proveedor_ServicioterrestreController extends Controller
 
         $servicioterrestre_query = $this->servicioterrestreRepository->all();
         $proveedor_query = $this->proveedorQuery->all();
+        $moneda_query = $this->monedaRepository->all();
 
-        return view('receptivo.proveedor_servicioterrestre.crear', compact('servicioterrestre_query', 'proveedor_query'));
+        return view('receptivo.proveedor_servicioterrestre.crear', compact('servicioterrestre_query', 'proveedor_query', 'moneda_query'));
     }
 
     /**
@@ -80,10 +85,12 @@ class Proveedor_ServicioterrestreController extends Controller
 
 		$proveedor_servicioterrestre = $this->proveedor_servicioterrestreRepository->find($id);
         $servicioterrestre_query = $this->servicioterrestreRepository->all();
+        $moneda_query = $this->monedaRepository->all();
         $proveedor_query = $this->proveedorQuery->allQueryOrdenado(['nombre','codigo','id'], 'nombre');
         
         return view('receptivo.proveedor_servicioterrestre.editar', compact('proveedor_servicioterrestre', 
-                                                                'servicioterrestre_query', 'proveedor_query')); 
+                                                                'servicioterrestre_query', 'proveedor_query',
+                                                                'moneda_query')); 
     }
 
     /**
@@ -126,5 +133,10 @@ class Proveedor_ServicioterrestreController extends Controller
         } else {
             abort(404);
         }
+    }
+
+    public function leeCosto($servioterrestre_id, $proveedor_id)
+    {
+        return $this->proveedor_servicioterrestreRepository->leeCosto($servioterrestre_id, $proveedor_id);
     }
 }

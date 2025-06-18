@@ -330,4 +330,73 @@ class ServicioterrestreRepository implements ServicioterrestreRepositoryInterfac
 			$codigo = 1;
 	}
 		
+	public function leeServicioTerrestre($consulta)
+    {
+        //$columns = ['servt_servicio', 'servt_desc', 'servt_abreviatura', 'servt_precio_indiv', 'servt_cod_mon'];
+		$columns = ['servicioterrestre.id', 'servicioterrestre.nombre', 'servicioterrestre.abreviatura', 
+					'precioindividual', 'moneda.nombre', 'servicioterrestre.codigo'];
+        $columnsOut = ['id', 'descripcion', 'abreviatura', 'precio_indiv', 'nombremoneda', 'codigo'];
+
+		$consulta = strtoupper($consulta);
+        //$apiAnita = new ApiAnita();
+        //$data = array( 
+        //    'acc' => 'list', 'tabla' => $this->tableAnita.',moneda', 
+        //    'sistema' => 'receptivo',
+        //    'campos' => '
+        //        servt_servicio as id,
+        //        servt_desc as descripcion,
+        //        servt_abreviatura as abreviatura,
+        //        servt_precio_indiv as precio_indiv,
+		//		mon_desc as moneda
+        //    ' , 
+        //    'whereArmado' => " WHERE mon_codigo=servt_cod_mon AND (servt_desc like '%".$consulta."%' ".
+		//							"or servt_abreviatura = '".$consulta."' ".
+		//							"or mon_desc = '".$consulta."' ".
+        //                            (is_numeric($consulta) ? " or servt_servicio = ".$consulta." " : "").
+        //                            (is_numeric($consulta) ? " or servt_abreviatura = ".$consulta." " : "").
+        //                            (is_numeric($consulta) ? " or servt_precio_indiv = ".$consulta.") " : ")"),
+        //    'orderBy' => "servt_desc desc" 
+        //);
+        //$dataAnita = json_decode($apiAnita->apiCall($data));
+
+		$count = count($columns);
+		$data = $this->model->select('servicioterrestre.id as id',
+									'servicioterrestre.nombre as descripcion',
+									'servicioterrestre.abreviatura as abreviatura',
+									'servicioterrestre.precioindividual as precio_indiv',
+									'moneda.nombre as nombremoneda',
+									'servicioterrestre.codigo as codigo')
+							->leftJoin('moneda','servicioterrestre.moneda_id','=','moneda.id')
+							->orWhere(function ($query) use ($count, $consulta, $columns) {
+                        			for ($i = 0; $i < $count; $i++)
+                            			$query->orWhere($columns[$i], "LIKE", '%'. $consulta . '%');
+                })	
+				->get();								
+
+        $output = [];
+		$output['data'] = '';	
+        $flSinDatos = true;
+        $count = count($columns);
+		if (count($data) > 0)
+		{
+			foreach ($data as $row)
+			{
+                $flSinDatos = false;
+                $output['data'] .= '<tr>';
+                for ($i = 0; $i < $count; $i++)
+                    $output['data'] .= '<td class="'.$columnsOut[$i].'">' . $row->{$columnsOut[$i]} . '</td>';	
+                $output['data'] .= '<td><a class="btn btn-warning btn-sm eligeconsultaservicioterrestre">Elegir</a></td>';
+                $output['data'] .= '</tr>';
+			}
+		}
+
+        if ($flSinDatos)
+		{
+			$output['data'] .= '<tr>';
+			$output['data'] .= '<td>Sin resultados</td>';
+			$output['data'] .= '</tr>';
+		}
+		return(json_encode($output, JSON_UNESCAPED_UNICODE));
+    }
+
 }

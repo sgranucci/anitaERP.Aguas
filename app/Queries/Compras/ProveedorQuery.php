@@ -110,5 +110,51 @@ class ProveedorQuery implements ProveedorQueryInterface
         return $data;
     }
 
+    public function consultaProveedor($consulta)
+    {
+		$columns = ['proveedor.id', 'proveedor.codigo', 'proveedor.nombre', 'proveedor.domicilio', 'localidad.nombre', 'proveedor.telefono'];
+		$columnsOut = ['proveedor_id', 'codigoproveedor', 'nombreproveedor', 'domicilio', 'localidad', 'telefono'];
+
+        $count = count($columns);
+
+        $query = $this->model->select('proveedor.id as proveedor_id', 'proveedor.codigo as codigoproveedor', 
+                'proveedor.nombre as nombreproveedor', 'proveedor.domicilio as domicilio', 'localidad.nombre as localidad', 
+                'proveedor.telefono as telefono', 'proveedor.estado as estado')
+				->leftJoin('localidad','proveedor.localidad_id','=','localidad.id')
+                ->orWhere(function ($query) use ($count, $consulta, $columns) {
+                        for ($i = 0; $i < $count; $i++)
+                            $query->orWhere($columns[$i], "LIKE", '%'. $consulta . '%');
+                })
+                ->get();
+
+        $output = [];
+		$output['data'] = '';	
+        $flSinDatos = true;
+		if (count($query) > 0)
+		{
+			foreach ($query as $row)
+			{
+                if ($row['estado'] == '0')
+                {
+                    $flSinDatos = false;
+                    $output['data'] .= '<tr>';
+                    for ($i = 0; $i < $count; $i++)
+                        $output['data'] .= '<td class="'.$columnsOut[$i].'">' . $row[$columnsOut[$i]] . '</td>';	
+                    $output['data'] .= '<td><a class="btn btn-warning btn-sm eligeconsultaproveedor">Elegir</a></td>';
+                    $output['data'] .= '<td><a class="btn btn-warning btn-sm consultaproveedor">Consultar</a></td>';
+                    $output['data'] .= '</tr>';
+                }
+			}
+		}
+
+        if ($flSinDatos)
+		{
+			$output['data'] .= '<tr>';
+			$output['data'] .= '<td>Sin resultados</td>';
+			$output['data'] .= '</tr>';
+		}
+		return(json_encode($output, JSON_UNESCAPED_UNICODE));
+	}
+
 }
 

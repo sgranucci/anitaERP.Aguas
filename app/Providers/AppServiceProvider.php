@@ -582,6 +582,11 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 		$this->app->bind(
+        	'App\Repositories\Receptivo\MovilRepositoryInterface',
+        	'App\Repositories\Receptivo\MovilRepository',
+    	);
+
+		$this->app->bind(
         	'App\Repositories\Receptivo\GuiaRepositoryInterface',
         	'App\Repositories\Receptivo\GuiaRepository',
     	);

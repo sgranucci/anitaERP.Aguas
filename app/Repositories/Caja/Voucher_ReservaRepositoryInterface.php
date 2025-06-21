@@ -2,7 +2,7 @@
 
 namespace App\Repositories\Caja;
 
-interface Voucher_GuiaRepositoryInterface 
+interface Voucher_ReservaRepositoryInterface 
 {
 
     public function create(array $data, $id);
@@ -10,6 +10,6 @@ interface Voucher_GuiaRepositoryInterface
     public function find($id);
     public function findOrFail($id);
     public function delete($voucher_id, $codigo);
-    public function leeVoucherGuia($voucher_id);
+    public function leeVoucherReserva($voucher_id);
 }
 

@@ -44,31 +44,24 @@ class VoucherRepository implements VoucherRepositoryInterface
                                         'talonariovoucher.id as idtalonario',
                                         'talonariovoucher.nombre as nombretalonario',
                                         'voucher.fecha as fecha',
-                                        'voucher.nombrepasajero as nombrepasajero',
-                                        'voucher.reserva_id as numeroreserva',
                                         'voucher.pax as pax',
                                         'voucher.paxfree as paxfree',
                                         'voucher.incluido as incluido',
                                         'voucher.opcional as opcional',
                                         'proveedor.nombre as nombreproveedor',
                                         'servicioterrestre.nombre as nombreservicio',
-                                        'formapago.nombre as nombreformapago',
                                         'voucher.montovoucher as montovoucher')
                                 ->join('talonariovoucher', 'talonariovoucher.id', '=', 'voucher.talonariovoucher_id')
                                 ->join('proveedor', 'proveedor.id', '=', 'voucher.proveedor_id')
                                 ->join('servicioterrestre', 'servicioterrestre.id', '=', 'voucher.servicioterrestre_id')
-                                ->join('formapago', 'formapago.id', '=', 'voucher.formapago_id')
                                 ->with('voucher_guias')
                                 ->where('voucher.numero', $busqueda)
                                 ->orWhere('talonariovoucher.id', $busqueda)
                                 ->orWhere('talonariovoucher.nombre', 'like', '%'.$busqueda.'%')  
                                 ->orWhere('voucher.fecha', $busqueda)  
-                                ->orWhere('voucher.nombrepasajero', 'like', '%'.$busqueda.'%')  
                                 ->orWhere('voucher.montovoucher', $busqueda)
-                                ->orWhere('voucher.reserva_id', $busqueda)
                                 ->orWhere('proveedor.nombre', 'like', '%'.$busqueda.'%')
                                 ->orWhere('servicioterrestre.nombre', 'like', '%'.$busqueda.'%')
-                                ->orWhere('formapago.nombre', 'like', '%'.$busqueda.'%')
                                 ->orWhere('voucher.montovoucher', $busqueda)
                                 ->orderby('id', 'DESC');
                                 
@@ -90,6 +83,12 @@ class VoucherRepository implements VoucherRepositoryInterface
         $ultimoNumero = Self::leeUltimoNumero($data['talonariovoucher_id']);
         $data['numero'] = $ultimoNumero + 1;
 
+        if ($data['montovoucher'] == null)
+            $data['montovoucher'] = 0;
+        if ($data['montoempresa'] == null)
+            $data['montoempresa'] = 0;
+        if ($data['montoproveedor'] == null)
+            $data['montoproveedor'] = 0;      
         $voucher = $this->model->create($data);
 		//
 		// Graba anita
@@ -100,6 +99,13 @@ class VoucherRepository implements VoucherRepositoryInterface
 
     public function update(array $data, $id)
     {
+        if ($data['montovoucher'] == null)
+            $data['montovoucher'] = 0;
+        if ($data['montoempresa'] == null)
+            $data['montoempresa'] = 0;
+        if ($data['montoproveedor'] == null)
+            $data['montoproveedor'] = 0;      
+
         $voucher = $this->model->findOrFail($id)
             ->update($data);
 		//
@@ -124,7 +130,8 @@ class VoucherRepository implements VoucherRepositoryInterface
     public function find($id)
     {
         if (null == $voucher = $this->model->with('voucher_guias')->with('servicioterrestres')->with('proveedores')
-                                            ->with('formapagos')->with('monedas')
+                                            ->with('voucher_reservas')
+                                            ->with('voucher_formapagos')
                                             ->with('talonariovouchers')->find($id)) 
         {
             throw new ModelNotFoundException("Registro no encontrado");
@@ -136,7 +143,8 @@ class VoucherRepository implements VoucherRepositoryInterface
     public function findOrFail($id)
     {
         if (null == $voucher = $this->model->with('voucher_guias')->with('servicioterrestres')->with('proveedores')
-                                            ->with('formapagos')->with('monedas')
+                                            ->with('voucher_reservas')
+                                            ->with('voucher_formapagos')
                                             ->with('talonariovouchers')->findOrFail($id)) 
         {
             throw new ModelNotFoundException("Registro no encontrado");

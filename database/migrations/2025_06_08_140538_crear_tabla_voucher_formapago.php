@@ -15,8 +15,10 @@ class CrearTablaVoucherFormapago extends Migration
     {
         Schema::create('voucher_formapago', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('formapago_id');
-            $table->foreign('formapago_id', 'fk_voucher_formapago_formapago')->references('id')->on('formapago')->onDelete('restrict')->onUpdate('restrict');
+            $table->unsignedBigInteger('voucher_id');
+            $table->foreign('voucher_id', 'fk_voucher_formapago_voucher')->references('id')->on('voucher')->onDelete('cascade')->onUpdate('cascade');
+            $table->unsignedBigInteger('cuentacaja_id');
+            $table->foreign('cuentacaja_id', 'fk_voucher_formapago_cuentacaja')->references('id')->on('cuentacaja')->onDelete('restrict')->onUpdate('restrict');
             $table->unsignedBigInteger('moneda_id');
             $table->foreign('moneda_id', 'fk_voucher_formapago_moneda')->references('id')->on('moneda')->onDelete('restrict')->onUpdate('restrict'); 
             $table->decimal('monto',22,4);

@@ -30,6 +30,8 @@
 		// Muestra sumatoria de montos del ingreso egreso
 		setTimeout(() => {
 			sumaMonto();
+			sumaPasajero();
+			calculaMontoEmpresa();
 		}, 300);
 
 		// Maneja los botones de las solapas
@@ -310,7 +312,7 @@
 		let incluido = parseInt($(ptrElemento).parents('tr').find(".incluido").val());
 		let opcional = parseInt($(ptrElemento).parents('tr').find(".opcional").val());
 
-		if (pax + free + incluido + opcional > limitePax)
+		if (free + incluido + opcional > limitePax)
 		{
 			alert("No puede superar máximo de pasajeros de la reserva ("+limitePax+" Pax)");
 
@@ -356,7 +358,7 @@
     	$("#tbody-guia-table").append(renglon);
     	actualizaRenglonesGuia();
 
-		activa_eventos(false);
+		activa_eventos(true);
     }
 
     function borraRenglonGuia(event) {
@@ -387,7 +389,7 @@
     	$("#tbody-voucher-reserva-table").append(renglon);
     	actualizaRenglonesReserva();
 
-		activa_eventos(false);
+		activa_eventos(true);
     }
 
 	function borraRenglonReserva(event) {
@@ -418,7 +420,7 @@
     	$("#tbody-voucher-formapago-table").append(renglon);
     	actualizaRenglonesFormaPago();
 
-		activa_eventos(false);
+		activa_eventos(true);
     }
 
 	function borraRenglonFormaPago(event) {
@@ -470,7 +472,7 @@
 			let coef = calculaCoeficienteMoneda(monedaDefault, moneda, cotizacion);
 			totalMoneda[moneda] += valor;
 			if (moneda > 1)
-				totalMonto += (valor * cotizacion);
+				totalMonto += (valor * coef);
 			else	
 				totalMonto += valor;
         });
@@ -488,6 +490,7 @@
 			}
 		});
 		$("#montovoucher").val(totalMonto);
+
 		calculaMontoEmpresa();
 	}
 
@@ -502,8 +505,11 @@
 			let url = '/anitaERP/public/receptivo/leercostoproveedor_servicioterrestre/'+servicioterrestre_id+'/'+proveedor_id;
 			
 			$.get(url, function(data){
-				let montoProveedor = data.costo;
+				let montoProveedor = parseFloat(data.costo);
 				let moneda_id = data.moneda_id;
+
+				if (isNaN(montoProveedor))
+					montoProveedor = 0;
 
 				if (moneda_id > 1)
 				{
@@ -535,7 +541,6 @@
 			
 			montoGuia += parseFloat(monto);
 		});
-
 		montoEmpresa = parseFloat(montoVoucher) - parseFloat(montoGuia) + parseFloat(montoProveedor);
 
 		$("#montoempresa").val(montoEmpresa);

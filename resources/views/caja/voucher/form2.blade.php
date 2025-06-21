@@ -34,7 +34,7 @@
                         </td>							
                         <td>
                             <input type="text" style="WIDTH: 250px; HEIGHT: 38px" class="nombrepasajero form-control" name="nombrepasajeros[]" value="{{$reserva->nombrepasajero ?? ''}}" readonly>
-                            <input type="hidden" name="pasajero_ids[]" class="form-control" value="{{old('pasajero_ids', $reserva->pasajero_id ?? '')}}">
+                            <input type="hidden" name="pasajero_ids[]" class="form-control pasajero_id" value="{{old('pasajero_ids', $reserva->pasajero_id ?? '')}}">
                         </td>
                         <td>
                             <input type="date" name="fechaarribos[]" class="form-control fechaarribo" value="{{old('fechaarribos[]', $reserva->fechaarribo ?? '')}}">

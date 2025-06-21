@@ -617,6 +617,16 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 		$this->app->bind(
+        	'App\Repositories\Caja\Voucher_ReservaRepositoryInterface',
+        	'App\Repositories\Caja\Voucher_ReservaRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\Voucher_FormapagoRepositoryInterface',
+        	'App\Repositories\Caja\Voucher_FormapagoRepository',
+    	);
+
+		$this->app->bind(
         	'App\Repositories\Caja\Caja_MovimientoRepositoryInterface',
         	'App\Repositories\Caja\Caja_MovimientoRepository',
     	);

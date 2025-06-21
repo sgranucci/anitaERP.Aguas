@@ -15,11 +15,17 @@ class CrearTablaVoucherReserva extends Migration
     {
         Schema::create('voucher_reserva', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->unsignedBigInteger('voucher_id');
+            $table->foreign('voucher_id', 'fk_voucher_reserva_voucher')->references('id')->on('voucher')->onDelete('cascade')->onUpdate('cascade');
             $table->unsignedBigInteger('reserva_id');
             $table->unsignedBigInteger('pasajero_id');
             $table->string('nombrepasajero',255);
+            $table->date('fechaarribo');
+            $table->date('fechapartida');
             $table->integer('pax');
+            $table->integer('limitepax');
             $table->integer('paxfree');
+            $table->integer('limitefree');
             $table->integer('incluido');
             $table->integer('opcional');
             $table->softDeletes();

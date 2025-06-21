@@ -12,6 +12,8 @@ use App\Repositories\Receptivo\ReservaRepositoryInterface;
 use App\Repositories\Receptivo\Comision_ServicioterrestreRepositoryInterface;
 use App\Repositories\Caja\VoucherRepositoryInterface;
 use App\Repositories\Caja\Voucher_GuiaRepositoryInterface;
+use App\Repositories\Caja\Voucher_ReservaRepositoryInterface;
+use App\Repositories\Caja\Voucher_FormapagoRepositoryInterface;
 use App\Repositories\Receptivo\ServicioterrestreRepositoryInterface;
 use App\Repositories\Configuracion\MonedaRepositoryInterface;
 use App\Models\Receptivo\Comision_Servicioterrestre;
@@ -30,6 +32,8 @@ class VoucherController extends Controller
     private $comision_servicioterrestreRepository;
     private $voucherRepository;
     private $voucher_guiaRepository;
+    private $voucher_reservaRepository;
+    private $voucher_formapagoRepository;
     private $guiaRepository;
     private $servicioterrestreRepository;
     private $monedaRepository;
@@ -39,6 +43,8 @@ class VoucherController extends Controller
                                 TalonariovoucherRepositoryInterface $talonariovoucherrepository,
                                 Voucher_GuiaRepositoryInterface $voucher_guiarepository,
                                 VoucherRepositoryInterface $voucherrepository,
+                                Voucher_ReservaRepositoryInterface $voucher_reservarepository,
+                                Voucher_FormapagoRepositoryInterface $voucher_formapagorepository,
                                 GuiaRepositoryInterface $guiarepository,
                                 ReservaRepositoryInterface $reservarepository,
                                 Comision_ServicioterrestreRepositoryInterface $comision_servicioterrestrerepository,
@@ -49,6 +55,8 @@ class VoucherController extends Controller
         $this->formapagoRepository = $formapagorepository;
         $this->talonariovoucherRepository = $talonariovoucherrepository;
         $this->voucher_guiaRepository = $voucher_guiarepository;
+        $this->voucher_reservaRepository = $voucher_reservarepository;
+        $this->voucher_formapagoRepository = $voucher_formapagorepository;
         $this->voucherRepository = $voucherrepository;
         $this->guiaRepository = $guiarepository;
         $this->reservaRepository = $reservarepository;
@@ -157,7 +165,11 @@ class VoucherController extends Controller
 
             // Guarda tablas asociadas
             if ($voucher)
+            {
                 $voucher_guia = $this->voucher_guiaRepository->create($request->all(), $voucher->id);
+                $voucher_reserva = $this->voucher_reservaRepository->create($request->all(), $voucher->id);
+                $voucher_formapago = $this->voucher_formapagoRepository->create($request->all(), $voucher->id);
+            }
 
             DB::commit();
         } catch (\Exception $e) {
@@ -186,14 +198,6 @@ class VoucherController extends Controller
         $guia_query = $this->guiaRepository->all();
         $tipocomision_enum = Comision_Servicioterrestre::$enumTipoComision;
 
-        // Trae reserva si no esta en array
-        $reserva_query = [];
-        if (!in_array($data->reserva_id, $reserva_query, true))
-        {
-            $reservaActual = $this->reservaRepository->find($data['reserva_id']);
-            $reserva_query[] = $reservaActual[0];
-        }
-
         return view('caja.voucher.editar', compact('data', 
                                                     'proveedor_query', 'formapago_query', 'talonariovoucher_query', 
                                                     'servicioterrestre_query', 'moneda_query', 'guia_query',
@@ -219,10 +223,13 @@ class VoucherController extends Controller
             // Graba voucher
             $this->voucherRepository->update($request->all(), $id);
 
-            // Graba guias del voucher
+            // Graba tablas asociadas
             $this->voucher_guiaRepository->update($request->all(), $id);
+            $this->voucher_reservaRepository->update($request->all(), $id);
+            $this->voucher_formapagoRepository->update($request->all(), $id);
 
             DB::commit();
+
         } catch (\Exception $e) {
             DB::rollback();
 

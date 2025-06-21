@@ -14,7 +14,7 @@
                 </tr>
             </thead>
             <tbody id="tbody-voucher-formapago-table" class="container-formapago">
-            @if ($data->voucher_formpagos ?? '') 
+            @if ($data->voucher_formapagos ?? '') 
                 @foreach (old('formapago', $data->voucher_formapagos->count() ? $data->voucher_formapagos : ['']) as $formapago)
                     <tr class="item-voucher-formapago">
                         <td>

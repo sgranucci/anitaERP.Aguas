@@ -19,9 +19,6 @@ class CrearTablaVoucher extends Migration
             $table->foreign('talonariovoucher_id', 'fk_voucher_talonariovoucher')->references('id')->on('talonariovoucher')->onDelete('restrict')->onUpdate('restrict');
             $table->unsignedBigInteger('numero');
             $table->date('fecha');
-            $table->unsignedBigInteger('reserva_id');
-            $table->unsignedBigInteger('pasajero_id');
-            $table->string('nombrepasajero',255);
             $table->integer('pax');
             $table->integer('paxfree');
             $table->integer('incluido');
@@ -30,12 +27,7 @@ class CrearTablaVoucher extends Migration
             $table->foreign('servicioterrestre_id', 'fk_voucher_servicioterrestre')->references('id')->on('servicioterrestre')->onDelete('restrict')->onUpdate('restrict');
             $table->unsignedBigInteger('proveedor_id');
             $table->foreign('proveedor_id', 'fk_voucher_proveedor')->references('id')->on('proveedor')->onDelete('restrict')->onUpdate('restrict');
-            $table->unsignedBigInteger('formapago_id');
-            $table->foreign('formapago_id', 'fk_voucher_formapago')->references('id')->on('formapago')->onDelete('restrict')->onUpdate('restrict');
-            $table->unsignedBigInteger('moneda_id');
-            $table->foreign('moneda_id', 'fk_voucher_moneda')->references('id')->on('moneda')->onDelete('restrict')->onUpdate('restrict'); 
             $table->decimal('montovoucher',22,4);
-            $table->decimal('cotizacion',22,4);
             $table->decimal('montoempresa',22,4); 
             $table->decimal('montoproveedor',22,4); 
             $table->string('observacion',255)->nullable();

@@ -9,6 +9,7 @@ use App\Repositories\Caja\Caja_Movimiento_CuentacajaRepositoryInterface;
 use App\Repositories\Caja\Caja_Movimiento_EstadoRepositoryInterface;
 use App\Repositories\Caja\Caja_Movimiento_ArchivoRepositoryInterface;
 use App\Repositories\Caja\Tipotransaccion_CajaRepositoryInterface;
+use App\Repositories\Caja\ConceptogastoRepositoryInterface;
 use App\Repositories\Contable\TipoasientoRepositoryInterface;
 use App\Repositories\Caja\CuentacajaRepositoryInterface;
 use App\Repositories\Contable\CuentacontableRepositoryInterface;
@@ -40,11 +41,13 @@ class IngresoEgresoService
 	private $asiento_movimientoRepository;
 	private $cuentacajaRepository;
 	private $tipotransaccion_cajaRepository;
+	private $conceptogastoRepository;
 
     public function __construct(Caja_MovimientoRepositoryInterface $caja_movimientorepository,
                                 Caja_Movimiento_CuentacajaRepositoryInterface $caja_movimiento_cuentacajarepository,
                                 Caja_Movimiento_EstadoRepositoryInterface $caja_movimiento_estadorepository,
                                 Caja_Movimiento_ArchivoRepositoryInterface $caja_movimiento_archivorepository,
+								ConceptogastoRepositoryInterface $conceptogastorepository,
 								TipoasientoRepositoryInterface $tipoasientorepository,
 								CuentacajaRepositoryInterface $cuentacajarepository,
 								CuentacontableRepositoryInterface $cuentacontablerepository,
@@ -59,6 +62,7 @@ class IngresoEgresoService
         $this->caja_movimiento_cuentacajaRepository = $caja_movimiento_cuentacajarepository;
         $this->caja_movimiento_estadoRepository = $caja_movimiento_estadorepository;
         $this->caja_movimiento_archivoRepository = $caja_movimiento_archivorepository;
+		$this->conceptogastoRepository = $conceptogastorepository;
 		$this->tipoasientoRepository = $tipoasientorepository;
 		$this->asientoRepository= $asientorepository;
 		$this->asiento_movimientoRepository= $asiento_movimientorepository;
@@ -313,9 +317,22 @@ class IngresoEgresoService
 		$datosCaja = json_decode($data['datoscaja']);
 		$datosContables = json_decode($data['datoscontables']);
 		$tipotransaccion_caja_id = json_decode($data['tipotransaccion_caja_id']);
+		$conceptogasto_id = json_decode($data['conceptogasto_id']);
+		$empresa_id = json_decode($data['empresa_id']);
+
+		$tipotransaccion_caja = $this->tipotransaccion_cajaRepository->find($tipotransaccion_caja_id);
+		$signo = 1;
+		if ($tipotransaccion_caja)
+		{
+			if ($tipotransaccion_caja->signo == 'I')
+				$signo = 1;
+			else
+				$signo = -1;
+		}
 
 		// Arma cuentas contables de cada imputacion de caja
 		$asiento = [];
+		$empresa_id = 0;
 		if (count($datosContables) > 0)
 		{
 			foreach($datosContables as $imputacionContable)
@@ -346,16 +363,6 @@ class IngresoEgresoService
 				// Busca si la imputacion ya existe
 				if ($cuentacaja)
 				{
-					$tipotransaccion_caja = $this->tipotransaccion_cajaRepository->find($tipotransaccion_caja_id);
-					
-					$signo = 1;
-					if ($tipotransaccion_caja)
-					{
-						if ($tipotransaccion_caja->signo == 'I')
-							$signo = 1;
-						else
-							$signo = -1;
-					}
 					if ($movimiento->montos * $signo > 0)
 					{
 						$debe = $movimiento->montos;
@@ -369,7 +376,7 @@ class IngresoEgresoService
 
 					for ($i = 0, $flExiste = false; $i < count($asiento) && !$flExiste; $i++)
 					{
-						if ($asiento[$i]['cuentacontable_id'] == $movimiento->cuentacaja_ids &&
+						if ($asiento[$i]['cuentacontable_id'] == $cuentacaja->cuentacontable_id &&
 							$asiento[$i]['moneda_id'] == $movimiento->moneda_ids &&
 							$asiento[$i]['cotizacion'] == $movimiento->cotizaciones)
 							$flExiste = true;
@@ -395,6 +402,64 @@ class IngresoEgresoService
 					{
 						$asiento[$i]['debe'] += $debe;
 						$asiento[$i]['haber'] += $haber;
+					}
+				}
+			}
+		}
+
+		// Agrega la contrapartida
+		if ($conceptogasto_id > 0 && count($datosContables) == 0)
+		{
+			$conceptogasto = $this->conceptogastoRepository->find($conceptogasto_id);
+
+			if ($conceptogasto)
+			{
+				// Asume como moneda del asiento la moneda del 1er. movimiento
+				$monedaAsiento_id = $asiento[0]['moneda_id'];
+				$cotizacion = $asiento[0]['cotizacion'];
+
+				// Suma monto del asiento
+				$totalDebe = $totalHaber = 0.;
+				foreach($asiento as $movimiento)
+				{
+					$coef = calculaCoeficienteMoneda($monedaAsiento_id, $movimiento['moneda_id'], $movimiento['cotizacion']);
+
+					if ($movimiento['debe'])
+						$totalDebe += $movimiento['debe'] * $coef;
+
+					if ($movimiento['haber'])
+						$totalHaber += $movimiento['haber'] * $coef;
+				}
+				foreach($conceptogasto->conceptogasto_cuentacontables as $cuenta)
+				{
+					if ($cuenta->empresa_id == $empresa_id)
+					{
+						$cuentacontable = $this->cuentacontableRepository->find($cuenta->cuentacontable_id);
+
+						if ($cuentacontable)
+						{
+							if ($totalHaber != 0)
+							{
+								$debe = abs($totalHaber);
+								$haber = '';
+							}
+							else
+							{
+								$debe = '';
+								$haber = $totalDebe;
+							}
+							$asiento[] = [ 'cuentacontable_id' => $cuentacontable->id,
+											'codigo' => $cuentacontable->codigo,
+											'nombre' => $cuentacontable->nombre,
+											'moneda_id' => $monedaAsiento_id,
+											'cotizacion' => $cotizacion,
+											'centrocosto_id' => 0,
+											'debe' => $debe,
+											'haber' => $haber,
+											'observacion' => '',
+											'carga_cuentacontable_manual' => 'N'
+									];
+						}
 					}
 				}
 			}

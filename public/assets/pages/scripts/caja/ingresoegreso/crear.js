@@ -9,6 +9,7 @@ var totalMoneda=[];
 var idMoneda=[];
 var descripcionMoneda=[];
 var flCrear;
+var flModificaAsiento;
    
     $(function () {
         $('#agrega_renglon_cuenta').on('click', agregaRenglonCuenta);
@@ -17,7 +18,9 @@ var flCrear;
         $(document).on('click', '.eliminararchivo', borraRenglonArchivo);
 
 		flCrear = document.getElementById("crear");
+		flModificaAsiento = false;
 
+		buscaTipoTransaccionCaja();
 		activa_eventos(true);
 
 		$("#botonform1").click(function(){
@@ -63,7 +66,7 @@ var flCrear;
         });
 		$("#botonform5").click(function(){
 			// Solo genera el asiento cuando se crea la operacion
-			if (flCrear)
+			if (flCrear || flModificaAsiento)
 				generaAsientoContable();
 
 			$(".form1").hide();
@@ -232,7 +235,22 @@ var flCrear;
 			$('.codigo').off('change');
 			$('.monto').off('change');
 			$('.moneda').off('change');
+			$('#tipotransaccion_caja_id').off('change');
+			$('#proveedor_id').off('change');
+			$('#servicioterrestre_id').off('change');
+			$('.tipocomision').off('change');
+			$('.cotizacion').off('change');
 		}
+
+		// Activa eventos de consulta
+		activa_eventos_consultaproveedor();
+		activa_eventos_consultaconceptogasto();
+
+		$('#tipotransaccion_caja_id').on('change', function (event) {
+			event.preventDefault();
+
+			buscaTipoTransaccionCaja();
+		});
 		
 		$('.codigo').on('change', function (event) {
 			event.preventDefault();
@@ -250,6 +268,12 @@ var flCrear;
 					$(codigo).parents("tr").find(".cuentacaja_id_previa").val(data.id);
 					$(codigo).parents("tr").find(".nombre").val(data.nombre);
 					$(codigo).parents("tr").find(".moneda").val(data.moneda_id);
+					
+					flModificaAsiento = true;
+
+					// Hace focus sobre el primer elemento de la tabla
+					let ptrUltimoRenglon = $("#tbody-cuenta-table tr:last");
+					$(ptrUltimoRenglon).find('.monto').focus();
 				}
 				else
 				{
@@ -299,17 +323,30 @@ var flCrear;
 			$(cuentacajaxcodigo).parents("tr").find(".moneda").val(moneda_id);
 		
 			$('#consultacuentacajaModal').modal('hide');
+			flModificaAsiento = true;
+
+			// Hace focus sobre el primer elemento de la tabla
+			let ptrUltimoRenglon = $("#tbody-cuenta-table tr:last");
+			$(ptrUltimoRenglon).find('.monto').focus();
 		});
 
 		$('.monto').on('change', function (event) {
 			event.preventDefault();
 			leeCotizacion(this);
 			sumaMonto();
+			flModificaAsiento = true;
 		});
 
 		$('.moneda').on('change', function (event) {
 			event.preventDefault();
 			leeCotizacion(this);
+			flModificaAsiento = true;
+		});
+
+		$('.cotizacion').on('change', function (event) {
+			event.preventDefault();
+			sumaMonto();
+			flModificaAsiento = true;
 		});
 	}
 
@@ -340,12 +377,18 @@ var flCrear;
     	$("#tbody-cuenta-table").append(renglon);
     	actualizaRenglonesCuenta();
 
-		let ptrUltimoRenglon = $("#tbody-cuenta-table").last().find('.moneda');
+		//let ptrUltimoRenglon = $("#tbody-cuenta-table").last().find('.moneda');
 
 		// Lee cotizacion de la moneda
-		leeCotizacion(ptrUltimoRenglon);
+		//leeCotizacion(ptrUltimoRenglon);
+
+		// Hace focus sobre el primer elemento de la tabla
+		let ptrUltimoRenglon = $("#tbody-cuenta-table tr:last");
+		$(ptrUltimoRenglon).find('.codigo').focus();
 
 		activa_eventos(false);
+
+		flModificaAsiento = true;
     }
 
     function borraRenglonCuenta(event) {
@@ -353,6 +396,7 @@ var flCrear;
     	$(this).parents('tr').remove();
     	actualizaRenglonesCuenta();
 		sumaMonto();
+		flModificaAsiento = true;
     }
 
     function actualizaRenglonesCuenta() {
@@ -407,8 +451,7 @@ var flCrear;
 		totalHaber = 0;
 
 		// Inicializa totales por moneda
-		$("#tbody-cuenta-table .moneda").each(function() {
-			let moneda = $(this).val();
+		idMoneda.forEach(function(moneda, indice, array) {
 			totalMoneda[moneda] = 0;
 		});
 
@@ -447,7 +490,7 @@ var flCrear;
 		idMoneda.forEach(function(moneda, indice, array) {
 			let detalleLabel = 'Total '+descripcionMoneda[moneda];
 
-			if (totalMoneda[moneda] !== undefined)
+			if (totalMoneda[moneda] !== undefined && totalMoneda[moneda] != 0) 
 			{
 				$(wrapper).append('<label class="col-lg-2 col-form-label">'+detalleLabel+'</label>');
 				$(wrapper).append('<input type="text" class="form-control col-lg-1" readonly value="'+totalMoneda[moneda].toFixed(2)+'" />');
@@ -463,6 +506,20 @@ var flCrear;
 		let datosCuentasContables=[];
 		var wrapper = $(".container-asiento");
 		let tipotransaccion_caja_id = $("#tipotransaccion_caja_id").val();
+		let conceptogasto_id = $("#conceptogasto_id").val();
+		let empresa_id = $('#empresa_id').val();
+
+		if (!empresa_id)
+		{
+			alert("Debe asignar empresa");
+			return;
+		}
+
+		if (!tipotransaccion_caja_id)
+		{
+			alert("Debe asignar tipo de transaccion de caja");
+			return;
+		}
 
 		// Genera datos de las cuentas de caja cargadas
 		$("#cuenta-table .item-cuenta").each(function() {
@@ -494,27 +551,30 @@ var flCrear;
 		datosCuentasCaja = JSON.stringify(datosCuentasCaja);
 
 		// Genera datos de las cuentas de caja contables actualmente cargadas
-		$("#cuenta-asiento-table .item-cuenta-asiento").each(function() {
-			cuentacontable_ids = $(this).find(".cuentacontable_id").val();
-			centrocostoasiento_ids = $(this).find(".centrocostoasiento").val();
-			monedaasiento_ids = $(this).find(".monedaasiento").val();
-			debeasientos = $(this).find(".debeasiento").val();
-			haberasientos = $(this).find(".haberasiento").val();
-			cotizacionasientos = $(this).find(".cotizacionasiento").val();
-			observacionasientos = $(this).find(".observacionasiento").val();
-			carga_cuentacontable_manuales = $(this).find(".carga_cuentacontable_manual").val();
+		if (!flModificaAsiento)
+		{
+			$("#cuenta-asiento-table .item-cuenta-asiento").each(function() {
+				cuentacontable_ids = $(this).find(".cuentacontable_id").val();
+				centrocostoasiento_ids = $(this).find(".centrocostoasiento").val();
+				monedaasiento_ids = $(this).find(".monedaasiento").val();
+				debeasientos = $(this).find(".debeasiento").val();
+				haberasientos = $(this).find(".haberasiento").val();
+				cotizacionasientos = $(this).find(".cotizacionasiento").val();
+				observacionasientos = $(this).find(".observacionasiento").val();
+				carga_cuentacontable_manuales = $(this).find(".carga_cuentacontable_manual").val();
 
-			datosCuentasContables.push({
-				cuentacontable_ids,
-				centrocostoasiento_ids,
-				monedaasiento_ids,
-				debeasientos,
-				haberasientos,
-				cotizacionasientos,
-				observacionasientos,
-				carga_cuentacontable_manuales
+				datosCuentasContables.push({
+					cuentacontable_ids,
+					centrocostoasiento_ids,
+					monedaasiento_ids,
+					debeasientos,
+					haberasientos,
+					cotizacionasientos,
+					observacionasientos,
+					carga_cuentacontable_manuales
+				});
 			});
-		});
+		}
 		datosCuentasContables = JSON.stringify(datosCuentasContables);
 		
 		$.ajaxSetup({
@@ -530,6 +590,8 @@ var flCrear;
 			url: url,
 			data: {
 				tipotransaccion_caja_id: tipotransaccion_caja_id,
+				conceptogasto_id: conceptogasto_id,
+				empresa_id: empresa_id,
 				datoscaja: datosCuentasCaja,
 				datoscontables: datosCuentasContables
 			},
@@ -723,8 +785,38 @@ var flCrear;
 	{
 		$("#loading").hide();
 	}
-	
 
+	function buscaTipoTransaccionCaja()
+	{
+		let tipotransaccion_caja_id = $('#tipotransaccion_caja_id').val();
+		let url = '/anitaERP/public/caja/leertipotransaccion_caja/'+tipotransaccion_caja_id;
+
+		$.get(url, function(data){
+			if (data.id > 0)
+			{
+				if (data.signo == 'E')
+				{
+					$("#div-ordenservicio").show();
+					$("#div-conceptogasto").show();
+					$("#div-proveedor").show();
+				}
+				else
+				{
+					$("#div-ordenservicio").hide();
+					$("#div-conceptogasto").hide();
+					$("#div-proveedor").hide();
+					$('#ordenservicio_id').val('');
+					$('#conceptogasto_id').val('');
+					$('#proveedor_id').val('');
+				}
+			}
+			else
+			{
+				alert("No existe el tipo de transaccion de caja");
+				return;
+			}
+		});
+	}
 
 		
 

@@ -154,9 +154,44 @@ class ReservaRepository implements ReservaRepositoryInterface
                 rese_cant_gratis as cantidadgratis,
                 rese_pasajero as nombrepasajero,
                 (select resepa_pasajero from resepax where resepa_reserva=rese_reserva
-                and resepa_orden=0) as pasajero_id
+                and resepa_orden=0) as pasajero_id,
+                0 as cantidadincluido,
+                0 as cantidadopcional
             ' , 
             'whereArmado' => " WHERE rese_reserva = $id and rese_estado != 'A'" 
+        );
+        $reserva = json_decode($apiAnita->apiCall($data));
+
+        #if (null == $reserva = $this->model->find($id)) {
+        #    throw new ModelNotFoundException("Registro no encontrado");
+        #}
+
+        return $reserva;
+    }
+
+    // Busca reserva por id y filtra servicio
+    public function leeReservaPorIdServicioTerrestre($reserva_id, $servicioterrestre_id)
+    {
+        $apiAnita = new ApiAnita();
+        $data = array( 
+            'acc' => 'list', 'tabla' => $this->tableAnita, 
+            'sistema' => 'receptivo',
+            'campos' => "
+                rese_reserva as reserva_id,
+                rese_reserva as id,
+                rese_fecha_arribo as fechaarribo,
+                rese_fecha_partida as fechapartida,
+                rese_cant_pasajero as cantidadpasajero,
+                rese_cant_gratis as cantidadgratis,
+                rese_pasajero as nombrepasajero,
+                (select resepa_pasajero from resepax where resepa_reserva=rese_reserva
+                and resepa_orden=0) as pasajero_id,
+                (select sum(reses_pax) from reseserv where reses_reserva=rese_reserva
+                and reses_tipo_serv='".'T'."' and reses_servicio=$servicioterrestre_id) as cantidadincluido,
+                (select sum(reses_pax) from reseserv where reses_reserva=rese_reserva
+                and reses_tipo_serv='".'A'."' and reses_servicio=$servicioterrestre_id) as cantidadopcional
+            " , 
+            'whereArmado' => " WHERE rese_reserva = $reserva_id and rese_estado != 'A'" 
         );
         $reserva = json_decode($apiAnita->apiCall($data));
 

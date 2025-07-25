@@ -54,7 +54,11 @@
                             <th>Número</th>
                             <th>Fecha</th>
                             <th>Tipo de transacción</th>
+                            <th>Concepto</th>
                             <th>Detalle</th>
+                            @if (config('app.empresa') == 'Iguassu Travel')
+                                <th>Orden de servicio</th>
+                            @endif
                             <th>Monto en $</th>
                             <th>Movimientos</th>
                             <th class="width40" data-orderable="false"></th>
@@ -68,7 +72,11 @@
                             <td>{{$data->numerotransaccion}}</td>
                             <td>{{date("d/m/Y", strtotime($data->fecha ?? ''))}}</td>
                             <td>{{$data->nombretipotransaccion_caja}}</td>
+                            <td>{{$data->nombreconceptogasto ?? ''}}</td>
                             <td>{{$data->detalle ?? ''}}</td>
+                            @if (config('app.empresa') == 'Iguassu Travel')
+                                <td>{{$data->ordenservicio_id}}</td>
+                            @endif
                             <td>
                                 @php $totalIngreso = 0; $totalEgreso= 0; @endphp
                                 @foreach($data->caja_movimiento_cuentacajas as $movimiento)

@@ -580,4 +580,49 @@ class GuiaRepository implements GuiaRepositoryInterface
 			$codigo = 1;
 	}
 		
+	public function leeGuia($consulta)
+    {
+		$columns = ['guia.id', 'guia.nombre', 'guia.codigo', 'guia.email', 'guia.maneja'];
+        $columnsOut = ['id', 'nombre', 'codigo', 'email', 'maneja'];
+
+		$consulta = strtoupper($consulta);
+
+		$count = count($columns);
+		$data = $this->model->select('guia.id as id',
+									'guia.nombre as nombre',
+									'guia.codigo as codigo',
+									'guia.email as email',
+									'guia.maneja as maneja')
+							->orWhere(function ($query) use ($count, $consulta, $columns) {
+                        			for ($i = 0; $i < $count; $i++)
+                            			$query->orWhere($columns[$i], "LIKE", '%'. $consulta . '%');
+                })	
+				->get();								
+
+        $output = [];
+		$output['data'] = '';	
+        $flSinDatos = true;
+        $count = count($columns);
+		if (count($data) > 0)
+		{
+			foreach ($data as $row)
+			{
+                $flSinDatos = false;
+                $output['data'] .= '<tr>';
+                for ($i = 0; $i < $count; $i++)
+                    $output['data'] .= '<td class="'.$columnsOut[$i].'">' . $row->{$columnsOut[$i]} . '</td>';	
+                $output['data'] .= '<td><a class="btn btn-warning btn-sm eligeconsultaguia">Elegir</a></td>';
+                $output['data'] .= '</tr>';
+			}
+		}
+
+        if ($flSinDatos)
+		{
+			$output['data'] .= '<tr>';
+			$output['data'] .= '<td>Sin resultados</td>';
+			$output['data'] .= '</tr>';
+		}
+		return(json_encode($output, JSON_UNESCAPED_UNICODE));
+    }
+
 }

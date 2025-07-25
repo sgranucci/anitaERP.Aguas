@@ -111,7 +111,7 @@ class Proveedor extends Model
         return $this->belongsTo(Cuentacontable::class, 'cuentacontablecompra_id');
     }
 
-    public function centrocostoscompra()
+    public function centrocostocompras()
     {
         return $this->belongsTo(Centrocosto::class, 'centrocostocompra_id');
     }

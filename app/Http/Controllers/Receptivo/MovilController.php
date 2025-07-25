@@ -11,11 +11,11 @@ use App\Repositories\Receptivo\MovilRepositoryInterface;
 
 class MovilController extends Controller
 {
-	private $repository;
+	private $movilRepository;
 
     public function __construct(MovilRepositoryInterface $repository)
     {
-        $this->repository = $repository;
+        $this->movilRepository = $repository;
     }
 
     /**
@@ -26,7 +26,7 @@ class MovilController extends Controller
     public function index()
     {
         can('listar-movil');
-		$datas = $this->repository->all();
+		$datas = $this->movilRepository->all();
         $tipomovil_enum = Movil::$enumTipoMovil;
 
         return view('receptivo.movil.index', compact('datas', 'tipomovil_enum'));
@@ -54,7 +54,7 @@ class MovilController extends Controller
      */
     public function guardar(ValidacionMovil $request)
     {
-		$this->repository->create($request->all());
+		$this->movilRepository->create($request->all());
 
         return redirect('receptivo/movil')->with('mensaje', 'Móvil creado con éxito');
     }
@@ -69,7 +69,7 @@ class MovilController extends Controller
     public function editar($id)
     {
         can('editar-movil');
-        $data = $this->repository->findOrFail($id);
+        $data = $this->movilRepository->findOrFail($id);
         $tipomovil_enum = Movil::$enumTipoMovil;
 
         return view('receptivo.movil.editar', compact('data', 'tipomovil_enum'));
@@ -86,7 +86,7 @@ class MovilController extends Controller
     {
         can('actualizar-movil');
 
-        $this->repository->update($request->all(), $id);
+        $this->movilRepository->update($request->all(), $id);
 
         return redirect('receptivo/movil')->with('mensaje', 'Móvil actualizado con éxito');
     }
@@ -102,7 +102,7 @@ class MovilController extends Controller
         can('borrar-movil');
 
         if ($request->ajax()) {
-        	if ($this->repository->delete($id)) {
+        	if ($this->movilRepository->delete($id)) {
                 return response()->json(['mensaje' => 'ok']);
             } else {
                 return response()->json(['mensaje' => 'ng']);
@@ -111,4 +111,14 @@ class MovilController extends Controller
             abort(404);
         }
     }
+
+    public function consultaMovil(Request $request)
+    {
+        return ($this->movilRepository->leeMovil($request->consulta));
+	}
+
+    public function leeMovil($codigoMovil)
+    {
+        return ($this->movilRepository->findPorCodigo($codigoMovil));
+	}
 }

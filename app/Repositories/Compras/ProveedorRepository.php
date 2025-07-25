@@ -182,7 +182,7 @@ class ProveedorRepository implements ProveedorRepositoryInterface
 											->with("retencionivas")
 											->with("retencionsusss")
 											->with("conceptogastos")
-											->with("centrocostoscompra")
+											->with("centrocostocompras")
 											->findOrFail($id))
 			{
             throw new ModelNotFoundException("Registro no encontrado");

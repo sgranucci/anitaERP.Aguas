@@ -70,4 +70,13 @@ class Proveedor_ServicioterrestreRepository implements Proveedor_Servicioterrest
 
         return($proveedor_servicioterrestre);
     }
+
+    public function leeProveedor($servicioterrestre_id)
+    {
+        $proveedor_servicioterrestre = $this->model->select('proveedor_id', 'proveedor.nombre as nombreproveedor')
+                                            ->join('proveedor', 'proveedor.id', 'proveedor_servicioterrestre.proveedor_id')
+                                            ->where('servicioterrestre_id', $servicioterrestre_id)->get();
+
+        return($proveedor_servicioterrestre);
+    }
 }

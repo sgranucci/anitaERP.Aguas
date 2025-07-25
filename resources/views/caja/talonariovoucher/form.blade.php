@@ -38,13 +38,13 @@
 <div class="form-group row">
 	<label for="fechainicio" class="col-lg-3 col-form-label">Fecha de inicio</label>
 	<div class="col-lg-4">
-		<input type="date" id="fechainicio" name="fechainicio" class="form-control" value="{{old('fechainicio', date('d-m-Y'))}}"/>
+		<input type="date" id="fechainicio" name="fechainicio" class="form-control" value="{{old('fechainicio', $data->fechainicio)}}"/>
 	</div>
 </div>
 <div class="form-group row">
 	<label for="fechacierre" class="col-lg-3 col-form-label">Fecha de cierre</label>
 	<div class="col-lg-4">
-		<input type="date" name="fechacierre" id="fechacierre" class="form-control" value="{{old('fechacierre', date('d-m-Y'))}}"/>
+		<input type="date" name="fechacierre" id="fechacierre" class="form-control" value="{{old('fechacierre', $data->fechacierre)}}"/>
 	</div>
 </div>
 <div class="form-group row">

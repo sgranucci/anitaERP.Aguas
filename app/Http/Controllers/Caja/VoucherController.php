@@ -22,6 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use DB;
+use App;
 
 class VoucherController extends Controller
 {
@@ -198,10 +199,14 @@ class VoucherController extends Controller
         $guia_query = $this->guiaRepository->all();
         $tipocomision_enum = Comision_Servicioterrestre::$enumTipoComision;
 
+        $servicioterrestre = $this->servicioterrestreRepository->find($data->servicioterrestre_id);
+        if ($servicioterrestre)
+            $codigoservicioterrestre = $servicioterrestre->codigo;
+
         return view('caja.voucher.editar', compact('data', 
                                                     'proveedor_query', 'formapago_query', 'talonariovoucher_query', 
                                                     'servicioterrestre_query', 'moneda_query', 'guia_query',
-                                                    'tipocomision_enum'));
+                                                    'tipocomision_enum', 'codigoservicioterrestre'));
     }
 
     /**
@@ -269,4 +274,23 @@ class VoucherController extends Controller
             return redirect('caja/voucher')->with('mensaje', $mensaje);
         }
     }
+
+    /* Lista el voucher */
+	public function listarVoucher($id)
+	{
+		$voucher = $this->voucherRepository->find($id);
+
+        $view =  \View::make('exports.caja.voucher', compact('voucher'))
+			    ->render();
+		$path = storage_path('pdf/voucher');
+
+        $pdf = \App::make('dompdf.wrapper');
+        
+        $nombre_pdf = 'voucher-'.$id.'.pdf';
+        $pdf->loadHTML($view)->save($path.'/'.$nombre_pdf);
+        $pdf->download($nombre_pdf);
+
+		return response()->download($path.'/'.$nombre_pdf);
+	}
+
 }

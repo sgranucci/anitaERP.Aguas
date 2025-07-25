@@ -75,7 +75,7 @@
                             <td>
                                 <ul>
                                 @foreach($data->voucher_guias as $guia)
-                                    <li>{{ $guia->guias->nombre }} Porc. {{ number_format($guia->porcentajecomision,2) }} Comis. {{ number_format($guia->montocomision,2) }}</li>
+                                    <li>{{ $guia->guias->nombre }} Porc. {{ number_format($guia->porcentajecomision,2) }} Comis. {{ number_format($guia->montocomision,2) }} OS {{ $guia->ordenservicio_id }}</li>
                                 @endforeach
                                 </ul>
                             </td>

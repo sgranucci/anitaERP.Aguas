@@ -10,6 +10,7 @@ interface VoucherRepositoryInterface extends RepositoryInterface
 	public function actualizarAnita($request, $id);
 	public function eliminarAnita($id);
 	public function leeVoucher($busqueda, $flPaginando = null);
+	public function leeVoucherPorGuiaOrdenservicio($guia_id, $ordenservicio_id);
 
 }
 

@@ -113,6 +113,7 @@ class ProveedorController extends Controller
         $this->cuentacontableRepository = $cuentacontablerepository;
 
         $this->proveedorQuery = $proveedorquery;
+        $this->flRemoto = false;
     }
 
     /**
@@ -219,10 +220,17 @@ class ProveedorController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function editar($id)
+    public function editar(Request $request, $id)
     {
         can('editar-proveedor');
         $data = $this->proveedorRepository->findOrFail($id);
+
+        $referer = $request->header("referer");
+
+        if (strstr($referer, "/public/compras/proveedor"))
+            $tipoconsulta = '';
+        else
+            $tipoconsulta = 'REMOTA';
 
         $estado_enum = [];
         $this->armaTablasVista($pais_query, $provincia_query, $tipoempresa_query,
@@ -251,7 +259,7 @@ class ProveedorController extends Controller
             'estado_enum', 'tasaarba', 'tasacaba', 'tipoalta', 
 		    'tiposuspensionproveedor_query', 'agentepercepcioniva_enum', 'agentepercepcionIIBB_enum',
             'formapago_query', 'tipocuentacaja_query', 'moneda_query', 'banco_query', 'mediopago_query',
-            'tiporetencion_enum'));
+            'tiporetencion_enum', 'tipoconsulta'));
     }
 
     /**
@@ -432,5 +440,10 @@ class ProveedorController extends Controller
     {
         return ($this->proveedorQuery->consultaProveedor($request->consulta));
 	}
+
+    public function leeProveedor($proveedor_id)
+    {
+        return $this->proveedorRepository->find($proveedor_id);
+    }
 
 }

@@ -12,7 +12,7 @@ class Voucher_Guia extends Model
     use SoftDeletes;
     protected $fillable = [
 							'voucher_id', 'guia_id', 'tipocomision',  
-							'porcentajecomision', 'montocomision'
+							'porcentajecomision', 'montocomision', 'ordenservicio_id'
 							];
     protected $table = 'voucher_guia';
 

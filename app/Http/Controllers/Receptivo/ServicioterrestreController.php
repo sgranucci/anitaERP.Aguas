@@ -155,4 +155,8 @@ class ServicioterrestreController extends Controller
         return ($this->servicioterrestreRepository->leeServicioTerrestre($request->consulta));
 	}
 
+    public function leeServicioTerrestre($codigoservicioterrestre)
+    {
+        return ($this->servicioterrestreRepository->findPorCodigo($codigoservicioterrestre));
+	}
 }

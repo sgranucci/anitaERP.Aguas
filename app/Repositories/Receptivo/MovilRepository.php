@@ -292,4 +292,49 @@ class MovilRepository implements MovilRepositoryInterface
 			$codigo = 1;
 	}
 		
+    public function leeMovil($consulta)
+    {
+		$columns = ['movil.id', 'movil.nombre', 'movil.codigo', 'movil.dominio', 'movil.tipomovil'];
+        $columnsOut = ['id', 'nombre', 'codigo', 'dominio', 'tipomovil'];
+
+		$consulta = strtoupper($consulta);
+
+		$count = count($columns);
+		$data = $this->model->select('movil.id as id',
+									'movil.nombre as nombre',
+									'movil.codigo as codigo',
+									'movil.dominio as dominio',
+									'movil.tipomovil as tipomovil')
+							->orWhere(function ($query) use ($count, $consulta, $columns) {
+                        			for ($i = 0; $i < $count; $i++)
+                            			$query->orWhere($columns[$i], "LIKE", '%'. $consulta . '%');
+                })	
+				->get();								
+
+        $output = [];
+		$output['data'] = '';	
+        $flSinDatos = true;
+        $count = count($columns);
+		if (count($data) > 0)
+		{
+			foreach ($data as $row)
+			{
+                $flSinDatos = false;
+                $output['data'] .= '<tr>';
+                for ($i = 0; $i < $count; $i++)
+                    $output['data'] .= '<td class="'.$columnsOut[$i].'">' . $row->{$columnsOut[$i]} . '</td>';	
+                $output['data'] .= '<td><a class="btn btn-warning btn-sm eligeconsultamovil">Elegir</a></td>';
+                $output['data'] .= '</tr>';
+			}
+		}
+
+        if ($flSinDatos)
+		{
+			$output['data'] .= '<tr>';
+			$output['data'] .= '<td>Sin resultados</td>';
+			$output['data'] .= '</tr>';
+		}
+		return(json_encode($output, JSON_UNESCAPED_UNICODE));
+    }
+
 }

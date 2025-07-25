@@ -6,6 +6,7 @@ use App\Models\Caja\Voucher_Guia;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Carbon\Carbon;
 use Auth;
+use DB;
 
 class Voucher_GuiaRepository implements Voucher_GuiaRepositoryInterface
 {
@@ -79,6 +80,7 @@ class Voucher_GuiaRepository implements Voucher_GuiaRepositoryInterface
 			$tipocomisiones = $data['tipocomisiones'];
 			$porcentajecomisiones = $data['porcentajecomisiones'];
 			$montocomisiones = $data['montocomisiones'];
+			$ordenservicio_ids = $data['ordenservicio_ids'];
 
 			if ($funcion == 'update')
 			{
@@ -102,6 +104,7 @@ class Voucher_GuiaRepository implements Voucher_GuiaRepositoryInterface
 									"tipocomision" => $tipocomisiones[$i],
 									"porcentajecomision" => $porcentajecomisiones[$i],
 									"montocomision" => $montocomisiones[$i],
+									"ordenservicio_id" => $ordenservicio_ids[$i]
 									]);
 					}
 				}
@@ -122,6 +125,7 @@ class Voucher_GuiaRepository implements Voucher_GuiaRepositoryInterface
 									"tipocomision" => $tipocomisiones[$i_guia],
 									"porcentajecomision" => $porcentajecomisiones[$i_guia],
 									"montocomision" => $montocomisiones[$i_guia],
+									"ordenservicio_id" => $ordenservicio_ids[$i_guia]
 									]);
 				}
 			}
@@ -130,5 +134,27 @@ class Voucher_GuiaRepository implements Voucher_GuiaRepositoryInterface
 		{
 			$voucher_guia = $this->model->where('voucher_id', $id)->delete();
 		}
+	}
+
+	function leeComisionPorGuiaOrdenservicio($guia_id, $ordenservicio_id)
+	{
+		$voucher = $this->model->select('voucher_guia.voucher_id as id',
+										'voucher.fecha as fecha',
+										DB::raw(config('receptivo.comisiones.CUENTA_CAJA_ID').' as cuentacaja_id'),
+										DB::raw('(SELECT codigo FROM cuentacaja WHERE id ='.config('receptivo.comisiones.CUENTA_CAJA_ID').') as codigocuentacaja'),
+										DB::raw('(SELECT nombre FROM cuentacaja WHERE id ='.config('receptivo.comisiones.CUENTA_CAJA_ID').') as nombrecuentacaja'),
+										DB::raw('(SELECT abreviatura FROM moneda WHERE id ='.config('receptivo.comisiones.MONEDA_ID').') as abreviaturamoneda'),
+										DB::raw(config('receptivo.comisiones.MONEDA_ID').' as moneda_id'),
+										'voucher_guia.montocomision as monto',
+										DB::raw(config('receptivo.comisiones.COTIZACION').' as cotizacion'),
+										'voucher_guia.ordenservicio_id as ordenservicio_id')
+										->leftJoin('voucher', 'voucher.id', 'voucher_guia.voucher_id')
+										->where([
+												['voucher_guia.ordenservicio_id', $ordenservicio_id],
+												['voucher_guia.guia_id', $guia_id]
+												])
+										->get();
+
+		return $voucher;
 	}
 }

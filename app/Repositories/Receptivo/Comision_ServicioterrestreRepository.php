@@ -64,4 +64,11 @@ class Comision_ServicioterrestreRepository implements Comision_Servicioterrestre
                                                 ->where('tipocomision', $tipocomision)
                                                 ->where('servicioterrestre_id', $servicioterrestre_id)->first();
     }
+
+    public function findComisionPorServicioTerrestre($servicioterrestre_id, $tipocomision)
+    {
+        return $this->model->select('porcentajecomision')
+                                                ->where('tipocomision', $tipocomision)
+                                                ->where('servicioterrestre_id', $servicioterrestre_id)->first();
+    }
 }

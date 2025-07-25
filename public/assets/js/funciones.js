@@ -73,6 +73,9 @@ function calculaCoeficienteMoneda(aMoneda, deMoneda, Cotizacion)
     if (aMoneda == 1)
         return Cotizacion;
 
+    if (aMoneda > 1 && deMoneda == 1)
+        return 1/Cotizacion;
+
     return 1.;
 }
 

@@ -47,16 +47,38 @@ class Caja_MovimientoQuery implements Caja_MovimientoQueryInterface
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', '0');
 
-        $caja_movimientos = $this->caja_movimientoModel->select('caja_movimiento.id as id',
+        switch(config('app.empresa'))
+        { 
+        case 'Iguassu Travel':
+            $select = ['caja_movimiento.id as id',
                                         'caja_movimiento.empresa_id as empresa',
                                         'empresa.nombre as nombreempresa',
                                         'caja_movimiento.numerotransaccion as numerotransaccion',
                                         'caja_movimiento.tipotransaccion_caja_id as tipotransaccion_caja_id',
                                         'tipotransaccion_caja.nombre as nombretipotransaccion_caja',
                                         'caja_movimiento.fecha as fecha',
-                                        'caja_movimiento.detalle as detalle')
+                                        'conceptogasto.nombre as nombreconceptogasto',
+                                        'caja_movimiento.detalle as detalle',
+                                        'caja_movimiento.ordenservicio_id as ordenservicio_id'
+                        ];
+            break;
+        default:
+            $select = ['caja_movimiento.id as id',
+                                        'caja_movimiento.empresa_id as empresa',
+                                        'empresa.nombre as nombreempresa',
+                                        'caja_movimiento.numerotransaccion as numerotransaccion',
+                                        'caja_movimiento.tipotransaccion_caja_id as tipotransaccion_caja_id',
+                                        'tipotransaccion_caja.nombre as nombretipotransaccion_caja',
+                                        'caja_movimiento.fecha as fecha',
+                                        'conceptogasto.nombre as nombreconceptogasto',
+                                        'caja_movimiento.detalle as detalle'
+                        ];
+        }
+
+        $caja_movimientos = $this->caja_movimientoModel->select($select)
                                 ->join('tipotransaccion_caja', 'tipotransaccion_caja.id', '=', 'caja_movimiento.tipotransaccion_caja_id')
                                 ->join('empresa', 'empresa.id', '=', 'caja_movimiento.empresa_id')
+                                ->leftjoin('conceptogasto', 'conceptogasto.id', '=', 'caja_movimiento.conceptogasto_id')
                                 ->with('caja_movimiento_cuentacajas');
 
         if ($caja_id > 0)
@@ -68,15 +90,24 @@ class Caja_MovimientoQuery implements Caja_MovimientoQueryInterface
             ['empresa.nombre', 'like', '%'.$busqueda.'%'],
             ['tipotransaccion_caja.nombre', 'like', '%'.$busqueda.'%'],
             ['caja_movimiento.detalle', 'like', '%'.$busqueda.'%'],
+            ['conceptogasto.nombre', 'like', '%'.$busqueda.'%']
         ];
 
-        $clausulaOrWhere2 = [
-            ['caja_movimiento.numerotransaccion', '=', $busqueda],
-            ['caja_movimiento.fecha', '=', $busqueda]
-        ];
+        if (config('app.empresa') == 'Iguassu Travel')
+            $clausulaOrWhere2 = [
+                ['caja_movimiento.numerotransaccion', '=', $busqueda],
+                ['caja_movimiento.fecha', '=', $busqueda],
+                ['caja_movimiento.ordenservicio_id', '=', $busqueda]
+            ];
+        else
+            $clausulaOrWhere2 = [
+                ['caja_movimiento.numerotransaccion', '=', $busqueda],
+                ['caja_movimiento.fecha', '=', $busqueda]
+            ];
 
         $caja_movimientos = $caja_movimientos->orWhere($clausulaOrWhere)
                                                 ->orWhere($clausulaOrWhere2)
+                                                ->orWhereNull('conceptogasto.nombre')
                                                 ->orderby('id', 'DESC');
 
         if (isset($flPaginando))

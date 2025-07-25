@@ -15,9 +15,12 @@ use Auth;
 class Caja_Movimiento extends Model implements Auditable
 {
     use \OwenIt\Auditing\Auditable;
-    
     protected $fillable = ['empresa_id', 'tipotransaccion_caja_id', 'numerotransaccion', 'fecha', 
-                            'caja_id', 'proveedor_id', 'cliente_id', 'detalle', 'usuario_id'];
+                            'caja_id', 'proveedor_id', 'cliente_id', 'conceptogasto_id', 'detalle', 
+                            'usuario_id',
+                            'ordenservicio_id',
+                            'rendicionreceptivo_id'];
+
     protected $table = 'caja_movimiento';
 
     public function caja_movimiento_cuentacajas()
@@ -62,10 +65,14 @@ class Caja_Movimiento extends Model implements Auditable
         return $this->belongsTo(Cliente::class, 'cliente_id');
     }
 
+    public function conceptogasto_ids()
+    {
+        return $this->belongsTo(Conceptogasto::class, 'conceptogasto_id');
+    }
+
     public function usuarios()
     {
         return $this->belongsTo(Usuario::class, 'usuario_id');
     }
-
 
 }

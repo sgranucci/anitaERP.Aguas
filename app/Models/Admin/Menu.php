@@ -14,12 +14,14 @@ class Menu extends Model
         return $this->belongsToMany(Rol::class, 'menu_rol');
     }
 
-    public function getHijos($padres, $line)
+    public function getHijos($padres, $line, &$nivelActual)
     {
+        $nivelActual++;
         $children = [];
         foreach ($padres as $line1) {
             if ($line['id'] == $line1['menu_id']) {
-                $children = array_merge($children, [array_merge($line1, ['submenu' => $this->getHijos($padres, $line1)])]);
+                $children = array_merge($children, [array_merge($line1, ['submenu' => $this->getHijos($padres, $line1, $nivelActual), 'nivel' => $nivelActual])]);
+                $nivelActual--;
             }
         }
         return $children;
@@ -42,7 +44,7 @@ class Menu extends Model
         }
     }
 
-    public static function getMenu($front = false)
+    public static function getMenu($front = false, $nivelActual)
     {
         $menus = new Menu();
         $padres = $menus->getPadres($front);
@@ -50,7 +52,8 @@ class Menu extends Model
         foreach ($padres as $line) {
             if ($line['menu_id'] != 0)
                 break;
-            $item = [array_merge($line, ['submenu' => $menus->getHijos($padres, $line)])];
+            $item = [array_merge($line, ['submenu' => $menus->getHijos($padres, $line, $nivelActual), 'nivel' => $nivelActual])];
+            $nivelActual--;
             $menuAll = array_merge($menuAll, $item);
         }
         return $menuAll;

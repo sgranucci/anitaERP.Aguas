@@ -22,10 +22,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-	Paginator::useBootstrap();
+		Paginator::useBootstrap();
 
         View::composer("theme.lte.aside", function ($view) {
-            $menus = Menu::getMenu(true);
+			$nivelActual = 0;
+            $menus = Menu::getMenu(true, $nivelActual);
             $view->with('menusComposer', $menus);
         });
         View::share('theme', 'lte');
@@ -194,6 +195,11 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 		$this->app->bind(
+        	'App\Repositories\Caja\Conceptogasto_CuentacontableRepositoryInterface',
+        	'App\Repositories\Caja\Conceptogasto_CuentacontableRepository',
+    	);
+
+		$this->app->bind(
         	'App\Repositories\Caja\OrigenvoucherRepositoryInterface',
         	'App\Repositories\Caja\OrigenvoucherRepository',
     	);
@@ -227,6 +233,16 @@ class AppServiceProvider extends ServiceProvider
         	'App\Repositories\Caja\CajaRepositoryInterface',
         	'App\Repositories\Caja\CajaRepository',
     	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\ChequeRepositoryInterface',
+        	'App\Repositories\Caja\ChequeRepository',
+    	);
+		
+		$this->app->bind(
+        	'App\Repositories\Caja\ChequeraRepositoryInterface',
+        	'App\Repositories\Caja\ChequeraRepository',
+    	);
 		
 		$this->app->bind(
         	'App\Repositories\Caja\Caja_AsignacionRepositoryInterface',
@@ -243,6 +259,10 @@ class AppServiceProvider extends ServiceProvider
         	'App\Repositories\Caja\Tipotransaccion_CajaRepository',
     	);
 
+		$this->app->bind(
+        	'App\Repositories\Caja\Estadocheque_BancoRepositoryInterface',
+        	'App\Repositories\Caja\Estadocheque_BancoRepository',
+    	);
 
 		$this->app->bind(
         	'App\Repositories\Compras\CondicionpagoRepositoryInterface',
@@ -422,6 +442,11 @@ class AppServiceProvider extends ServiceProvider
 		$this->app->bind(
         	'App\Repositories\Configuracion\CotizacionRepositoryInterface',
         	'App\Repositories\Configuracion\CotizacionRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Configuracion\TipodocumentoRepositoryInterface',
+        	'App\Repositories\Configuracion\TipodocumentoRepository',
     	);
 
 		$this->app->bind(
@@ -624,6 +649,36 @@ class AppServiceProvider extends ServiceProvider
 		$this->app->bind(
         	'App\Repositories\Caja\Voucher_FormapagoRepositoryInterface',
         	'App\Repositories\Caja\Voucher_FormapagoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\RendicionreceptivoRepositoryInterface',
+        	'App\Repositories\Caja\RendicionreceptivoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\Rendicionreceptivo_Caja_MovimientoRepositoryInterface',
+        	'App\Repositories\Caja\Rendicionreceptivo_Caja_MovimientoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\Rendicionreceptivo_VoucherRepositoryInterface',
+        	'App\Repositories\Caja\Rendicionreceptivo_VoucherRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\Rendicionreceptivo_FormapagoRepositoryInterface',
+        	'App\Repositories\Caja\Rendicionreceptivo_FormapagoRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\Rendicionreceptivo_ComisionRepositoryInterface',
+        	'App\Repositories\Caja\Rendicionreceptivo_ComisionRepository',
+    	);
+
+		$this->app->bind(
+        	'App\Repositories\Caja\Rendicionreceptivo_AdelantoRepositoryInterface',
+        	'App\Repositories\Caja\Rendicionreceptivo_AdelantoRepository',
     	);
 
 		$this->app->bind(

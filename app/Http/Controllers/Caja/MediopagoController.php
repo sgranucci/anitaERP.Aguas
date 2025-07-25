@@ -74,10 +74,9 @@ class MediopagoController extends Controller
     {
         can('editar-medio-de-pago');
         $data = $this->repository->findOrFail($id);
-
         $cuentacaja_query = $this->cuentacajaRepository->all();
         $empresa_query = Empresa::orderBy('nombre')->get();
-        $desc_cuentacaja = $data->cuentacajas->nombre;
+        $desc_cuentacaja = $data->cuentacajas->nombre ?? '';
         $desc_empresa = $data->empresas->nombre;
 
         return view('caja.mediopago.editar', compact('data', 'cuentacaja_query', 'empresa_query',

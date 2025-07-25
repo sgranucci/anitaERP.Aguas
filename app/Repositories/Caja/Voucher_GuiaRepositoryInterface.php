@@ -11,5 +11,6 @@ interface Voucher_GuiaRepositoryInterface
     public function findOrFail($id);
     public function delete($voucher_id, $codigo);
     public function leeVoucherGuia($voucher_id);
+    function leeComisionPorGuiaOrdenservicio($guia_id, $ordenservicio_id);
 }
 

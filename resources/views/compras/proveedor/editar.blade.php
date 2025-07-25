@@ -20,8 +20,7 @@
     });
     function sub()
 	{
-        
-		$('#form-general').submit();
+        $('#form-general').submit();
 	}
 </script>
 @endsection
@@ -48,9 +47,15 @@
 					<button type="button" id="botonestado" class="btn btn-info btn-sm">
                         <i class="fa fa-bell"></i> Estado {{ $data->descripcionestado }}
                     </button>
-                    <a href="{{route('proveedor')}}" class="btn btn-outline-info btn-sm">
-                        <i class="fa fa-fw fa-reply-all"></i> Volver al listado
-                    </a>
+                    @if ($tipoconsulta == "REMOTA")
+                        <a href="javascript:history.back()" class="btn btn-outline-info btn-sm">
+                            <i class="fa fa-fw fa-reply-all"></i> Volver a consulta
+                        </a>
+                    @else
+                        <a href="{{route('proveedor')}}" class="btn btn-outline-info btn-sm">
+                            <i class="fa fa-fw fa-reply-all"></i> Volver al listado
+                        </a>
+                    @endif
                 </div>
             </div>
             <form action="{{route('actualizar_proveedor', ['id' => $data->id])}}" id="form-general" class="form-horizontal form--label-right" method="POST" enctype="multipart/form-data" autocomplete="off">

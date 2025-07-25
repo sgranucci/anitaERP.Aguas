@@ -59,6 +59,8 @@
 		$( ".botonsubmit" ).click(function() {
 			$( "#form-general" ).submit();
 		});
+
+		$(document).keydown(function(event) { if (event.key === "Enter") { event.preventDefault(); }});
     });
 
 	function activa_eventos(flInicio)
@@ -76,11 +78,20 @@
 			$('.incluido').off('change');
 			$('.opcional').off('change');
 			$('.monto').off('change');
+			$('.cotizacion').off('change');
 			$('#servicioterrestre_id').off('change');
+			$('.codigoservicioterrestre').off('change');
 			$('#proveedor_id').off('change');
 			$('.montocomision').off('change');
+			$('.codigoreserva').off('change');
+			$('.codigo').off('change');
+			$('.porcentajecomision').off('change');
+			$('#montoproveedor').off('change');
+			$('.tipocomision').off('change');
 		}
 		
+		activa_eventos_consultaguia();
+
 		$('.consultareserva').on('click', function (event) {
         	reservaxcodigo = $(this).parents("tr").find(".reserva_id");
 			ptrReservaActual = this;
@@ -128,22 +139,83 @@
 				$(ptrReservaActual).parents("tr").find(".fechapartida").val(fechapartida);
 
 				// Lee reserva
-				let url_res = '/anitaERP/public/receptivo/leereserva/'+seleccion;
+				let codigoservicioterrestre = $("#codigoservicioterrestre").val();
+				let url_res = '/anitaERP/public/receptivo/leereservaporidservicioterrestre/'+seleccion+"/"+codigoservicioterrestre;
+				
 				$.get(url_res, function(data){
 					{
+						if (data[0])
+						{
+							$(ptrReservaActual).parents("tr").find(".pax").val(data[0].cantidadpasajero);
+							$(ptrReservaActual).parents("tr").find(".pax").attr("max",data[0].cantidadpasajero);
+							$(ptrReservaActual).parents("tr").find(".limitepax").val(data[0].cantidadpasajero);
+							$(ptrReservaActual).parents("tr").find(".free").val(data[0].cantidadgratis);
+							$(ptrReservaActual).parents("tr").find(".free").attr("max",data[0].cantidadpasajero);
+							$(ptrReservaActual).parents("tr").find(".limitefree").val(data[0].cantidadgratis);
+							if (data[0].cantidadincluido != NaN && data[0].cantidadincluido != '')
+								$(ptrReservaActual).parents("tr").find(".incluido").val(parseInt(data[0].cantidadincluido));
+							else
+								$(ptrReservaActual).parents("tr").find(".incluido").val(0);
+							if (data[0].cantidadopcional != NaN && data[0].cantidadopcional != '')
+								$(ptrReservaActual).parents("tr").find(".opcional").val(parseInt(data[0].cantidadopcional));
+							else
+								$(ptrReservaActual).parents("tr").find(".opcional").val(0);
+
+							sumaPasajero();
+						}
+					}
+				});
+
+				$('#consultareservaModal').modal('hide');
+			}
+		});
+
+		$(document).on('change', '.codigoreserva', function () {
+			let reserva_id = $(this).val();
+			let ptrReservaActual = this;
+			
+			// Asigna la reserva ingresada manualmente
+			$(ptrReservaActual).parents("tr").find(".reserva_id").val(reserva_id);
+
+			// Lee reserva
+			let codigoservicioterrestre = $("#codigoservicioterrestre").val();
+			let url_res = '/anitaERP/public/receptivo/leereservaporidservicioterrestre/'+reserva_id+"/"+codigoservicioterrestre;
+
+			$.get(url_res, function(data){
+				{
+					if (data[0])
+					{
+						// Convierte fechas a formato date para input
+						let separador = '-';
+						var fechaUno = [data[0].fechaarribo.slice(0, 4), separador, data[0].fechaarribo.slice(4)].join('');
+						fechaarribo = [fechaUno.slice(0, 7), separador, fechaUno.slice(7)].join('');
+
+						fechaUno = [data[0].fechapartida.slice(0, 4), separador, data[0].fechapartida.slice(4)].join('');
+						fechapartida = [fechaUno.slice(0, 7), separador, fechaUno.slice(7)].join('');
+
+						$(ptrReservaActual).parents("tr").find(".pasajero_id").val(data[0].pasajero_id);
+						$(ptrReservaActual).parents("tr").find(".nombrepasajero").val(data[0].nombrepasajero);
+						$(ptrReservaActual).parents("tr").find(".fechaarribo").val(fechaarribo);
+						$(ptrReservaActual).parents("tr").find(".fechapartida").val(fechapartida);
 						$(ptrReservaActual).parents("tr").find(".pax").val(data[0].cantidadpasajero);
 						$(ptrReservaActual).parents("tr").find(".pax").attr("max",data[0].cantidadpasajero);
 						$(ptrReservaActual).parents("tr").find(".limitepax").val(data[0].cantidadpasajero);
 						$(ptrReservaActual).parents("tr").find(".free").val(data[0].cantidadgratis);
 						$(ptrReservaActual).parents("tr").find(".free").attr("max",data[0].cantidadpasajero);
 						$(ptrReservaActual).parents("tr").find(".limitefree").val(data[0].cantidadgratis);
+						if (data[0].cantidadincluido != NaN && data[0].cantidadincluido != '')
+							$(ptrReservaActual).parents("tr").find(".incluido").val(parseInt(data[0].cantidadincluido));
+						else
+							$(ptrReservaActual).parents("tr").find(".incluido").val(0);
+						if (data[0].cantidadopcional != NaN && data[0].cantidadopcional != '')
+							$(ptrReservaActual).parents("tr").find(".opcional").val(parseInt(data[0].cantidadopcional));
+						else
+							$(ptrReservaActual).parents("tr").find(".opcional").val(0);
 
 						sumaPasajero();
 					}
-				});
-
-				$('#consultareservaModal').modal('hide');
-			}
+				}
+			});
 		});
 
 		// Consulta de servicios
@@ -165,14 +237,27 @@
 		$(document).on('click', '.eligeconsultaservicioterrestre', function () {
 			let seleccion = $(this).parents("tr").children().html();
 			let descripcion = $(this).parents("tr").find(".descripcion").html();
+			let codigo = $(this).parents("tr").find(".codigo").html();
 
 			$(servicioterrestrexcodigo).val(seleccion);
 
 			$("#servicioterrestre_id").val(seleccion);
 			$("#nombreservicioterrestre").val(descripcion);
 			$("#servicioterrestre").val(descripcion);
+			$("#codigoservicioterrestre").val(codigo);
+
+			// Lee el proveedor si existe y lo trae
+			let url = '/anitaERP/public/receptivo/leerproveedor_servicioterrestre/'+seleccion;
+			$.get(url, function(data){
+				if (data[0])
+				{
+					$("#proveedor_id").val(data[0].proveedor_id);
+					$("#proveedor").val(data[0].nombreproveedor);
+				}
+			});
 
 			calculaMontoProveedor();
+			calculaMontoEmpresa();
 
 			$('#consultaservicioterrestreModal').modal('hide');
 		});
@@ -206,6 +291,7 @@
 			$("#proveedor").val(descripcion);
 
 			calculaMontoProveedor();
+			calculaMontoEmpresa();
 
 			$('#consultaproveedorModal').modal('hide');
 		});
@@ -260,6 +346,24 @@
 			$('#consultacuentacajaModal').modal('hide');
 		});
 
+		$(document).on('change', '.codigo', function () {
+			let codigo = $(this).val();
+			let moneda_id = $(this).parents("tr").find(".moneda");
+			cuentacajaxcodigo = $(this).parents("tr").find(".cuentacaja_id");
+			nombrexcodigo = $(this).parents("tr").find(".nombre");
+			codigoxcodigo = $(this).parents("tr").find(".codigo");
+
+			// Lee cuenta de caja
+			let url = '/anitaERP/public/caja/cuentacaja/leercuentacajaporcodigo/'+codigo;
+			$.get(url, function(data){
+				// Asigna a grilla los valores devueltos por consulta
+				$(cuentacajaxcodigo).val(data.id);
+				$(nombrexcodigo).val(data.nombre);
+				$(codigoxcodigo).val(data.codigo);
+				$(moneda_id).val(data.moneda_id)
+			});
+		});
+
 		$('.pax').on('change', function (event) {
 			event.preventDefault();
 			chequeaTotalPasajero(this);
@@ -288,22 +392,97 @@
 			sumaMonto();
 		});
 
+		$('.cotizacion').on('change', function (event) {
+			event.preventDefault();
+			sumaMonto();
+		});
+
+		$('.tipocomision').on('change', function (event) {
+			event.preventDefault();
+
+			// Busca comision por servicio
+			buscaComisionPorServicio(this);
+
+			calculaMontoProveedor();
+			calculaMontoEmpresa();
+		});
+
+		$('.porcentajecomision').on('change', function (event) {
+			event.preventDefault();
+			calculaPorcentajeComisionGuia(this);
+		});
+
 		$('.montocomision').on('change', function (event) {
+			event.preventDefault();
+			calculaMontoProveedor();
+			calculaMontoEmpresa();
+		});
+
+		$('#montoproveedor').on('change', function (event) {
 			event.preventDefault();
 			calculaMontoEmpresa();
 		});
 
 		$('#servicioterrestre_id').on('change', function (event) {
 			event.preventDefault();
+
+			// Busca tabla de comisiones por servicio
+			procesaComisionPorServicio();
+
 			calculaMontoProveedor();
+			calculaMontoEmpresa();
+		});
+		
+		$('#codigoservicioterrestre').on('change', function (event) {
+			event.preventDefault();
+
+			// Lee servicio terrestre por codigo
+			let codigoservicioterrestre = $("#codigoservicioterrestre").val();
+			let url_res = '/anitaERP/public/receptivo/leerservicioterrestre/'+codigoservicioterrestre;
+
+			$.get(url_res, function(data){
+				{
+					if (data)
+					{
+						$("#servicioterrestre_id").val(data.id);
+						$("#nombreservicioterrestre").val(data.nombre);
+						$("#servicioterrestre").val(data.nombre);
+						$("#codigoservicioterrestre").val(data.codigo);
+					}
+				}
+			});
 		});
 
 		$('#proveedor_id').on('change', function (event) {
 			event.preventDefault();
+			
+			// Lee servicio terrestre por codigo
+			let proveedor_id = $("#proveedor_id").val();
+			let url_res = '/anitaERP/public/compras/leerproveedor/'+proveedor_id;
+
+			$.get(url_res, function(data){
+				if (data)
+				{
+					$("#proveedor_id").val(data.id);
+					$("#nombreproveedor").val(data.nombre);
+					$("#proveedor").val(data.nombre);
+				}
+			});
 			calculaMontoProveedor();
+			calculaMontoEmpresa();
 		});
 	}
 
+	function calculaPorcentajeComisionGuia(ptr)
+	{
+		let porcentajeComision = $(ptr).parents('tr').find(".porcentajecomision").val();
+		let montoVoucher = $("#montovoucher").val();
+		let montoComision = 0;
+
+		montoComision = parseFloat(montoVoucher) * parseFloat(porcentajeComision) / 100;
+		$(ptr).parents('tr').find('.montocomision').val(montoComision);
+		calculaMontoEmpresa();
+	}
 	function chequeaTotalPasajero(ptrElemento)
 	{
 		let pax = parseInt($(ptrElemento).parents('tr').find(".pax").val());
@@ -327,7 +506,7 @@
 		let totalIncluido = 0;
 		let totalOpcional = 0;
 
-		// Inicializa totales por moneda
+		// Inicializa totales
 		$("#tbody-voucher-reserva-table tr").each(function(index, element) {
 			totalPax += parseInt($(element).find(".pax").val());
 			totalFree += parseInt($(element).find(".free").val());
@@ -358,7 +537,11 @@
     	$("#tbody-guia-table").append(renglon);
     	actualizaRenglonesGuia();
 
-		activa_eventos(true);
+		// Hace focus sobre el primer elemento de la tabla
+		let ptrUltimoRenglon = $("#tbody-guia-table tr:last");
+		$(ptrUltimoRenglon).find('.guia_id').focus();
+
+		activa_eventos(false);
     }
 
     function borraRenglonGuia(event) {
@@ -389,7 +572,11 @@
     	$("#tbody-voucher-reserva-table").append(renglon);
     	actualizaRenglonesReserva();
 
-		activa_eventos(true);
+		// Hace focus sobre el primer elemento de la tabla
+		let ptrUltimoRenglon = $("#tbody-voucher-reserva-table tr:last");
+		$(ptrUltimoRenglon).find('.codigoreserva').focus();
+
+		activa_eventos(false);
     }
 
 	function borraRenglonReserva(event) {
@@ -420,13 +607,18 @@
     	$("#tbody-voucher-formapago-table").append(renglon);
     	actualizaRenglonesFormaPago();
 
-		activa_eventos(true);
+		// Hace focus sobre el primer elemento de la tabla
+		let ptrUltimoRenglon = $("#tbody-voucher-formapago-table tr:last");
+		$(ptrUltimoRenglon).find('.codigo').focus();
+
+		activa_eventos(false);
     }
 
 	function borraRenglonFormaPago(event) {
     	event.preventDefault();
     	$(this).parents('tr').remove();
     	actualizaRenglonesFormaPago();
+		sumaMonto();
     }
 
     function actualizaRenglonesFormaPago() {
@@ -455,11 +647,13 @@
 
 	function sumaMonto()
 	{
-		let monedaDefault = $("#tbody-voucher-formapago-table").children(':first').find('.moneda').val();
+		//let monedaDefault = $("#tbody-voucher-formapago-table").children(':first').find('.moneda').val();
+		let monedaDefault = $("#moneda_default_id").val();
 		var wrapper = $(".totales-por-moneda");
 		let totalMonto = 0;
 
 		// Inicializa totales por moneda
+		totalMoneda.length = 0;
 		$("#tbody-voucher-formapago-table .moneda").each(function() {
 			let moneda = $(this).val();
 			totalMoneda[moneda] = 0;
@@ -507,9 +701,12 @@
 			$.get(url, function(data){
 				let montoProveedor = parseFloat(data.costo);
 				let moneda_id = data.moneda_id;
+				let totalPax = $("#totalpaxvoucher").val();
 
 				if (isNaN(montoProveedor))
 					montoProveedor = 0;
+
+				montoProveedor = montoProveedor * totalPax;
 
 				if (moneda_id > 1)
 				{
@@ -541,8 +738,31 @@
 			
 			montoGuia += parseFloat(monto);
 		});
-		montoEmpresa = parseFloat(montoVoucher) - parseFloat(montoGuia) + parseFloat(montoProveedor);
+		montoEmpresa = parseFloat(montoVoucher) - parseFloat(montoGuia) - parseFloat(montoProveedor);
 
 		$("#montoempresa").val(montoEmpresa);
 	}
 
+	function procesaComisionPorServicio()
+	{
+		// Recorre tabla de guias para calcular comisiones
+		$("#tbody-guia-table .tipocomision").each(function(index, element) {
+			buscaComisionPorServicio(element);
+		});
+	}
+	
+	function buscaComisionPorServicio(ptr)
+	{
+		let servicioterrestre_id = $('#servicioterrestre_id').val();
+		let tipocomision = $(ptr).parents("tr").find(".tipocomision").val();
+
+		let url = '/anitaERP/public/caja/leercomision_servicioterrestre/'+servicioterrestre_id+'/'+tipocomision;
+		$.get(url, function(data){
+			if (data.porcentajecomision)
+			{
+				$(ptr).parents("tr").find(".porcentajecomision").val(data.porcentajecomision);
+
+				calculaPorcentajeComisionGuia(ptr);
+			}
+		});
+	}

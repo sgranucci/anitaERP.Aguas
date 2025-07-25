@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Receptivo\Reserva;
+use App\Models\Configuracion\Moneda;
 use Auth;
 
 class Voucher_Formapago extends Model implements Auditable

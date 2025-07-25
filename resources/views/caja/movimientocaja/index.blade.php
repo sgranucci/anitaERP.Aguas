@@ -52,8 +52,8 @@
                         	<i class="fa fa-fw fa-plus-circle"></i> Ingresos y egresos
 						@endif
                     </a>
-                    <a href="{{route('crear_ingresoegreso')}}" class="btn btn-outline-secondary btn-sm">
-                       	@if (can('crear-rendiciones-receptivo', false))
+                    <a href="{{route('crear_rendicionreceptivo', ['caja' => $caja_asignacion->caja_id ?? ''])}}" class="btn btn-outline-secondary btn-sm">
+                       	@if (can('crear-rendicion-receptivo', false))
                         	<i class="fa fa-fw fa-plus-circle"></i> Rendiciones
 						@endif
                     </a>

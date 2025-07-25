@@ -137,4 +137,9 @@ class Tipotransaccion_CajaController extends Controller
             abort(404);
         }
     }
+
+    public function leeTipotransaccion_caja($id)
+    {
+        return $this->repository->find($id);
+    }
 }

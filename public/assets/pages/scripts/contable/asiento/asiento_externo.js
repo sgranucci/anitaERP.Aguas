@@ -129,15 +129,15 @@ var totalHaberAsiento = 0;
     	actualizaRenglonesCuentaAsiento();
 
 		// Asigna default de moneda
-	 	$("#tbody-cuenta-asiento-table .monedaasiento").each(function() {
-			if ($(this).val() < 1 || $(this).val() > 999999)
-				$(this).val(monedaDefault);
-    	});
+	 	//$("#tbody-cuenta-asiento-table .monedaasiento").each(function() {
+		//	if ($(this).val() < 1 || $(this).val() > 999999)
+		//		$(this).val(monedaDefault);
+    	//});
 
-		let ptrUltimoRenglon = $("#tbody-cuenta-asiento-table").last().find('.monedaasiento');
+		//let ptrUltimoRenglon = $("#tbody-cuenta-asiento-table").last().find('.monedaasiento');
 
 		// Lee cotizacion de la moneda
-		leeCotizacionAsiento(ptrUltimoRenglon);
+		//leeCotizacionAsiento(ptrUltimoRenglon);
 
 		activa_eventosAsiento(false);
     }

@@ -5,6 +5,18 @@
 
 @section("scripts")
 <script src="{{asset("assets/pages/scripts/admin/crear.js")}}" type="text/javascript"></script>
+<script src="{{asset("assets/pages/scripts/compras/proveedor/consulta.js")}}" type="text/javascript"></script>
+<script src="{{asset("assets/pages/scripts/receptivo/servicioterrestre/consulta.js")}}" type="text/javascript"></script>
+<script>
+    var urlConsultaProveedor = "{{ route('editar_proveedor', ':id') }}";
+    
+    activa_eventos_consultaproveedor();
+    activa_eventos_consultaservicioterrestre();
+
+    $( ".botonsubmit" ).click(function() {
+			$( "#form-general" ).submit();
+	});
+</script>
 @endsection
 
 @section('contenido')
@@ -21,7 +33,7 @@
                     </a>
                 </div>
             </div>
-            <form action="{{route('actualizar_proveedor_servicioterrestre', ['id' => $proveedor_servicioterrestre->id])}}" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
+            <form action="{{route('actualizar_proveedor_servicioterrestre', ['id' => $proveedor_servicioterrestre->id])}}" name="form-general" id="form-general" class="form-horizontal form--label-right" method="POST" autocomplete="off">
                 @csrf @method("put")
                 <div class="card-body">
                     @include('receptivo.proveedor_servicioterrestre.form')

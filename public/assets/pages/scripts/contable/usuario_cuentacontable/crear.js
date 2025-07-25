@@ -73,11 +73,11 @@ var codigoxcodigo;
         	$('#consultacuentaModal').modal('hide');
     	});
 
-		$(document).on('click', '.eligeconsulta', function () {
+		$(document).on('click', '.eligeconsultacuentacontable', function () {
 			var seleccion = $(this).parents("tr").children().html();
-			var nombre = $(this).parents("tr").find(".nombre").html();
-			var codigo = $(this).parents("tr").find(".codigo").html();
-		
+			var nombre = $(this).parents("tr").find(".nombrecuentacontable").html();
+			var codigo = $(this).parents("tr").find(".codigocuentacontable").html();
+
 			// Asigna a grilla los valores devueltos por consulta
 			$(cuentacontablexcodigo).val(seleccion);
 			$(nombrexcodigo).val(nombre);

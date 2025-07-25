@@ -22,6 +22,7 @@ class CrearTablaVoucherGuia extends Migration
             $table->string('tipocomision', 2);
             $table->float('porcentajecomision',5,2);
             $table->decimal('montocomision',22,4); 
+            $table->unsignedBigInteger('ordenservicio_id');
             $table->softDeletes();
             $table->timestamps();
             $table->charset = 'utf8mb4';

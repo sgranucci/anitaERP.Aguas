@@ -54,8 +54,8 @@ class Caja_MovimientoRepository implements Caja_MovimientoRepositoryInterface
     public function update(array $data, $id)
     {
 		$data['usuario_id'] = Auth::user()->id;
-
-        $caja_movimiento = $this->model->findOrFail($id)->update($data);
+		
+		$caja_movimiento = $this->model->findOrFail($id)->update($data);
 
 		// Actualiza anita
 		$anita = self::actualizarAnita($data);
@@ -98,6 +98,7 @@ class Caja_MovimientoRepository implements Caja_MovimientoRepositoryInterface
 									->with("caja_movimiento_archivos")
 									->with("asientos")
 									->with("empresas")
+									->with("conceptogasto_ids")
 									->find($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
@@ -112,6 +113,7 @@ class Caja_MovimientoRepository implements Caja_MovimientoRepositoryInterface
 											->with("caja_movimiento_estados")
 											->with("asientos")
 											->with("empresas")
+											->with("conceptogasto_ids")
 											->findOrFail($id))
 			{
             throw new ModelNotFoundException("Registro no encontrado");
@@ -158,5 +160,34 @@ class Caja_MovimientoRepository implements Caja_MovimientoRepositoryInterface
 			$numerotransaccion = 1;
 
 		return $numerotransaccion;
+	}
+
+	// Lee gastos anteriores por orden de servicio
+
+	public function leeGastoAnterior($ordenservicio_id)
+	{
+		$caja_movimiento = $this->model->select('caja_movimiento.id as id',
+												'caja_movimiento.tipotransaccion_caja_id as tipotransaccion_caja_id',
+												'tipotransaccion_caja.abreviatura as abreviatura',
+												'tipotransaccion_caja.signo as signo',
+												'caja_movimiento.conceptogasto_id as conceptogasto_id',
+												'conceptogasto.nombre as nombreconceptogasto',
+												'cuentacaja.codigo as codigocuentacaja',
+												'cuentacaja.nombre as nombrecuentacaja',
+												'caja_movimiento_cuentacaja.moneda_id as moneda_id',
+												'moneda.abreviatura as abreviaturamoneda',
+												'caja_movimiento_cuentacaja.monto as monto',
+												'caja_movimiento_cuentacaja.cotizacion as cotizacion',
+												'caja_movimiento.ordenservicio_id as ordenservicio_id')
+										->leftJoin('tipotransaccion_caja', 'tipotransaccion_caja.id', 'caja_movimiento.tipotransaccion_caja_id')
+										->leftJoin('conceptogasto', 'conceptogasto.id', 'caja_movimiento.conceptogasto_id')
+										->leftJoin('caja_movimiento_cuentacaja', 'caja_movimiento_cuentacaja.caja_movimiento_id', 'caja_movimiento.id')
+										->leftJoin('cuentacaja', 'cuentacaja.id', 'caja_movimiento_cuentacaja.cuentacaja_id')
+										->leftJoin('moneda', 'moneda.id', 'caja_movimiento_cuentacaja.moneda_id')
+										->where([['caja_movimiento.ordenservicio_id', $ordenservicio_id],
+												['tipotransaccion_caja.signo', -1]])
+										->get();
+
+		return $caja_movimiento;
 	}
 }

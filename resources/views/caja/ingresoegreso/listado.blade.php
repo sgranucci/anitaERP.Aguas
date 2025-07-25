@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-	<title>Asientos</title>
+	<title>Ingresos y Egresos de Caja</title>
 	<head>
 		<style>
 			table {
@@ -19,7 +19,7 @@
 		</style>
 	</head>
 	<body>
-		<h2>Asientos</h2>
+		<h2>Ingresos y Egresos de Caja</h2>
 		<table class="table table-striped table-bordered table-hover">
 			<thead>
 				<tr>
@@ -27,60 +27,56 @@
 					<th>Empresa</th>
 					<th>Número</th>
 					<th>Fecha</th>
-					<th>Tipo de asiento</th>
-					<th>Observaciones</th>
-					<th>Monto Total</th>
-					<th>Cuenta</th>
-					<th>Descripción</th>
-					<th>Centro de costo</th>
-					<th>Debe</th>
-					<th>Haber</th>
-					<th>Moneda</th>
-					<th>Cotizacion</th>
+					<th>Tipo de transacción</th>
+					<th>Concepto</th>
 					<th>Detalle</th>
+					@if (config('app.empresa') == 'Iguassu Travel')
+						<th>Orden de servicio</th>
+					@endif
+					<th>Monto en $</th>
+					<th>Movimientos</th>
 				</tr>
 			</thead>
 			<tbody>
-				@foreach ($asientos as $data)
-					@php $flPrimerMovimiento = true; @endphp
-					@foreach($data->asiento_movimientos as $movimiento)
-						<tr data-entry-id="{{ $data->id }}">
-							@if ($flPrimerMovimiento)
-								<td>{{$data->id}}</td>
-								<td>{{$data->nombreempresa}}</td>
-								<td>{{$data->numeroasiento}}</td>
-								<td>{{date("d/m/Y", strtotime($data->fecha ?? ''))}}</td>
-								<td>{{$data->nombretipoasiento}}</td>
-								<td>{{$data->observacion ?? ''}}</td>
-								<td>
-									@php $totalAsiento = 0; @endphp
-									@foreach($data->asiento_movimientos as $mov)
-										@php $totalAsiento += ($mov->monto > 0 ? $mov->monto : 0); @endphp
-									@endforeach
-									{{number_format($totalAsiento,2)}}
-								</td>
-								@php $flPrimerMovimiento = false; @endphp
+				@foreach ($caja_movimiento as $data)
+				<tr>
+					<td>{{$data->id}}</td>
+					<td>{{$data->nombreempresa}}</td>
+					<td>{{$data->numerotransaccion}}</td>
+					<td>{{date("d/m/Y", strtotime($data->fecha ?? ''))}}</td>
+					<td>{{$data->nombretipotransaccion_caja}}</td>
+					<td>{{$data->nombreconceptogasto ?? ''}}</td>
+					<td>{{$data->detalle ?? ''}}</td>
+					@if (config('app.empresa') == 'Iguassu Travel')
+						<td>{{$data->ordenservicio_id}}</td>
+					@endif
+					<td>
+						@php $totalIngreso = 0; $totalEgreso= 0; @endphp
+						@foreach($data->caja_movimiento_cuentacajas as $movimiento)
+							@if ($movimiento->moneda_id > 1)
+								@php $coef = $movimiento->cotizacion; @endphp
 							@else
-								<td colspan='7'></td>
+								@php $coef = 1.; @endphp
 							@endif
-							<td>{{ $movimiento->cuentacontables->codigo }}</td>
-							<td>{{ $movimiento->cuentacontables->nombre }}</td>
-							<td>{{ $movimiento->centrocostos->nombre ?? '' }}</td>
-							<td>
-								@if ($movimiento->monto >= 0)
-									{{number_format($movimiento->monto,2)}}
-								@endif
-							</td>
-							<td>
-								@if ($movimiento->monto < 0)
-									{{number_format(abs($movimiento->monto),2)}}
-								@endif
-							</td>
-							<td>{{ $movimiento->monedas->nombre }}</td>
-							<td>{{ $movimiento->cotizacion }}</td>
-							<td>{{ $movimiento->observacion }}</td>
-						</tr>
-					@endforeach
+							@php 
+								$totalIngreso += ($movimiento->monto > 0 ? $movimiento->monto * $coef : 0);
+								$totalEgreso += ($movimiento->monto < 0 ? abs($movimiento->monto * $coef) : 0);
+							@endphp
+						@endforeach
+						@if ($totalIngreso != 0)
+							{{number_format($totalIngreso,2)}}
+						@else
+							{{number_format($totalEgreso,2)}}
+						@endif
+					</td>
+					<td>
+						<ul>
+						@foreach($data->caja_movimiento_cuentacajas as $movimiento)
+							<li>{{ $movimiento->cuentacajas->nombre }} {{ $movimiento->monto > 0 ? number_format($movimiento->monto,2) : '' }} {{ $movimiento->monto < 0 ? number_format($movimiento->monto,2) : ''}}</li>
+						@endforeach
+						</ul>
+					</td>
+				</tr>
 				@endforeach
 			</tbody>
 		</table>

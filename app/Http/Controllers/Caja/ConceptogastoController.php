@@ -8,14 +8,23 @@ use App\Models\Caja\Conceptogasto;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ValidacionConceptogasto;
 use App\Repositories\Caja\ConceptogastoRepositoryInterface;
+use App\Repositories\Caja\Conceptogasto_CuentacontableRepositoryInterface;
+use App\Repositories\Configuracion\EmpresaRepositoryInterface;
+use DB;
 
 class ConceptogastoController extends Controller
 {
 	private $repository;
+    private $conceptogasto_cuentacontableRepository;
+    private $empresaRepository;
 
-    public function __construct(ConceptogastoRepositoryInterface $repository)
+    public function __construct(ConceptogastoRepositoryInterface $repository,
+                                Conceptogasto_CuentacontableRepositoryInterface $conceptogasto_cuentacontablerepository,
+                                EmpresaRepositoryInterface $empresarepository)
     {
         $this->repository = $repository;
+        $this->conceptogasto_cuentacontableRepository = $conceptogasto_cuentacontablerepository;
+        $this->empresaRepository = $empresarepository;
     }
 
     /**
@@ -40,7 +49,9 @@ class ConceptogastoController extends Controller
     {
         can('crear-conceptos-de-gastos');
 
-        return view('caja.conceptogasto.crear');
+        $empresa_query = $this->empresaRepository->all();
+
+        return view('caja.conceptogasto.crear', compact('empresa_query'));
     }
 
     /**
@@ -51,9 +62,28 @@ class ConceptogastoController extends Controller
      */
     public function guardar(ValidacionConceptogasto $request)
     {
-		$this->repository->create($request->all());
+        DB::beginTransaction();
+        try
+        {        
+            $this->repository->create($request->all());
 
-        return redirect('caja/conceptogasto')->with('mensaje', 'Concepto de gasto creado con éxito');
+            $cuentacontable_ids = $request->input('cuentacontable_ids', []);
+            for ($i_cuenta=0; $i_cuenta < count($cuentacontable_ids); $i_cuenta++) {
+                if ($cuentacontable_ids[$i_cuenta] != '') 
+                {
+                    $conceptogasto_cuentacontable = $this->conceptogasto_cuentacontableRepository->create([
+                                                        'cuentacontable_id' => $cuentacontable_ids[$i_cuenta], 
+                                                        ]);
+                }
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
+            return ['errores' => $e->getMessage()];
+        }
+
+        return ['mensaje' => 'ok'];
+        //return redirect('caja/conceptogasto')->with('mensaje', 'Concepto de gasto creado con éxito');
     }
 
 
@@ -67,8 +97,9 @@ class ConceptogastoController extends Controller
     {
         can('editar-conceptos-de-gastos');
         $data = $this->repository->findOrFail($id);
+        $empresa_query = $this->empresaRepository->all();
 
-        return view('caja.conceptogasto.editar', compact('data'));
+        return view('caja.conceptogasto.editar', compact('data', 'empresa_query'));
     }
 
     /**
@@ -82,9 +113,31 @@ class ConceptogastoController extends Controller
     {
         can('actualizar-conceptos-de-gastos');
 
-        $this->repository->update($request->all(), $id);
+        DB::beginTransaction();
+        try
+        {
+            $this->repository->update($request->all(), $id);
 
-        return redirect('caja/conceptogasto')->with('mensaje', 'Concepto de gasto actualizado con éxito');
+            $conceptogasto_cuentacontable = $this->conceptogasto_cuentacontableRepository->deletePorConceptogasto($request->id);
+
+            $cuentacontable_ids = $request->input('cuentacontable_ids', []);
+            for ($i_cuenta=0; $i_cuenta < count($cuentacontable_ids); $i_cuenta++) {
+                if ($cuentacontable_ids[$i_cuenta] != '') 
+                {
+                    $conceptogasto_cuentacontable = $this->conceptogasto_cuentacontableRepository->create([
+                                                        'conceptogasto_id' => $request->id,
+                                                        'cuentacontable_id' => $cuentacontable_ids[$i_cuenta], 
+                                                        ]);
+                }
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
+            return ['errores' => $e->getMessage()];
+        }
+
+        return ['mensaje' => 'ok'];
+        //return redirect('caja/conceptogasto')->with('mensaje', 'Concepto de gasto actualizado con éxito');
     }
 
     /**
@@ -107,4 +160,14 @@ class ConceptogastoController extends Controller
             abort(404);
         }
     }
+
+    public function consultaConceptogasto(Request $request)
+    {
+        return ($this->repository->leeConceptogasto($request->consulta));
+	}
+
+    public function leeConceptogasto($codigoconceptogasto)
+    {
+        return ($this->repository->findPorId($codigoconceptogasto));
+	}
 }

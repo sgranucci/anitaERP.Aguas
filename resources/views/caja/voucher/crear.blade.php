@@ -8,6 +8,7 @@
 <script src="{{asset("assets/pages/scripts/caja/voucher/crear.js")}}" type="text/javascript"></script>
 <script src="{{asset("assets/pages/scripts/receptivo/reserva/consulta.js")}}" type="text/javascript"></script>
 <script src="{{asset("assets/pages/scripts/receptivo/servicioterrestre/consulta.js")}}" type="text/javascript"></script>
+<script src="{{asset("assets/pages/scripts/receptivo/guia/consulta.js")}}" type="text/javascript"></script>
 <script src="{{asset("assets/pages/scripts/compras/proveedor/consulta.js")}}" type="text/javascript"></script>
 <script src="{{asset("assets/pages/scripts/caja/cuentacaja/consulta.js")}}" type="text/javascript"></script>
 <script>

@@ -87,7 +87,6 @@ class Proveedor_ServicioterrestreController extends Controller
         $servicioterrestre_query = $this->servicioterrestreRepository->all();
         $moneda_query = $this->monedaRepository->all();
         $proveedor_query = $this->proveedorQuery->allQueryOrdenado(['nombre','codigo','id'], 'nombre');
-        
         return view('receptivo.proveedor_servicioterrestre.editar', compact('proveedor_servicioterrestre', 
                                                                 'servicioterrestre_query', 'proveedor_query',
                                                                 'moneda_query')); 
@@ -138,5 +137,10 @@ class Proveedor_ServicioterrestreController extends Controller
     public function leeCosto($servioterrestre_id, $proveedor_id)
     {
         return $this->proveedor_servicioterrestreRepository->leeCosto($servioterrestre_id, $proveedor_id);
+    }
+
+    public function leeProveedor($servioterrestre_id)
+    {
+        return $this->proveedor_servicioterrestreRepository->leeProveedor($servioterrestre_id);
     }
 }

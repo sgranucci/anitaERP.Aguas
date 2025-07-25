@@ -7,6 +7,7 @@ interface Proveedor_ServicioterrestreRepositoryInterface extends RepositoryInter
 
     public function all();
     public function leeCosto($servicioterrestre_id, $proveedor_id);
+    public function leeProveedor($servicioterrestre_id);
 
 }
 

@@ -178,4 +178,28 @@ class VoucherRepository implements VoucherRepositoryInterface
 	public function eliminarAnita($id) {
 	}
 	
+    // Lee vouchers por guia y orden de servicio
+
+	public function leeVoucherPorGuiaOrdenservicio($guia_id, $ordenservicio_id)
+	{
+		$voucher = $this->model->select('voucher.id as id',
+												'voucher.fecha as fecha',
+                                                'cuentacaja.id as cuentacaja_id',
+												'cuentacaja.codigo as codigocuentacaja',
+												'cuentacaja.nombre as nombrecuentacaja',
+												'voucher_formapago.moneda_id as moneda_id',
+												'moneda.abreviatura as abreviaturamoneda',
+												'voucher_formapago.monto as monto',
+												'voucher_formapago.cotizacion as cotizacion',
+												'voucher_guia.ordenservicio_id as ordenservicio_id')
+										->leftJoin('voucher_formapago', 'voucher_formapago.voucher_id', 'voucher.id')
+                                        ->leftJoin('voucher_guia', 'voucher_guia.voucher_id', 'voucher.id')
+										->leftJoin('cuentacaja', 'cuentacaja.id', 'voucher_formapago.cuentacaja_id')
+										->leftJoin('moneda', 'moneda.id', 'voucher_formapago.moneda_id')
+										->where('voucher_guia.ordenservicio_id', $ordenservicio_id)
+										->get();
+
+		return $voucher;
+	}
+
 }

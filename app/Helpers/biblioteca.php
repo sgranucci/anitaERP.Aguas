@@ -145,3 +145,21 @@ function getAllChkboxValues($chk_name) {
     $final_arr = array(); //create the final array
     return $final_arr = array_values($chk_name); //sort the resulting array again
 }
+
+function calculaCoeficienteMoneda($aMoneda, $deMoneda, $cotizacion)
+{
+    if ($aMoneda == $deMoneda)
+        return 1.;
+
+    if ($aMoneda == 1)
+        return $cotizacion;
+
+    if ($aMoneda > 1 && $deMoneda == 1)
+        return 1/$cotizacion;
+
+    // Faltaria definir bien conversiones entre monedas sin pasar por el peso
+    if ($aMoneda > 1 && $deMoneda > 1)
+        return $cotizacion;
+
+    return 1.;
+}

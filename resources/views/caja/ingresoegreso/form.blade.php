@@ -28,6 +28,16 @@
                     @endforeach
                 </select>
             </div>
+            <div class="form-group row" id="div-proveedor" style="display: none">
+                <label for="proveedor" class="col-lg-2 col-form-label">Proveedor</label>
+                <input type="text" class="col-lg-2 proveedor_id" id="proveedor_id" name="proveedor_id" value="{{$data->proveedor_id ?? ''}}" >
+                <input type="text" class="col-lg-6 proveedor" id="proveedor" name="proveedor" value="{{$data->proveedores->nombre ?? ''}}" readonly>
+                <button type="button" title="Consulta proveedores" style="padding:1;" class="btn-accion-tabla consultaproveedor tooltipsC">
+                    <i class="fa fa-search text-primary"></i>
+                </button>
+                <input type="hidden" class="proveedor_id" id="proveedor_id" name="proveedor_id" value="{{$data->proveedor_id ?? ''}}" >
+                <input type="hidden" name="nombreproveedor" id="nombreproveedor" class="form-control" value="{{old('nombreproveedor', $data->proveedores->nombre ?? '')}}">
+            </div>
         </div>
         <div class="col-sm-6">
             <div class="form-group row">
@@ -35,6 +45,18 @@
                 <div class="col-lg-3">
                     <input type="date" name="fecha" id="fecha" class="form-control" value="{{old('fecha', $data->fecha ?? date('Y-m-d'))}}">
                 </div>
+            </div>
+            <div class="form-group row" id="div-ordenservicio" style="display: none">
+                <label for="ordenservicio" class="col-lg-3 col-form-label">Orden de Servicio</label>
+                <input type="text" class="ordenservicio_id" id="ordenservicio_id" name="ordenservicio_id" value="{{$data->ordenservicio_id ?? ''}}" >
+            </div>
+            <div class="form-group row" id="div-conceptogasto" style="display: none">
+                <label for="conceptogasto" class="col-lg-3 col-form-label">Concepto de gasto</label>
+                <input type="text" class="col-lg-2 conceptogasto_id" id="conceptogasto_id" name="conceptogasto_id" value="{{$data->conceptogasto_id??''}}" >
+                <button type="button" title="Consulta conceptos" style="padding:1;" class="btn-accion-tabla consultaconceptogasto tooltipsC">
+                        <i class="fa fa-search text-primary"></i>
+                </button>
+                <input type="text" class="col-lg-6 nombreconceptogasto form-control" id="nombreconceptogasto" name="nombreconceptogasto" value="{{$data->conceptogasto_ids->nombre??''}}" >
             </div>
         </div>
     </div>
@@ -132,6 +154,9 @@
 <input type="hidden" id="csrf_token" class="form-control" value="{{csrf_token()}}" />
 @include('includes.contable.modalconsultacuentacontable')
 @include('includes.caja.modalconsultacuentacaja')
+@include('includes.compras.modalconsultaproveedor')
 @include('caja.ingresoegreso.copiaringresoegresomodal')
 @include('caja.ingresoegreso.revertiringresoegresomodal')
+@include('includes.caja.modalconsultagasto')
+
 

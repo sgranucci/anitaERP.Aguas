@@ -191,4 +191,14 @@ class GuiaController extends Controller
             abort(404);
         }
     }
+
+    public function consultaGuia(Request $request)
+    {
+        return ($this->guiaRepository->leeGuia($request->consulta));
+	}
+
+    public function leeGuia($codigoguia)
+    {
+        return ($this->guiaRepository->findPorCodigo($codigoguia));
+	}
 }

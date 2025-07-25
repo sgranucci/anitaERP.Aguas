@@ -24,9 +24,11 @@ class CreateTablaCajaMovimiento extends Migration
             $table->unsignedBigInteger('caja_id')->nullable();
             $table->foreign('caja_id', 'fk_caja_movimiento_caja')->references('id')->on('caja')->onDelete('restrict')->onUpdate('restrict');
             $table->unsignedBigInteger('proveedor_id')->nullable();
-            $table->foreign('proveedor_id', 'fk_caja_movimiento_proveedor')->references('id')->on('proveedor')->onDelete('set null')->onUpdate('set null');
+            $table->foreign('proveedor_id', 'fk_caja_movimiento_proveedor')->references('id')->on('proveedor')->onDelete('restrict')->onUpdate('restrict');
             $table->unsignedBigInteger('cliente_id')->nullable();
-            $table->foreign('cliente_id', 'fk_caja_movimiento_cliente')->references('id')->on('cliente')->onDelete('set null')->onUpdate('set null');
+            $table->foreign('cliente_id', 'fk_caja_movimiento_cliente')->references('id')->on('cliente')->onDelete('restrict')->onUpdate('restrict');
+            $table->unsignedBigInteger('conceptogasto_id')->nullable();
+            $table->foreign('conceptogasto_id', 'fk_caja_movimiento_conceptogasto')->references('id')->on('conceptogasto')->onDelete('restrict')->onUpdate('restrict');
             $table->string('detalle', 255);
             $table->unsignedBigInteger('usuario_id')->nullable();
             $table->foreign('usuario_id', 'fk_caja_movimiento_usuario')->references('id')->on('usuario')->onDelete('set null')->onUpdate('set null');

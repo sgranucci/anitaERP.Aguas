@@ -62,46 +62,52 @@
         <div class="col-sm-6">
             <div class="form-group row">
                 <label for="servicioterrestre" class="col-lg-2 col-form-label">Servicio</label>
-                <input type="text" class="col-lg-9 servicioterrestre" id="servicioterrestre" name="servicioterrestre" value="{{$data->servicioterrestres->nombre ?? ''}}" readonly>
+                <input type="hidden" class="col-form-label servicioterrestre_id" id="servicioterrestre_id" name="servicioterrestre_id" value="{{$data->servicioterrestre_id ?? ''}}" >
+                <input type="text" class="col-lg-2 codigoservicioterrestre" id="codigoservicioterrestre" name="codigoservicioterrestre" value="{{$codigoservicioterrestre ?? ''}}" >
+                <input type="text" class="col-lg-6 col-form-label servicioterrestre" id="servicioterrestre" name="servicioterrestre" value="{{$data->servicioterrestres->nombre ?? ''}}" readonly>
                 <button type="button" title="Consulta servicios" style="padding:1;" class="btn-accion-tabla consultaservicioterrestre tooltipsC">
                     <i class="fa fa-search text-primary"></i>
                 </button>
-                <input type="hidden" class="servicioterrestre_id" id="servicioterrestre_id" name="servicioterrestre_id" value="{{$data->servicioterrestre_id ?? ''}}" >
+                <input type="hidden" class="codigoservicioterrestre" id="codigoservicioterrestre" name="codigoservicioterrestre" value="{{$codigoservicioterrestre ?? ''}}" >
                 <input type="hidden" name="nombreservicioterrestre" id="nombreservicioterrestre" class="form-control" value="{{old('nombreservicioterrestre', $data->servicioterrestres->nombre ?? '')}}">
             </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6">
             <div class="form-group row">
                 <label for="proveedor" class="col-lg-2 col-form-label">Proveedor</label>
-                <input type="text" class="col-lg-9 proveedor" id="proveedor" name="proveedor" value="{{$data->proveedores->nombre ?? ''}}" readonly>
+                <input type="text" class="col-lg-2 proveedor_id" id="proveedor_id" name="proveedor_id" value="{{$data->proveedor_id ?? ''}}" >
+                <input type="text" class="col-lg-6 proveedor" id="proveedor" name="proveedor" value="{{$data->proveedores->nombre ?? ''}}" readonly>
                 <button type="button" title="Consulta proveedores" style="padding:1;" class="btn-accion-tabla consultaproveedor tooltipsC">
                     <i class="fa fa-search text-primary"></i>
                 </button>
-                <input type="hidden" class="proveedor_id" id="proveedor_id" name="proveedor_id" value="{{$data->proveedor_id ?? ''}}" >
                 <input type="hidden" name="nombreproveedor" id="nombreproveedor" class="form-control" value="{{old('nombreproveedor', $data->proveedores->nombre ?? '')}}">
             </div>
         </div>
-        <div class="row">
-            <div class="col-sm-4">
-                <div class="form-group row">
-                    <label for="montovoucher" class="col-lg-6 col-form-label">Monto voucher</label>
-                    <div class="col-lg-6">
-                        <input type="number" name="montovoucher" id="montovoucher" class="form-control" value="{{old('montovoucher', $data->montovoucher ?? '0')}}">
-                    </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-4">
+            <div class="form-group row">
+                <label for="montovoucher" class="col-lg-6 col-form-label">Monto voucher</label>
+                <div class="col-lg-6">
+                    <input type="number" name="montovoucher" id="montovoucher" class="form-control" value="{{old('montovoucher', $data->montovoucher ?? '0')}}">
                 </div>
             </div>
-            <div class="col-sm-4">
-                <div class="form-group row">
-                    <label for="montoempresa" class="col-lg-6 col-form-label">Monto empresa</label>
-                    <div class="col-lg-6">
-                        <input type="number" name="montoempresa" id="montoempresa" class="form-control" value="{{old('montoempresa', $data->montoempresa ?? '0')}}">
-                    </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="form-group row">
+                <label for="montoempresa" class="col-lg-6 col-form-label">Monto empresa</label>
+                <div class="col-lg-6">
+                    <input type="number" name="montoempresa" id="montoempresa" class="form-control" value="{{old('montoempresa', $data->montoempresa ?? '0')}}">
                 </div>
             </div>
-            <div class="col-sm-4">
-                <div class="form-group row">
-                    <label for="montoproveedor" class="col-lg-6 col-form-label">Monto proveedor</label>
-                    <div class="col-lg-6">
-                        <input type="number" name="montoproveedor" id="montoproveedor" class="form-control" value="{{old('montoproveedor', $data->montoproveedor ?? '0')}}">
-                    </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="form-group row">
+                <label for="montoproveedor" class="col-lg-6 col-form-label">Monto proveedor</label>
+                <div class="col-lg-6">
+                    <input type="number" name="montoproveedor" id="montoproveedor" class="form-control" value="{{old('montoproveedor', $data->montoproveedor ?? '0')}}">
                 </div>
             </div>
         </div>
@@ -112,16 +118,17 @@
             <input type="text" name="observacion" id="observacion" class="form-control" value="{{old('observacion', $data->observacion ?? '')}}">
         </div>
     </div>
+    <input type="hidden" class="moneda_default_id" id="moneda_default_id" name="moneda_default_id" value="{{config('caja.ID_MONEDA_DEFAULT_VOUCHER') ?? ''}}" >
     <h3>Guias</h3>
     <div class="card-body">
         <table class="table" id="guia-table">
             <thead>
                 <tr>
-                    <th style="width: 5%;"></th>
-                    <th style="width: 40%;">Guia</th>
-                    <th style="width: 30%;">Tipo de comisión</th>
+                    <th style="width: 30%;">Guia</th>
+                    <th style="width: 20%;">Tipo de comisión</th>
                     <th style="width: 10%;">Porcentaje</th>
                     <th style="width: 20%;">Monto Comisión</th>
+                    <th style="width: 20%;">Orden de servicio</th>
                     <th></th>
                 </tr>
             </thead>
@@ -130,17 +137,17 @@
                 @foreach (old('guia', $data->voucher_guias->count() ? $data->voucher_guias : ['']) as $guia)
                     <tr class="item-guia">
                         <td>
-                            <input type="text" name="guia[]" class="form-control iiguia" readonly value="{{ $loop->index+1 }}" />
-                        </td>
-                        <td>
-                            <select name="guia_ids[]" data-placeholder="Guía" class="form-control guia_id" data-fouc>
-                                <option value="">-- Elija guía --</option>
-                                @foreach ($guia_query as $guiaq)
-                                    <option value="{{ $guiaq->id }}"
-                                        @if (old('guia', $guia->guia_id ?? '') == $guiaq->id) selected @endif
-                                        >{{ $guiaq->nombre }}</option>
-                                @endforeach
-                            </select>
+                            <input type="hidden" name="guia[]" class="form-control iiguia" readonly value="{{ $loop->index+1 }}" />
+                            <div class="form-group row" id="guia">
+                                <input type="hidden" name="guia[]" class="form-control iiguia" readonly value="" />
+                                <input type="text" style="WIDTH: 40px;HEIGHT: 38px" class="codigoguia" name="codigoguias[]" value="{{$guia->guias->codigo ?? ''}}" >
+                                <input type="hidden" class="guia_id" name="guia_ids[]" value="{{$guia->guia_id ?? ''}}" >
+                                <input type="hidden" class="guia_id_previa" name="guia_id_previa[]" value="{{$guia->guia_id ?? ''}}" >
+                                <button type="button" title="Consulta guías" style="padding:1;" class="btn-accion-tabla consultaguia tooltipsC">
+                                        <i class="fa fa-search text-primary"></i>
+                                </button>
+                                <input type="text" style="WIDTH: 250px;HEIGHT: 38px" class="nombreguia form-control" name="nombreguias[]" value="{{$guia->guias->nombre ?? ''}}" >
+                            </div>
                         </td>
                         <td>
                             <select name="tipocomisiones[]" class="col-lg-6 form-control tipocomision" required>
@@ -153,10 +160,13 @@
                             </select>
                         </td>
                         <td>
-                            <input type="number" name="porcentajecomisiones[]" class="form-control porcentajecomision" value="{{old('montocomision', $guia->porcentajecomision ?? '')}}">
+                            <input type="number" name="porcentajecomisiones[]" class="form-control porcentajecomision" value="{{old('porcentajecomisiones', $guia->porcentajecomision ?? '')}}">
                         </td>
                         <td>
-                            <input type="number" name="montocomisiones[]" class="form-control montocomision" value="{{old('montocomision', $guia->montocomision ?? '')}}">
+                            <input type="number" name="montocomisiones[]" class="form-control montocomision" value="{{old('montocomisiones', $guia->montocomision ?? '')}}">
+                        </td>
+                        <td>
+                            <input type="number" name="ordenservicio_ids[]" class="form-control ordenservicio_id" value="{{old('ordenservicios', $guia->ordenservicio_id ?? '')}}">
                         </td>
                         <td>
                             <button style="width: 7%;" type="button" title="Elimina esta linea" class="btn-accion-tabla eliminar_guia tooltipsC">
@@ -179,4 +189,5 @@
 @include('includes.receptivo.modalconsultareserva')
 @include('includes.receptivo.modalconsultaservicioterrestre')
 @include('includes.compras.modalconsultaproveedor')
+@include('includes.receptivo.modalconsultaguia')
 

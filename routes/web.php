@@ -162,6 +162,17 @@ Route::delete('configuracion/condicioniva/{id}', 'Configuracion\CondicionivaCont
  Route::delete('configuracion/condicionIIBB/{id}', 'Configuracion\CondicionIIBBController@eliminar')->name('eliminar_condicionIIBB');
  
 /* 
+ * Tipos de documentos de personas fisicas y juridicas
+ */
+
+ Route::get('configuracion/tipodocumento', 'Configuracion\TipodocumentoController@index')->name('tipodocumento');
+ Route::get('configuracion/tipodocumento/crear', 'Configuracion\TipodocumentoController@crear')->name('crear_tipodocumento');
+ Route::post('configuracion/tipodocumento', 'Configuracion\TipodocumentoController@guardar')->name('guardar_tipodocumento');
+ Route::get('configuracion/tipodocumento/{id}/editar', 'Configuracion\TipodocumentoController@editar')->name('editar_tipodocumento');
+ Route::put('configuracion/tipodocumento/{id}', 'Configuracion\TipodocumentoController@actualizar')->name('actualizar_tipodocumento');
+ Route::delete('configuracion/tipodocumento/{id}', 'Configuracion\TipodocumentoController@eliminar')->name('eliminar_tipodocumento');
+ 
+/* 
  * Fondos
  */
 
@@ -1007,6 +1018,17 @@ Route::post('caja/cuentacaja/consultacuentacaja', 'Caja\CuentacajaController@con
 Route::get('caja/cuentacaja/leercuentacajaporcodigo/{codigo}', 'Caja\CuentacajaController@leerCuentaCajaPorCodigo')->name('leer_cuentacaja_por_codigo');
  
 /* 
+ * Chequeras
+ */
+
+ Route::get('caja/chequera', 'Caja\ChequeraController@index')->name('chequera');
+ Route::get('caja/chequera/crear', 'Caja\ChequeraController@crear')->name('crear_chequera');
+ Route::post('caja/chequera', 'Caja\ChequeraController@guardar')->name('guardar_chequera');
+ Route::get('caja/chequera/{id}/editar', 'Caja\ChequeraController@editar')->name('editar_chequera');
+ Route::put('caja/chequera/{id}', 'Caja\ChequeraController@actualizar')->name('actualizar_chequera');
+ Route::delete('caja/chequera/{id}', 'Caja\ChequeraController@eliminar')->name('eliminar_chequera');
+
+/* 
  * Conceptos de gastos
  */
 
@@ -1014,8 +1036,33 @@ Route::get('caja/cuentacaja/leercuentacajaporcodigo/{codigo}', 'Caja\CuentacajaC
  Route::get('caja/conceptogasto/crear', 'Caja\ConceptogastoController@crear')->name('crear_conceptogasto');
  Route::post('caja/conceptogasto', 'Caja\ConceptogastoController@guardar')->name('guardar_conceptogasto');
  Route::get('caja/conceptogasto/{id}/editar', 'Caja\ConceptogastoController@editar')->name('editar_conceptogasto');
- Route::put('caja/conceptogasto/{id}', 'Caja\ConceptogastoController@actualizar')->name('actualizar_conceptogasto');
+ Route::put('caja/actualizar_conceptogasto/{id}', 'Caja\ConceptogastoController@actualizar')->name('actualizar_conceptogasto');
  Route::delete('caja/conceptogasto/{id}', 'Caja\ConceptogastoController@eliminar')->name('eliminar_conceptogasto');
+  
+ Route::post('caja/conceptogasto/consultaconceptogasto', 'Caja\ConceptogastoController@consultaConceptogasto')->name('consulta_conceptogasto');
+ Route::get('caja/leerconceptogasto/{conceptogasto_id}', 'Caja\ConceptogastoController@leeconceptogasto')->name('leer_conceptogasto');
+
+/*
+ * Estado de cheques para el banco
+ */
+
+ Route::get('caja/estadocheque_banco', 'Caja\Estadocheque_BancoController@index')->name('estadocheque_banco');
+ Route::get('caja/estadocheque_banco/crear', 'Caja\Estadocheque_BancoController@crear')->name('crear_estadocheque_banco');
+ Route::post('caja/estadocheque_banco', 'Caja\Estadocheque_BancoController@guardar')->name('guardar_estadocheque_banco');
+ Route::get('caja/estadocheque_banco/{id}/editar', 'Caja\Estadocheque_BancoController@editar')->name('editar_estadocheque_banco');
+ Route::put('caja/estadocheque_banco/{id}', 'Caja\Estadocheque_BancoController@actualizar')->name('actualizar_estadocheque_banco');
+ Route::delete('caja/estadocheque_banco/{id}', 'Caja\Estadocheque_BancoController@eliminar')->name('eliminar_estadocheque_banco');
+  
+/* 
+ * Cheques
+ */
+
+ Route::get('caja/cheque', 'Caja\ChequeController@index')->name('cheque');
+ Route::get('caja/cheque/crear', 'Caja\ChequeController@crear')->name('crear_cheque');
+ Route::post('caja/cheque', 'Caja\ChequeController@guardar')->name('guardar_cheque');
+ Route::get('caja/Cheque/{id}/editar', 'Caja\ChequeController@editar')->name('editar_cheque');
+ Route::put('caja/cheque/{id}', 'Caja\ChequeController@actualizar')->name('actualizar_cheque');
+ Route::delete('caja/cheque/{id}', 'Caja\ChequeController@eliminar')->name('eliminar_cheque');
   
 /* 
  * Origen de vouchers
@@ -1094,7 +1141,21 @@ Route::get('caja/cuentacaja/leercuentacajaporcodigo/{codigo}', 'Caja\CuentacajaC
  Route::put('caja/voucher/{id}', 'Caja\VoucherController@actualizar')->name('actualizar_voucher');
  Route::delete('caja/voucher/{id}', 'Caja\VoucherController@eliminar')->name('eliminar_voucher'); 
  Route::get('caja/listavoucher/{formato?}/{busqueda?}', 'Caja\VoucherController@listar')->name('lista_voucher');
+ Route::get('caja/listarvoucher/{id}', 'Caja\VoucherController@listarVoucher')->name('listar_voucher');
+/*
+ * Rendicion de receptivo
+ */
 
+ Route::get('caja/rendicionreceptivo', 'Caja\RendicionreceptivoController@index')->name('rendicionreceptivo');
+ Route::get('caja/rendicionreceptivo/crear/{caja?}', 'Caja\RendicionreceptivoController@crear')->name('crear_rendicionreceptivo');
+ Route::post('caja/rendicionreceptivo', 'Caja\RendicionreceptivoController@guardar')->name('guardar_rendicionreceptivo');
+ Route::get('caja/rendicionreceptivo/{id}/{origen?}/editar', 'Caja\RendicionreceptivoController@editar')->name('editar_rendicionreceptivo');
+ Route::put('caja/actualizarrendicionreceptivo/{id}', 'Caja\RendicionreceptivoController@actualizar')->name('actualizar_rendicionreceptivo');
+ Route::delete('caja/rendicionreceptivo/{id}/{origen?}', 'Caja\RendicionreceptivoController@eliminar')->name('eliminar_rendicionreceptivo'); 
+ Route::get('caja/listarendicionreceptivo/{formato?}/{busqueda?}', 'Caja\RendicionreceptivoController@listar')->name('lista_rendicionreceptivo');
+
+ Route::post('caja/rendicionreceptivo/leegastoanterior', 'Caja\RendicionreceptivoController@leeGastoAnterior')->name('leer_gasto_anterior');
+ Route::post('caja/rendicionreceptivo/leevoucher', 'Caja\RendicionreceptivoController@leeVoucher')->name('leer_voucher');
 /* 
  * Tipos de transacciones de caja
  */
@@ -1106,6 +1167,7 @@ Route::get('caja/cuentacaja/leercuentacajaporcodigo/{codigo}', 'Caja\CuentacajaC
  Route::put('caja/tipotransaccion_caja/{id}', 'Caja\Tipotransaccion_CajaController@actualizar')->name('actualizar_tipotransaccion_caja');
  Route::delete('caja/tipotransaccion_caja/{id}', 'Caja\Tipotransaccion_CajaController@eliminar')->name('eliminar_tipotransaccion_caja');
  
+ Route::get('caja/leertipotransaccion_caja/{id}', 'Caja\Tipotransaccion_CajaController@leeTipotransaccion_caja')->name('leer_tipotransaccion_caja');
 /* 
  * Cajas
  */
@@ -1296,6 +1358,7 @@ Route::put('compras/proveedor/{id}', 'Compras\ProveedorController@actualizar')->
 Route::delete('compras/proveedor/{id}', 'Compras\ProveedorController@eliminar')->name('eliminar_proveedor');
 
 Route::post('compras/proveedor/consultaproveedor', 'Compras\ProveedorController@consultaProveedor')->name('consulta_proveedor');
+Route::get('compras/leerproveedor/{proveedor_id}', 'Compras\ProveedorController@leeProveedor')->name('leer_proveedor');
 
 /* Modulo receptivo */
 
@@ -1322,6 +1385,7 @@ Route::post('compras/proveedor/consultaproveedor', 'Compras\ProveedorController@
  Route::delete('receptivo/servicioterrestre/{id}', 'Receptivo\ServicioterrestreController@eliminar')->name('eliminar_servicioterrestre'); 
 
  Route::post('receptivo/servicioterrestre/consultaservicioterrestre', 'Receptivo\ServicioterrestreController@consultaServicioTerrestre')->name('consulta_servicioterrestre');
+ Route::get('receptivo/leerservicioterrestre/{codigoservicioterrestre}', 'Receptivo\ServicioterrestreController@leeServicioTerrestre')->name('leer_servicioterrestre');
 
 /* 
  * Servicios por proveedor
@@ -1335,6 +1399,7 @@ Route::post('compras/proveedor/consultaproveedor', 'Compras\ProveedorController@
  Route::delete('receptivo/proveedor_servicioterrestre/{id}', 'Receptivo\Proveedor_ServicioterrestreController@eliminar')->name('eliminar_proveedor_servicioterrestre'); 
  
  Route::get('receptivo/leercostoproveedor_servicioterrestre/{servicioterrestre_id}/{proveedor_id}', 'Receptivo\Proveedor_ServicioterrestreController@leeCosto')->name('leer_costo_proveedor_servicioterrestre');
+ Route::get('receptivo/leerproveedor_servicioterrestre/{servicioterrestre_id}', 'Receptivo\Proveedor_ServicioterrestreController@leeProveedor')->name('leer_proveedor_servicioterrestre');
  
 /* 
  * Idiomas
@@ -1358,6 +1423,9 @@ Route::post('compras/proveedor/consultaproveedor', 'Compras\ProveedorController@
  Route::put('receptivo/movil/{id}', 'Receptivo\MovilController@actualizar')->name('actualizar_movil');
  Route::delete('receptivo/movil/{id}', 'Receptivo\MovilController@eliminar')->name('eliminar_movil');
 
+ Route::post('receptivo/movil/consultamovil', 'Receptivo\MovilController@consultaMovil')->name('consulta_movil');
+ Route::get('receptivo/leermovil/{movil_id}', 'Receptivo\MovilController@leeMovil')->name('leer_movil');
+
 /* 
  * Guias
  */
@@ -1369,6 +1437,8 @@ Route::post('compras/proveedor/consultaproveedor', 'Compras\ProveedorController@
  Route::put('receptivo/guia/{id}', 'Receptivo\GuiaController@actualizar')->name('actualizar_guia');
  Route::delete('receptivo/guia/{id}', 'Receptivo\GuiaController@eliminar')->name('eliminar_guia');
 
+ Route::post('receptivo/guia/consultaguia', 'Receptivo\GuiaController@consultaGuia')->name('consulta_guia');
+ Route::get('receptivo/leerguia/{guia_id}', 'Receptivo\GuiaController@leeguia')->name('leer_guia');
 /* 
  * Comisiones por servicio
  */
@@ -1381,9 +1451,12 @@ Route::post('compras/proveedor/consultaproveedor', 'Compras\ProveedorController@
  Route::delete('receptivo/comision_servicioterrestre/{id}', 'Receptivo\Comision_ServicioterrestreController@eliminar')->name('eliminar_comision_servicioterrestre');
  Route::get('receptivo/leecomision/{formapago_id}/{tipocomision}/{servicioterrestre_id}', 'Receptivo\Comision_ServicioterrestreController@leeComision')->name('lee_comision');
 
+ Route::get('caja/leercomision_servicioterrestre/{servioterrestre_id}/{tipocomision}', 'Receptivo\Comision_ServicioterrestreController@leeComision_Servicioterrestre')->name('leer_comision_servicioterrestre');
+
 /*
  * Reserva
  */
 
  Route::get('receptivo/leereserva/{reserva}', 'Receptivo\ReservaController@leeReserva')->name('lee_reserva');
+ Route::get('receptivo/leereservaporidservicioterrestre/{reserva}/{servicioterrestre_id}', 'Receptivo\ReservaController@leeReservaPorIdServicioTerrestre')->name('lee_reserva_por_id_servicioterrestre');
  Route::post('receptivo/reserva/consultareserva', 'Receptivo\ReservaController@consultaReserva')->name('consulta_reserva');

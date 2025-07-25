@@ -9,7 +9,6 @@ use OwenIt\Auditing\Contracts\Auditable;
 use App\Models\Receptivo\Servicioterrestre;
 use App\Models\Compras\Proveedor;
 use App\Models\Ventas\Formapago;
-use App\Models\Configuracion\Moneda;
 use Auth;
 
 class Voucher extends Model implements Auditable
@@ -34,7 +33,7 @@ class Voucher extends Model implements Auditable
 
 	public function voucher_formapagos()
 	{
-    	return $this->hasMany(Voucher_Formapago::class, 'voucher_id');
+    	return $this->hasMany(Voucher_Formapago::class, 'voucher_id')->with('cuentacajas')->with('monedas');
 	}
 
 	public function talonariovouchers()

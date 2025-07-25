@@ -30,6 +30,7 @@
                         <tr>
                             <th class="width20">ID</th>
                             <th>Nombre</th>
+                            <th>Cuentas Contables</th>
                             <th class="width80" data-orderable="false"></th>
                         </tr>
                     </thead>
@@ -38,6 +39,13 @@
                         <tr>
                             <td>{{$data->id}}</td>
                             <td>{{$data->nombre}}</td>
+                            <td>
+                                <ul>
+                                @foreach($data->conceptogasto_cuentacontables as $item)
+                                    <li>{{ $item->cuentacontables->codigo }} ({{ $item->cuentacontables->nombre }} Empresa:{{ $item->cuentacontables->empresa_id }})</li>
+                                @endforeach
+                                </ul>
+                            </td>
                             <td>
                        			@if (can('editar-conceptos-de-gastos', false))
                                 	<a href="{{route('editar_conceptogasto', ['id' => $data->id])}}" class="btn-accion-tabla tooltipsC" title="Editar este registro">

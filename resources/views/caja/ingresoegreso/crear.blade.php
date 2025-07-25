@@ -9,6 +9,11 @@
 <script src="{{asset("assets/pages/scripts/contable/cuentacontable/consulta.js")}}" type="text/javascript"></script>
 <script src="{{asset("assets/pages/scripts/caja/cuentacaja/consulta.js")}}" type="text/javascript"></script>
 <script src="{{asset("assets/pages/scripts/contable/asiento/asiento_externo.js")}}" type="text/javascript"></script>
+<script src="{{asset("assets/pages/scripts/caja/conceptogasto/consulta.js")}}" type="text/javascript"></script>
+<script src="{{asset("assets/pages/scripts/compras/proveedor/consulta.js")}}" type="text/javascript"></script>
+<script>
+    var urlConsultaProveedor = "{{ route('editar_proveedor', ':id') }}";
+</script>
 @endsection
 
 @section('contenido')

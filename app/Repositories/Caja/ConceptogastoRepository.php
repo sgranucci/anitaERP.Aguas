@@ -21,7 +21,7 @@ class ConceptogastoRepository implements ConceptogastoRepositoryInterface
 
     public function all()
     {
-        return $this->model->get();
+        return $this->model->with('conceptogasto_cuentacontables')->orderBy('nombre')->get();
     }
 
     public function create(array $data)
@@ -47,7 +47,7 @@ class ConceptogastoRepository implements ConceptogastoRepositoryInterface
 
     public function find($id)
     {
-        if (null == $conceptogasto = $this->model->find($id)) {
+        if (null == $conceptogasto = $this->model->with('conceptogasto_cuentacontables')->find($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
 
@@ -56,17 +56,60 @@ class ConceptogastoRepository implements ConceptogastoRepositoryInterface
 
     public function findPorId($id)
     {
-		$retencionganancia = $this->model->where('id', $id)->first();
+		$retencionganancia = $this->model->with('conceptogasto_cuentacontables')->where('id', $id)->first();
 
 		return $retencionganancia;
     }
 
     public function findOrFail($id)
     {
-        if (null == $conceptogasto = $this->model->findOrFail($id)) {
+        if (null == $conceptogasto = $this->model->with('conceptogasto_cuentacontables')->findOrFail($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
 
         return $conceptogasto;
     }
+
+    public function leeConceptogasto($consulta)
+    {
+		$columns = ['conceptogasto.id', 'conceptogasto.nombre'];
+        $columnsOut = ['id', 'nombre'];
+
+		$consulta = strtoupper($consulta);
+
+		$count = count($columns);
+		$data = $this->model->select('conceptogasto.id as id',
+									'conceptogasto.nombre as nombre')
+							->orWhere(function ($query) use ($count, $consulta, $columns) {
+                        			for ($i = 0; $i < $count; $i++)
+                            			$query->orWhere($columns[$i], "LIKE", '%'. $consulta . '%');
+                })	
+				->get();								
+
+        $output = [];
+		$output['data'] = '';	
+        $flSinDatos = true;
+        $count = count($columns);
+		if (count($data) > 0)
+		{
+			foreach ($data as $row)
+			{
+                $flSinDatos = false;
+                $output['data'] .= '<tr>';
+                for ($i = 0; $i < $count; $i++)
+                    $output['data'] .= '<td class="'.$columnsOut[$i].'">' . $row->{$columnsOut[$i]} . '</td>';	
+                $output['data'] .= '<td><a class="btn btn-warning btn-sm eligeconsultaconceptogasto">Elegir</a></td>';
+                $output['data'] .= '</tr>';
+			}
+		}
+
+        if ($flSinDatos)
+		{
+			$output['data'] .= '<tr>';
+			$output['data'] .= '<td>Sin resultados</td>';
+			$output['data'] .= '</tr>';
+		}
+		return(json_encode($output, JSON_UNESCAPED_UNICODE));
+    }
+
 }

@@ -23,7 +23,7 @@
                                 <input type="text" class="idadelanto form-control" name="idadelantos[]" value="{{$adelanto->caja_movimiento_id ?? ''}}" readonly>
                             </td>
                             <td>
-                                <input type="text" class="nombreconceptoadelanto form-control" name="nombreconceptoadelantos[]" value="{{$adelanto->caja_movimientos->conceptogasto_ids->nombre ?? ''}}" readonly>
+                                <input type="text" class="nombreconceptoadelanto form-control" name="nombreconceptoadelantos[]" value="{{$adelanto->caja_movimientos->conceptogastos->nombre ?? ''}}" readonly>
                             </td>
                             <td>
                                 <input type="text" class="codigocuentacajaadelanto form-control" name="codigocuentacajaadelantos[]" value="{{$adelantocuentacaja->cuentacajas->codigo ?? ''}}" readonly>

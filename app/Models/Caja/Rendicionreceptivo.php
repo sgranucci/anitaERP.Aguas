@@ -68,12 +68,12 @@ class Rendicionreceptivo extends Model implements Auditable
 	public function rendicionreceptivo_adelantos()
 	{
     	return $this->hasMany(Rendicionreceptivo_Adelanto::class, 'rendicionreceptivo_id')
-				->with('caja_movimientos');;
+				->with('caja_movimientos');
 	}
 
 	public function caja_movimientos()
 	{
-    	return $this->hasMany(Caja_Movimiento::class, 'rendicionreceptivo_id');
+    	return $this->hasMany(Caja_Movimiento::class, 'rendicionreceptivo_id')->with('conceptogastos')->with('caja_movimiento_cuentacajas');
 	}
 
 	public function usuarios()

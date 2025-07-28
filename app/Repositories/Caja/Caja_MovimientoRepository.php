@@ -36,8 +36,8 @@ class Caja_MovimientoRepository implements Caja_MovimientoRepositoryInterface
     {
 		$data['numerotransaccion'] = self::ultimoNumeroTransaccion($data['empresa_id'], $data['tipotransaccion_caja_id']);
 		$data['usuario_id'] = Auth::user()->id;
-
-		if (!$data['detalle'])
+		
+		if (!isset($data['detalle']))
 			$data['detalle'] = "Movimiento de caja";
 
 		$caja_movimiento = $this->model->create($data);
@@ -98,7 +98,7 @@ class Caja_MovimientoRepository implements Caja_MovimientoRepositoryInterface
 									->with("caja_movimiento_archivos")
 									->with("asientos")
 									->with("empresas")
-									->with("conceptogasto_ids")
+									->with("conceptogastos")
 									->find($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
@@ -113,7 +113,7 @@ class Caja_MovimientoRepository implements Caja_MovimientoRepositoryInterface
 											->with("caja_movimiento_estados")
 											->with("asientos")
 											->with("empresas")
-											->with("conceptogasto_ids")
+											->with("conceptogastos")
 											->findOrFail($id))
 			{
             throw new ModelNotFoundException("Registro no encontrado");

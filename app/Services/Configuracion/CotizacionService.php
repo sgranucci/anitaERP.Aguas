@@ -24,7 +24,7 @@ class CotizacionService
 	{
 		$cotizacion = $this->cotizacionQuery->leeCotizacionDiaria($fecha, $moneda_id);
 
-		$cotizacionventa = 0;
+		$cotizacionVenta = $cotizacionCompra = 0;
 		foreach($cotizacion->cotizacion_monedas as $cotizacion_moneda)
 		{
 			if ($moneda_id == 1)
@@ -34,11 +34,12 @@ class CotizacionService
 
 			if ($cotizacion_moneda->moneda_id == $refMoneda)
 			{
-				$cotizacionventa = $cotizacion_moneda->cotizacionventa;
+				$cotizacionVenta = $cotizacion_moneda->cotizacionventa;
+				$cotizacionCenta = $cotizacion_moneda->cotizacioncompra;
 				$flEncontro = true;
 			}
 		}
-		return ['cotizacionventa' => $cotizacionventa];
+		return ['cotizacionventa' => $cotizacionVenta, 'cotizacioncompra' => $cotizacionCompra];
 	}
 
 	

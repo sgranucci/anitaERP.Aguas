@@ -73,7 +73,7 @@ class IngresoEgresoService
 		$this->tipotransaccion_cajaRepository = $tipotransaccion_cajarepository;
     }
 
-	public function guardaIngresoEgreso($request)
+	public function guardaIngresoEgreso($request, $origen = null)
 	{
 		session(['empresa_id' => $request->empresa_id]);
 		$data = $request->all();
@@ -82,67 +82,83 @@ class IngresoEgresoService
 	   	$data['fechas'][] = Carbon::now();
 	   	$data['estados'][] = Caja_Movimiento_Estado::$enumEstado[0]['valor'];
 	   	$data['observacionestados'][] = "Alta de Movimiento de Caja";
-		DB::beginTransaction();
-        try
-        {
-            $caja_movimiento = $this->caja_movimientoRepository->create($request->all());
 
-            if ($caja_movimiento == 'Error')
-                throw new Exception('Error en grabacion anita.');
+		if ($origen)
+		{
+			$caja_movimiento = $this->caja_movimientoRepository->create($request->all());
 
-                // Guarda tablas asociadas
-            if ($caja_movimiento)
-            {
-                $caja_movimiento_cuentacaja = $this->caja_movimiento_cuentacajaRepository->create($data, $caja_movimiento->id);
-                $caja_movimiento_estado = $this->caja_movimiento_estadoRepository->create($data, $caja_movimiento->id);
-                $caja_movimiento_archivo = $this->caja_movimiento_archivoRepository->create($request, $caja_movimiento->id);
+			if (!$caja_movimiento)
+				throw new Exception('Error en grabacion');
 
-                // Graba cheques
+			Self::agrega($data, $caja_movimiento, $request);
+		}
+		else
+		{
+			DB::beginTransaction();
+			try
+			{
+				$caja_movimiento = $this->caja_movimientoRepository->create($request->all());
 
-                // Graba asiento contable
-				if (isset($data['cuentacontable_ids']))
-				{
-					// Busca tipo de asiento de tesoreria
-					$tipoasiento = $this->tipoasientoRepository->findPorAbreviatura('TES');
+				if ($caja_movimiento == 'Error')
+					throw new Exception('Error en grabacion');
 
-					if ($tipoasiento)
-						$data['tipoasiento_id'] = $tipoasiento->id;
-					else
-						throw new Exception('Error en grabacion, no existe tipo de asiento de tesoreria');
+				// Guarda tablas asociadas
+				if ($caja_movimiento)
+					Self::agrega($data, $caja_movimiento, $request);
 
-					// Arma el asiento contable
-					$data['moneda_ids'] = $data['monedaasiento_ids'];
-					$data['centrocosto_ids'] = $data['centrocostoasiento_ids'];
-					$data['debes'] = $data['debeasientos'];
-					$data['haberes'] = $data['haberasientos'];
-					$data['cotizaciones'] = $data['cotizacionasientos'];
-					$data['observaciones'] = $data['observacionasientos'];
-					$data['caja_movimiento_id'] = $caja_movimiento->id;
+				DB::commit();
+			} catch (\Exception $e) {
+				DB::rollback();
 
-					$data['observacion'] = $data['detalle'];
+				// Borra el asiento creado
 
-					$asiento = $this->asientoRepository->create($data);
-
-					if ($asiento == 'Error')
-						throw new Exception('Error en grabacion anita.');
-
-					if ($asiento)
-						$asiento_movimiento = $this->asiento_movimientoRepository->create($data, $asiento->id);
-				}
-            }
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            // Borra el asiento creado
-
-            return ['errores' => $e->getMessage()];
-        }
+				return ['errores' => $e->getMessage()];
+			}
+		}
         return ['mensaje' => 'ok'];
 	}
 
-    public function actualizaIngresoEgreso($request, $id)
+	private function agrega($data, $caja_movimiento, $request)
+	{
+		$caja_movimiento_cuentacaja = $this->caja_movimiento_cuentacajaRepository->create($data, $caja_movimiento->id);
+		$caja_movimiento_estado = $this->caja_movimiento_estadoRepository->create($data, $caja_movimiento->id);
+		$caja_movimiento_archivo = $this->caja_movimiento_archivoRepository->create($request, $caja_movimiento->id);
+
+		// Graba cheques
+
+		// Graba asiento contable
+		if (isset($data['cuentacontable_ids']))
+		{
+			// Busca tipo de asiento de tesoreria
+			$tipoasiento = $this->tipoasientoRepository->findPorAbreviatura('TES');
+
+			if ($tipoasiento)
+				$data['tipoasiento_id'] = $tipoasiento->id;
+			else
+				throw new Exception('Error en grabacion, no existe tipo de asiento de tesoreria');
+
+			// Arma el asiento contable
+			$data['moneda_ids'] = $data['monedaasiento_ids'];
+			$data['centrocosto_ids'] = $data['centrocostoasiento_ids'];
+			$data['debes'] = $data['debeasientos'];
+			$data['haberes'] = $data['haberasientos'];
+			$data['cotizaciones'] = $data['cotizacionasientos'];
+			$data['observaciones'] = $data['observacionasientos'];
+			$data['caja_movimiento_id'] = $caja_movimiento->id;
+
+			$data['observacion'] = $data['detalle'];
+
+			$asiento = $this->asientoRepository->create($data);
+
+			if ($asiento == 'Error')
+				throw new Exception('Error en grabacion anita.');
+
+			if ($asiento)
+				$asiento_movimiento = $this->asiento_movimientoRepository->create($data, $asiento->id);
+		}
+	}
+
+    public function actualizaIngresoEgreso($request, $id, $origen = null)
     {
         session(['empresa_id' => $request->empresa_id]);
 		$data = $request->all();
@@ -151,84 +167,100 @@ class IngresoEgresoService
 		$data['fechas'][] = Carbon::now();
 		$data['estados'][] = Caja_Movimiento_Estado::$enumEstado[0]['valor'];
 		$data['observacionestados'][] = "Alta de Movimiento de Caja";
-        
-        DB::beginTransaction();
-        try
-        {
-            // Graba movimiento de caja
-            $caja_movimiento = $this->caja_movimientoRepository->update($data, $id);
 
-			if ($caja_movimiento === 'Error')
-                throw new Exception('Error en grabacion anita.');
-
-            // Graba movimientos de cuentas de caja
-            $this->caja_movimiento_cuentacajaRepository->update($data, $id);
-
-			// Graba movimientos de estados del movimiento de caja
-            $this->caja_movimiento_estadoRepository->update($data, $id);
-
-			// Graba archivos del ingreso egreso
-            $this->caja_movimiento_archivoRepository->update($request, $id);
-
-            // Graba cheques 
-
-			// Graba asiento
-			if (isset($data['cuentacontable_ids']))
+		if ($origen)
+			Self::actualiza($data, $id, $request);
+		else
+		{
+			DB::beginTransaction();
+			try
 			{
-				// Busca el asiento correspondiente al movimiento de caja
-				$asiento = $this->asientoRepository->leeAsientoPorClave($id, 'caja_movimiento_id');
+				Self::actualiza($data, $id, $request);
 
-				if (count($asiento) > 0)
-					$asiento_id = $asiento[0]->id;
+				DB::commit();
+			} catch (\Exception $e) {
+				DB::rollback();
 
-				// Arma el asiento contable
-				$data['moneda_ids'] = $data['monedaasiento_ids'];
-				$data['centrocosto_ids'] = $data['centrocostoasiento_ids'];
-				$data['debes'] = $data['debeasientos'];
-				$data['haberes'] = $data['haberasientos'];
-				$data['cotizaciones'] = $data['cotizacionasientos'];
-				$data['observaciones'] = $data['observacionasientos'];
-				$data['caja_movimiento_id'] = $id;
-				$data['observacion'] = $data['detalle'];
-
-				if (count($asiento) > 0)
-				{
-					$asiento = $this->asientoRepository->update($data, $asiento_id);
-
-					if ($asiento === 'Error')
-						throw new Exception('Error en grabacion anita.');
-
-					// Graba movimientos del asiento
-					$this->asiento_movimientoRepository->update($data, $asiento_id);
-				}
-				else
-				{
-					// Busca tipo de asiento de tesoreria
-					$tipoasiento = $this->tipoasientoRepository->findPorAbreviatura('TES');
-
-					if ($tipoasiento)
-						$data['tipoasiento_id'] = $tipoasiento->id;
-					else
-						throw new Exception('Error en grabacion, no existe tipo de asiento de tesoreria');
-
-					$asiento = $this->asientoRepository->create($data);
-
-					if ($asiento == 'Error')
-						throw new Exception('Error en grabacion anita.');
-
-					if ($asiento)
-						$asiento_movimiento = $this->asiento_movimientoRepository->create($data, $asiento->id);
-				}
+				return ['errores' => $e->getMessage()];
 			}
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return ['errores' => $e->getMessage()];
-        }
+		}
         return ['mensaje' => 'ok'];
     }
+
+	private function actualiza($data, $id, $request)
+	{
+		// Graba movimiento de caja
+		$caja_movimiento = $this->caja_movimientoRepository->update($data, $id);
+
+		if ($caja_movimiento === 'Error')
+			throw new Exception('Error en grabacion anita.');
+
+		// Graba movimientos de cuentas de caja
+		$this->caja_movimiento_cuentacajaRepository->update($data, $id);
+
+		// Graba movimientos de estados del movimiento de caja
+		$this->caja_movimiento_estadoRepository->update($data, $id);
+
+		// Graba archivos del ingreso egreso
+		$this->caja_movimiento_archivoRepository->update($request, $id);
+
+		// Graba cheques 
+
+		// Graba asiento
+		if (isset($data['cuentacontable_ids']))
+		{
+			// Busca el asiento correspondiente al movimiento de caja
+			$asiento = $this->asientoRepository->leeAsientoPorClave($id, 'caja_movimiento_id');
+
+			if (count($asiento) > 0)
+				$asiento_id = $asiento[0]->id;
+
+			if (!isset($data['numeroasiento']))
+			{
+				$data['tipoasiento_id'] = $asiento[0]->tipoasiento_id;
+				$data['numeroasiento'] = $asiento[0]->numeroasiento;
+			}
+
+			// Arma el asiento contable
+			$data['moneda_ids'] = $data['monedaasiento_ids'];
+			$data['centrocosto_ids'] = $data['centrocostoasiento_ids'];
+			$data['debes'] = $data['debeasientos'];
+			$data['haberes'] = $data['haberasientos'];
+			$data['cotizaciones'] = $data['cotizacionasientos'];
+			$data['observaciones'] = $data['observacionasientos'];
+			$data['caja_movimiento_id'] = $id;
+			$data['observacion'] = $data['detalle'];
+
+			if (count($asiento) > 0)
+			{
+				$asiento = $this->asientoRepository->update($data, $asiento_id);
+
+				if ($asiento === 'Error')
+					throw new Exception('Error en grabacion anita.');
+
+				// Graba movimientos del asiento
+				$this->asiento_movimientoRepository->update($data, $asiento_id);
+			}
+			else
+			{
+				// Busca tipo de asiento de tesoreria
+				$tipoasiento = $this->tipoasientoRepository->findPorAbreviatura('TES');
+
+				if ($tipoasiento)
+					$data['tipoasiento_id'] = $tipoasiento->id;
+				else
+					throw new Exception('Error en grabacion, no existe tipo de asiento de tesoreria');
+
+				$asiento = $this->asientoRepository->create($data);
+
+				if ($asiento == 'Error')
+					throw new Exception('Error en grabacion anita.');
+
+				if ($asiento)
+					$asiento_movimiento = $this->asiento_movimientoRepository->create($data, $asiento->id);
+			}
+		}
+	}
 
 	public function copiarIngresoEgreso(Request $request)
     {

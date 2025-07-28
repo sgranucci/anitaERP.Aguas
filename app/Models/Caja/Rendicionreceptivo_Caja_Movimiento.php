@@ -25,7 +25,7 @@ class Rendicionreceptivo_Caja_Movimiento extends Model implements Auditable
 
 	public function caja_movimientos()
 	{
-    	return $this->belongsTo(Caja_Movimiento::class, 'caja_movimiento_id', 'id')->with('conceptogasto_ids')
+    	return $this->belongsTo(Caja_Movimiento::class, 'caja_movimiento_id', 'id')->with('conceptogastos')
 					->with('caja_movimiento_cuentacajas');
 	}
 

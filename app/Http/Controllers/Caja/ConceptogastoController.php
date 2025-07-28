@@ -65,13 +65,14 @@ class ConceptogastoController extends Controller
         DB::beginTransaction();
         try
         {        
-            $this->repository->create($request->all());
+            $conceptogasto = $this->repository->create($request->all());
 
             $cuentacontable_ids = $request->input('cuentacontable_ids', []);
             for ($i_cuenta=0; $i_cuenta < count($cuentacontable_ids); $i_cuenta++) {
                 if ($cuentacontable_ids[$i_cuenta] != '') 
                 {
                     $conceptogasto_cuentacontable = $this->conceptogasto_cuentacontableRepository->create([
+                                                        'conceptogasto_id' => $conceptogasto->id,
                                                         'cuentacontable_id' => $cuentacontable_ids[$i_cuenta], 
                                                         ]);
                 }

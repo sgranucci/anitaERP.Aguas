@@ -814,10 +814,11 @@ var montoComision=[];
 			//if (totalMoneda[moneda] !== undefined && totalMoneda[moneda] != 0)
 			$(wrapper).append('<label class="col-lg-1 col-form-label">'+detalleLabel+'</label>');
 
+			$(wrapper).append('<input type="hidden" name="monedarendicion_ids[]" class="form-control col-lg-1" readonly value="'+moneda+'" />');
 			if (totalMoneda[moneda] == 0)
-				$(wrapper).append('<input type="text" class="form-control col-lg-1" readonly value="" />');
+				$(wrapper).append('<input type="text" name="montorendiciones[]" class="form-control col-lg-1" readonly value="" />');
 			else
-				$(wrapper).append('<input type="text" class="form-control col-lg-1" readonly value="'+totalMoneda[moneda].toFixed(2)+'" />');
+				$(wrapper).append('<input type="text" name="montorendiciones[]" class="form-control col-lg-1" readonly value="'+totalMoneda[moneda].toFixed(2)+'" />');
 		});
 	}
 

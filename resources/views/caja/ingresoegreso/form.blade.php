@@ -56,7 +56,7 @@
                 <button type="button" title="Consulta conceptos" style="padding:1;" class="btn-accion-tabla consultaconceptogasto tooltipsC">
                         <i class="fa fa-search text-primary"></i>
                 </button>
-                <input type="text" class="col-lg-6 nombreconceptogasto form-control" id="nombreconceptogasto" name="nombreconceptogasto" value="{{$data->conceptogasto_ids->nombre??''}}" >
+                <input type="text" class="col-lg-6 nombreconceptogasto form-control" id="nombreconceptogasto" name="nombreconceptogasto" value="{{$data->conceptogastos->nombre??''}}" >
             </div>
         </div>
     </div>
@@ -68,6 +68,7 @@
     </div>
     <input type="hidden" id="numerotransaccion" name="numerotransaccion" value="{{ $data->numerotransaccion ?? '' }}" />
     <input type="hidden" id="id" name="id" value="{{ $data->id ?? '' }}" />
+    <input type="hidden" id="rendicionreceptivo_id" name="rendicionreceptivo_id" value="{{ $data->rendicionreceptivo_id ?? '' }}" />
     <h2 id="loading"style="display:none">Guardando movimiento de caja ...</h2>
     <h3>Cuentas</h3>
     <div class="card-body">

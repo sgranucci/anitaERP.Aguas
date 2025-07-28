@@ -26,14 +26,12 @@ class ConceptogastoRepository implements ConceptogastoRepositoryInterface
 
     public function create(array $data)
     {
-        $conceptogasto = $this->model->create($data);
+        return $this->model->create($data);
     }
 
     public function update(array $data, $id)
     {
-        $conceptogasto = $this->model->findOrFail($id)->update($data);
-
-		return $conceptogasto;
+        return $this->model->findOrFail($id)->update($data);
     }
 
     public function delete($id)

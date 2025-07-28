@@ -474,9 +474,11 @@ class AsientoRepository implements AsientoRepositoryInterface
 			$observaciones = $request['observaciones'];
 			$moneda_ids = $request['moneda_ids'];
 			$cotizaciones = $request['cotizaciones'];
+			
 			$fecha = Carbon::createFromFormat( 'Y-m-d', $request['fecha'])->format('Ymd');
 
 			$empresa = $this->empresaRepository->findPorId($request['empresa_id']);
+			
 			if ($empresa)
 				$codigoEmpresa = $empresa->codigo;
 			else
@@ -496,6 +498,7 @@ class AsientoRepository implements AsientoRepositoryInterface
 				$qMovimiento = count($cuentacontables);
 			else
 				$qMovimiento = 0;
+			
 			for ($i_movimiento=0; $i_movimiento < $qMovimiento; $i_movimiento++) 
 			{
 				$observacion = preg_replace('([^A-Za-z0-9 ])', '', $observaciones[$i_movimiento]);

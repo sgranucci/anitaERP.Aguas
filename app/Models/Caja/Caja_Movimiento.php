@@ -65,7 +65,7 @@ class Caja_Movimiento extends Model implements Auditable
         return $this->belongsTo(Cliente::class, 'cliente_id');
     }
 
-    public function conceptogasto_ids()
+    public function conceptogastos()
     {
         return $this->belongsTo(Conceptogasto::class, 'conceptogasto_id');
     }
@@ -75,4 +75,15 @@ class Caja_Movimiento extends Model implements Auditable
         return $this->belongsTo(Usuario::class, 'usuario_id');
     }
 
+    protected static function boot()
+	{
+		parent::boot();
+
+		static::deleting(function ($caja_movimiento) {
+			$caja_movimiento->caja_movimiento_cuentacajas()->delete();
+			$caja_movimiento->caja_movimiento_estados()->delete();
+			$caja_movimiento->caja_movimiento_archivos()->delete();
+			$caja_movimiento->asientos()->delete();
+		});
+	}
 }

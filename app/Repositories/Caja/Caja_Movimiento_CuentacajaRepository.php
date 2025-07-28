@@ -91,6 +91,7 @@ class Caja_Movimiento_CuentacajaRepository implements Caja_Movimiento_Cuentacaja
 			$cotizaciones = $data['cotizaciones'];
 			$observaciones = $data['observaciones'];
 			$fecha = $data['fecha'];
+			
 			if ($funcion == 'update')
 			{
 				$_id = $caja_movimiento_cuentacaja;

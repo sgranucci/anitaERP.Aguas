@@ -24,7 +24,7 @@
                                 <input type="text" class="idgastoanterior form-control" name="idgastoanteriores[]" value="{{$gastoanterior->caja_movimiento_id ?? ''}}" readonly>
                             </td>
                             <td>
-                                <input type="text" class="nombreconceptogastoanterior form-control" name="nombreconceptogastoanteriores[]" value="{{$gastoanterior->caja_movimientos->conceptogasto_ids->nombre ?? ''}}" readonly>
+                                <input type="text" class="nombreconceptogastoanterior form-control" name="nombreconceptogastoanteriores[]" value="{{$gastoanterior->caja_movimientos->conceptogastos->nombre ?? ''}}" readonly>
                             </td>
                             <td>
                                 <input type="text" class="codigocuentacajagastoanterior form-control" name="codigocuentacajagastoanteriores[]" value="{{$gastoanteriorcuentacaja->cuentacajas->codigo ?? ''}}" readonly>

@@ -2,7 +2,8 @@
     <tr class="item-rendicionreceptivo-gasto">
         <td>
             <div class="form-group row" id="conceptogasto">
-                <input type="hidden" name="conceptogasto[]" class="form-control iiconceptogasto" readonly value="" />
+                <input type="hidden" name="gasto_ids[]" class="form-control gasto_id" value="" />
+                <input type="hidden" name="conceptogasto[]" class="form-control iiconceptogasto" value="" />
                 <input type="text" style="WIDTH: 40px;HEIGHT: 38px" class="conceptogasto_id" name="conceptogasto_ids[]" value="" >
                 <input type="hidden" class="conceptogasto_id_previa" name="conceptogasto_id_previa[]" value="" >
                 <button type="button" title="Consulta conceptos" style="padding:1;" class="btn-accion-tabla consultaconceptogasto tooltipsC">

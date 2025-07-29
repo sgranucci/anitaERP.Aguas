@@ -157,4 +157,19 @@ class Voucher_GuiaRepository implements Voucher_GuiaRepositoryInterface
 
 		return $voucher;
 	}
+
+	// Lee ordenes de servicio cargadas en vouches
+
+    public function leeOrdenServicioVoucher()
+	{
+		$voucher = $this->model->select('voucher_guia.ordenservicio_id as ordenservicio_id')
+								->whereNotExists(function ($query) {
+									$query->select(DB::raw(1))
+											->from('rendicionreceptivo')
+											->whereColumn('voucher_guia.ordenservicio_id', 'rendicionreceptivo.ordenservicio_id');
+								})
+								->get();
+
+		return $voucher;
+	}
 }

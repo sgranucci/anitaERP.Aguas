@@ -20,6 +20,7 @@ return [
                 ],
                 'tipotransaccion_caja_ingreso_id' => 2,
                 'tipotransaccion_caja_egreso_id' => 3,
-                'conceptogasto_egreso_id' => 26
+                'conceptogasto_egreso_id' => 26,
+                'conceptogasto_ingreso_id' => 27
     ]
     ];

@@ -18,8 +18,8 @@ class Rendicionreceptivo extends Model implements Auditable
 	use \OwenIt\Auditing\Auditable;
 
     protected $fillable = ['fecha', 'empresa_id', 'caja_id',
-							'numerotalonario', 'guia_id', 'movil_id', 'ordenservicio_id', 'desdeKm',
-                            'hastaKm', 'observacion', 'usuario_id'];
+							'numerotalonario', 'guia_id', 'movil_id', 'ordenservicio_id', 'desdekm',
+                            'hastakm', 'observacion', 'usuario_id'];
     protected $table = 'rendicionreceptivo';
 
     public function guias()

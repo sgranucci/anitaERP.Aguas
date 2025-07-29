@@ -25,8 +25,8 @@ class ValidacionRendicionreceptivo extends FormRequest
     {
         return [
             'ordenservicio_id' => 'required',
-            'desdekm' => 'required',
-            'hastakm' => 'required'
+            'desdekm' => 'required|integer|min:1',
+            'hastakm' => 'required|integer|min:1'
         ];
     }
 }

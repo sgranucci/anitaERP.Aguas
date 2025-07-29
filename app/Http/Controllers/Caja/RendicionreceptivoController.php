@@ -19,6 +19,7 @@ use App\Services\Caja\RendicionreceptivoService;
 use App\Exports\Caja\RendicionreceptivoExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Arr;
 use Carbon\Carbon;
 use DB;
 
@@ -139,6 +140,8 @@ class RendicionreceptivoController extends Controller
         $empresa_query = $this->empresaRepository->all();
         $cuentacaja_query = $this->cuentacajaRepository->all();
         $conceptogasto_query = $this->conceptogastoRepository->all();
+        $ordenservicio_id_query = $this->rendicionreceptivoService->leeOrdenServicioPendiente();
+        $ordenservicio_id_query = Arr::sort($ordenservicio_id_query);
 
         $nombreCaja = '';
         $origen = 'rendicionreceptivo';
@@ -154,6 +157,7 @@ class RendicionreceptivoController extends Controller
         
         return view('caja.rendicionreceptivo.crear', compact('moneda_query', 'guia_query', 'movil_query',
                                                             'cuentacaja_query', 'conceptogasto_query',
+                                                            'ordenservicio_id_query',
                                                             'caja_id', 'nombreCaja', 'origen'));
     }
 
@@ -190,6 +194,9 @@ class RendicionreceptivoController extends Controller
         $empresa_query = $this->empresaRepository->all();
         $cuentacaja_query = $this->cuentacajaRepository->all();
         $conceptogasto_query = $this->conceptogastoRepository->all();
+        $ordenservicio_id_query = $this->rendicionreceptivoService->leeOrdenServicioPendiente();
+        $ordenservicio_id_query[] = $data->ordenservicio_id;
+        $ordenservicio_id_query = Arr::sort($ordenservicio_id_query);
         $caja_id = $data->caja_id;
 
         $nombreCaja = '';
@@ -204,6 +211,7 @@ class RendicionreceptivoController extends Controller
         return view('caja.rendicionreceptivo.editar', compact('data', 
                                                     'moneda_query', 'guia_query', 'movil_query',
                                                     'cuentacaja_query', 'conceptogasto_query',
+                                                    'ordenservicio_id_query',
                                                     'caja_id', 'nombreCaja', 'origen'));
     }
 

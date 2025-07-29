@@ -24,11 +24,11 @@
             <div class="form-group row">
                 <label for="desdekm" class="col-lg-3 col-form-label">Desde Km</label>
                 <div class="col-lg-3">
-                    <input type="number" name="desdekm" id="desdekm" class="form-control" value="{{old('desdekm', $data->desdeKm ?? '')}}">
+                    <input type="number" name="desdekm" id="desdekm" class="form-control" value="{{old('desdekm', $data->desdekm ?? '')}}">
                 </div>
                 <label for="hastakm" class="col-lg-3 col-form-label">Hasta Km</label>
                 <div class="col-lg-3">
-                    <input type="number" name="hastakm" id="hastakm" class="form-control" value="{{old('hastakm', $data->hastaKm ?? '')}}">
+                    <input type="number" name="hastakm" id="hastakm" class="form-control" value="{{old('hastakm', $data->hastakm ?? '')}}">
                 </div>
             </div>
         </div>
@@ -41,7 +41,16 @@
             </div>
             <div class="form-group row">
                 <label for="ordenservicio" class="col-lg-3 col-form-label">Orden de Servicio</label>
-                <input type="text" class="ordenservicio_id" id="ordenservicio_id" name="ordenservicio_id" value="{{$data->ordenservicio_id ?? ''}}" >
+                <select id="ordenservicio_id" name="ordenservicio_id" class="col-lg-4 form-control" required>
+                    <option value="">-- Elija orden de servicio --</option>
+                    @foreach($ordenservicio_id_query as $ordenservicio)
+                        @if ($ordenservicio == old('ordenservicio_id',$data->ordenservicio_id??''))
+                            <option value="{{ $ordenservicio }}" selected>{{ $ordenservicio }}</option>    
+                        @else
+                            <option value="{{ $ordenservicio }}">{{ $ordenservicio }}</option>
+                        @endif
+                    @endforeach
+                </select>
             </div>
         </div>
     </div>

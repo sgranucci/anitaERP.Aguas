@@ -17,7 +17,8 @@
             <tbody id="tbody-rendicionreceptivo-gasto-table" class="container-gasto">
             @if ($data->caja_movimientos ?? '') 
                 @foreach (old('formapago', $data->caja_movimientos->count() ? $data->caja_movimientos : ['']) as $gasto)
-                    @if ($gasto->conceptogasto_id != config('receptivo.rendicion.conceptogasto_egreso_id'))
+                    @if ($gasto->conceptogasto_id != config('receptivo.rendicion.conceptogasto_egreso_id') &&
+                        $gasto->conceptogasto_id != config('receptivo.rendicion.conceptogasto_ingreso_id'))
                         <tr class="item-rendicionreceptivo-gasto">
                             <td>
                                 <input type="hidden" name="gasto_ids[]" class="form-control gasto_id" value="{{ $gasto->id }}" />

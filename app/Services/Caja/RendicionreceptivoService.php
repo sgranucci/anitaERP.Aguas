@@ -278,7 +278,7 @@ class RendicionreceptivoService
         if ($monto < 0)
             $conceptogasto_id = config('receptivo.rendicion.conceptogasto_egreso_id');
         else    
-            $conceptogasto_id = null;
+            $conceptogasto_id = config('receptivo.rendicion.conceptogasto_ingreso_id');
 
         // Calcula cotizacion
         $cotizacion = $this->cotizacionService->leeCotizacionDiaria($request->fecha, $moneda_id);
@@ -477,5 +477,21 @@ class RendicionreceptivoService
             ];
         }
         return ['mensaje' => 'ok', 'voucher' => $arrayVoucher, 'comision' => $arrayComision];
+    }
+
+    public function leeOrdenServicioPendiente()
+    {
+        $voucher = $this->voucher_guiaRepository->leeOrdenServicioVoucher();
+
+        $caja_movimiento = $this->caja_movimientoRepository->leeOrdenServicioCajaMovimiento();
+
+        $ordenservicio_ids = [];
+        foreach($voucher as $orden)
+            $ordenservicio_ids[] = $orden->ordenservicio_id;
+        
+        foreach($caja_movimiento as $orden)
+            $ordenservicio_ids[] = $orden->ordenservicio_id;
+
+        return $ordenservicio_ids;
     }
 }

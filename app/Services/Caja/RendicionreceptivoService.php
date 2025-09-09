@@ -92,6 +92,8 @@ class RendicionreceptivoService
             // Guarda tablas asociadas
             if ($rendicionreceptivo)
             {
+                $id = $rendicionreceptivo->id;
+                
                 $rendicionreceptivo_caja_movimiento = $this->rendicionreceptivo_caja_movimientoRepository->create($data, $rendicionreceptivo->id);
                 $rendicionreceptivo_voucher = $this->rendicionreceptivo_voucherRepository->create($data, $rendicionreceptivo->id);
                 $rendicionreceptivo_formapago = $this->rendicionreceptivo_formapagoRepository->create($data, $rendicionreceptivo->id);

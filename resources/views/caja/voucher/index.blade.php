@@ -8,7 +8,7 @@
 
 <script>
     function eliminarPedido(event) {
-        var opcion = confirm("Desea eliminar el pedido?");
+        var opcion = confirm("Desea eliminar el voucher?");
         if(!opcion) {
             event.preventDefault();
         }

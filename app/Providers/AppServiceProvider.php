@@ -632,6 +632,11 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 		$this->app->bind(
+        	'App\Repositories\Receptivo\OrdenservicioRepositoryInterface',
+        	'App\Repositories\Receptivo\OrdenservicioRepository',
+    	);
+
+		$this->app->bind(
         	'App\Repositories\Caja\VoucherRepositoryInterface',
         	'App\Repositories\Caja\VoucherRepository',
     	);

@@ -8,6 +8,7 @@
 <script src="{{asset("assets/pages/scripts/caja/cuentacaja/consulta.js")}}" type="text/javascript"></script>
 <script src="{{asset("assets/pages/scripts/receptivo/guia/consulta.js")}}" type="text/javascript"></script>
 <script src="{{asset("assets/pages/scripts/receptivo/movil/consulta.js")}}" type="text/javascript"></script>
+<script src="{{asset("assets/pages/scripts/receptivo/ordenservicio/consulta.js")}}" type="text/javascript"></script>
 <script src="{{asset("assets/pages/scripts/caja/conceptogasto/consulta.js")}}" type="text/javascript"></script>
 <script src="{{asset("assets/pages/scripts/caja/rendicionreceptivo/crear.js")}}" type="text/javascript"></script>
 @endsection

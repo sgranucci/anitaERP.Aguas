@@ -14,7 +14,7 @@
 	<thead>
     <tr>
 		<th>
-        	<img style="margin: 12px;" width=300px src="{{ "storage/imagenes/logos/logoAguas.jpg" }}">
+        	<img style="margin: 12px;" width=300px src="{{ "storage/imagenes/logos/LOGO_transparente_Aguas.png" }}">
 			<div>
 				<strong>DOCUMENTO NO VALIDO COMO FACTURA</strong><br>
 			</div>
@@ -80,29 +80,6 @@
 			<td style="text-align: center;">{{$totalIncluido}}</td>
 			<td style="text-align: center;">{{$totalOpcional}}</td>
 		</tr>
-		</tbody>
-	</table>
-	<header>Formas de pago</header>
-	<table class="table table-sm table-bordered table-striped" style="font-size: 10px;">
-		<thead>
-    	<tr>
-       		<th>Cuenta</th>
-       		<th>Descripción</th>
-       		<th>Moneda</th>
-       		<th style="text-align: right;">Monto</th>
-			<th style="text-align: right;">Cotización</th>
-    	</tr>
-  		</thead>
-    	<tbody>
-		@foreach ($voucher->voucher_formapagos as $pago)
-			<tr>
-				<td>{{ $pago->cuentacajas->codigo }}</td>
-				<td>{{ $pago->cuentacajas->nombre }}</td>
-				<td>{{ $pago->monedas->nombre }}</td>
-				<td style="text-align: right;">{{ number_format($pago->monto,2) }}</td>
-				<td style="text-align: right;">{{ number_format($pago->cotizacion,4) }}</td>
-			</tr>
-    	@endforeach
 		</tbody>
 	</table>
     <div class="form-group">

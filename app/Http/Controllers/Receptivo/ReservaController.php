@@ -138,9 +138,9 @@ class ReservaController extends Controller
         return ($this->reservaRepository->leeReserva($request->consulta));
 	}
 
-    public function leeReservaPorIdServicioTerrestre($reserva_id, $servicioterrestre_id)
+    public function leeReservaPorIdServicioTerrestre($reserva_id, $servicioterrestre_id, $fecha)
     {
-        return ($this->reservaRepository->leeReservaPorIdServicioTerrestre($reserva_id, $servicioterrestre_id));
+        return ($this->reservaRepository->leeReservaPorIdServicioTerrestre($reserva_id, $servicioterrestre_id, $fecha));
     }
 
 }

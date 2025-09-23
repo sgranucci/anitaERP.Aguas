@@ -55,6 +55,7 @@ class VoucherRepository implements VoucherRepositoryInterface
                                 ->join('proveedor', 'proveedor.id', '=', 'voucher.proveedor_id')
                                 ->join('servicioterrestre', 'servicioterrestre.id', '=', 'voucher.servicioterrestre_id')
                                 ->with('voucher_guias')
+                                ->where('voucher.deleted_at', null)
                                 ->where('voucher.numero', $busqueda)
                                 ->orWhere('talonariovoucher.id', $busqueda)
                                 ->orWhere('talonariovoucher.nombre', 'like', '%'.$busqueda.'%')  
@@ -196,6 +197,7 @@ class VoucherRepository implements VoucherRepositoryInterface
                                         ->leftJoin('voucher_guia', 'voucher_guia.voucher_id', 'voucher.id')
 										->leftJoin('cuentacaja', 'cuentacaja.id', 'voucher_formapago.cuentacaja_id')
 										->leftJoin('moneda', 'moneda.id', 'voucher_formapago.moneda_id')
+                                        ->where('voucher_guia.deleted_at', null)
 										->where('voucher_guia.ordenservicio_id', $ordenservicio_id)
 										->get();
 

@@ -134,7 +134,6 @@ var montoComision=[];
 			$('#ordenservicio_id').off('change');
 			$('#codigoguia').off('change');
 			$('#codigomovil').off('change');
-			$('#ordenservicio_id').off('change');
 			$('.conceptogasto_id').off('change');
 			$('#guia_id').off('change');
 		}
@@ -143,6 +142,7 @@ var montoComision=[];
 		activa_eventos_consultaguia();
 		activa_eventos_consultamovil();
 		activa_eventos_consultaconceptogasto();
+		activa_eventos_consultaordenservicio();
 
 		$('.codigo').on('change', function (event) {
 			event.preventDefault();
@@ -234,145 +234,152 @@ var montoComision=[];
 		$('#codigoguia').on('change', function (event) {
 			event.preventDefault();
 			leeVoucher();
+			leeOrdenServicio();
 		});
 
 		$('#ordenservicio_id').on('change', function (event) {
 			event.preventDefault();
-			let ordenservicio_id = $("#ordenservicio_id").val();
-			var wrapperGastoAnterior = $(".container-gastoanterior");
-			var wrapperAdelanto = $(".container-adelanto");
-			let id = $("#tbody-rendicionreceptivo-gastoanterior-table").children(':first').find('.idgastoanterior').val();
 
-			$.ajaxSetup({
-				headers: {
-					'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-				}
-			});
-			
-			let url = "/anitaERP/public/caja/rendicionreceptivo/leegastoanterior";
-
-			$.ajax({
-				type: "POST",
-				url: url,
-				data: {
-					ordenservicio_id: ordenservicio_id
-				},
-				success: function (data) {
-					if (data.mensaje == 'ok')
-					{
-						$(wrapperAdelanto).empty();
-						$(wrapperGastoAnterior).empty();
-						
-						// Inicializa totales por moneda
-						idMoneda.forEach(function(moneda, indice, array) {
-							montoAdelanto[moneda] = 0;
-						});
-
-						// Lee los adelantos
-						$.each(data.adelanto, function(index,value){
-							let idadelanto = value.id;
-							let nombreconceptoadelanto = value.nombregasto;
-							let codigocuentacajaadelanto = value.codigocuentacaja;
-							let nombrecuentacajaadelanto = value.nombrecuentacaja;
-							let abreviaturamonedaadelanto = value.abreviaturamoneda;
-							let monedaadelanto_id = value.moneda_id;
-							let cotizacionadelanto = value.cotizacion;
-							let montoadelanto = value.monto;
-
-							montoAdelanto[value.moneda_id] += value.monto;
-							monedaAdelanto[value.moneda_id] = value.moneda_id;
-
-							$(wrapperAdelanto).append('<tr class="item-rendicionreceptivo-adelanto">'+
-								'<td>'+
-									'<input type="text" class="idadelanto form-control" name="idadelantos[]" value="'+idadelanto+'" readonly></input>'+
-								'</td>'+				
-								'<td>'+
-									'<input type="text" class="nombreconceptoadelanto form-control" name="nombreconceptoadelantos[]" value="'+nombreconceptoadelanto+'" readonly></input>'+
-								'</td>'+
-								'<td>'+
-									'<input type="text" class="codigocuentacajaadelanto form-control" name="codigocuentacajaadelantos[]" value="'+codigocuentacajaadelanto+'" readonly></input>'+
-								'</td>'+
-								'<td>'+
-									'<input type="text" class="nombrecuentacajaadelanto form-control" name="nombrecuentacajaadelantos[]" value="'+nombrecuentacajaadelanto+'" readonly></input>'+
-								'</td>'+
-								'<td>'+
-									'<input type="text" class="abreviaturamonedaadelanto form-control" name="abreviaturamonedaadelantos[]" value="'+abreviaturamonedaadelanto+'" readonly></input>'+
-									'<input type="hidden" class="monedaadelanto_id form-control" name="monedaadelanto_ids[]" value="'+monedaadelanto_id+'"></input>'+
-								'</td>'+
-								'<td>'+
-									'<input type="text" name="montoadelantoes[]" class="form-control montoadelanto" min="0" value="'+montoadelanto+'" readonly></input>'+
-								'</td>'+
-								'<td>'+
-								    '<input type="text" name="cotizacionadelantoes[]" class="form-control cotizacionadelanto" value="'+cotizacionadelanto+'" readonly></input>'+
-								'</td>'+
-								'<td>'+
-									'<button type="button" title="Elimina esta linea" class="btn-accion-tabla eliminar_rendicionreceptivo_adelanto tooltipsC">'+
-										'<i class="fa fa-times-circle text-danger"></i>'+
-									'</button>'+
-								'</td>'+
-							'</tr>'
-							);
-							// Suma adelanto
-							sumaAdelanto();
-						});
-
-						// Lee los gastos ya cargados anteriormente a la rendicion
-						$.each(data.gastoanterior, function(index,value){
-							let idgastoanterior = value.id;
-							let nombreconceptogastoanterior = value.nombregasto;
-							let codigocuentacajagastoanterior = value.codigocuentacaja;
-							let nombrecuentacajagastoanterior = value.nombrecuentacaja;
-							let abreviaturamonedagastoanterior = value.abreviaturamoneda;
-							let monedagastoanterior_id = value.moneda_id;
-							let cotizaciongastoanterior = value.cotizacion;
-							let montogastoanterior = value.monto;
-
-							$(wrapperGastoAnterior).append('<tr class="item-rendicionreceptivo-gastoanterior">'+
-								'<td>'+
-									'<input type="text" class="idgastoanterior form-control" name="idgastoanteriores[]" value="'+idgastoanterior+'" readonly></input>'+
-								'</td>'+				
-								'<td>'+
-									'<input type="text" class="nombreconceptogastoanterior form-control" name="nombreconceptogastoanteriores[]" value="'+nombreconceptogastoanterior+'" readonly></input>'+
-								'</td>'+
-								'<td>'+
-									'<input type="text" class="codigocuentacajagastoanterior form-control" name="codigocuentacajagastoanteriores[]" value="'+codigocuentacajagastoanterior+'" readonly></input>'+
-								'</td>'+
-								'<td>'+
-									'<input type="text" class="nombrecuentacajagastoanterior form-control" name="nombrecuentacajagastoanteriores[]" value="'+nombrecuentacajagastoanterior+'" readonly></input>'+
-								'</td>'+
-								'<td>'+
-									'<input type="text" class="abreviaturamonedagastoanterior form-control" name="abreviaturamonedagastoanteriores[]" value="'+abreviaturamonedagastoanterior+'" readonly></input>'+
-									'<input type="hidden" class="monedagastoanterior_id form-control" name="monedagastoanterior_ids[]" value="'+monedagastoanterior_id+'"></input>'+
-								'</td>'+
-								'<td>'+
-									'<input type="text" name="montogastoanteriores[]" class="form-control montogastoanterior" min="0" value="'+montogastoanterior+'" readonly></input>'+
-								'</td>'+
-								'<td>'+
-								    '<input type="text" name="cotizaciongastoanteriores[]" class="form-control cotizaciongastoanterior" value="'+cotizaciongastoanterior+'" readonly></input>'+
-								'</td>'+
-								'<td>'+
-									'<button type="button" title="Elimina esta linea" class="btn-accion-tabla eliminar_rendicionreceptivo_gastoanterior tooltipsC">'+
-										'<i class="fa fa-times-circle text-danger"></i>'+
-									'</button>'+
-								'</td>'+
-							'</tr>'
-							);
-						});
-
-						// Suma totales del gastos anteriores
-						sumaMonto();
-
-						// Lee los vouchers
-						leeVoucher();
-					}
-					else
-						alert("Error en lectura gastos anteriores");
-				},
-				error: function (r) {
-					alert("Error grave en lectura gastos anteriores");
-				}
-			});		
+			leeOrdenServicio();
 		});
+	}
+
+	function leeOrdenServicio()
+	{
+		let ordenservicio_id = $("#ordenservicio_id").val();
+		var wrapperGastoAnterior = $(".container-gastoanterior");
+		var wrapperAdelanto = $(".container-adelanto");
+		let id = $("#tbody-rendicionreceptivo-gastoanterior-table").children(':first').find('.idgastoanterior').val();
+
+		$.ajaxSetup({
+			headers: {
+				'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+			}
+		});
+		
+		let url = "/anitaERP/public/caja/rendicionreceptivo/leegastoanterior";
+
+		$.ajax({
+			type: "POST",
+			url: url,
+			data: {
+				ordenservicio_id: ordenservicio_id
+			},
+			success: function (data) {
+				if (data.mensaje == 'ok')
+				{
+					$(wrapperAdelanto).empty();
+					$(wrapperGastoAnterior).empty();
+					
+					// Inicializa totales por moneda
+					idMoneda.forEach(function(moneda, indice, array) {
+						montoAdelanto[moneda] = 0;
+					});
+
+					// Lee los adelantos
+					$.each(data.adelanto, function(index,value){
+						let idadelanto = value.id;
+						let nombreconceptoadelanto = value.nombregasto;
+						let codigocuentacajaadelanto = value.codigocuentacaja;
+						let nombrecuentacajaadelanto = value.nombrecuentacaja;
+						let abreviaturamonedaadelanto = value.abreviaturamoneda;
+						let monedaadelanto_id = value.moneda_id;
+						let cotizacionadelanto = value.cotizacion;
+						let montoadelanto = value.monto;
+
+						montoAdelanto[value.moneda_id] += value.monto;
+						monedaAdelanto[value.moneda_id] = value.moneda_id;
+
+						$(wrapperAdelanto).append('<tr class="item-rendicionreceptivo-adelanto">'+
+							'<td>'+
+								'<input type="text" class="idadelanto form-control" name="idadelantos[]" value="'+idadelanto+'" readonly></input>'+
+							'</td>'+				
+							'<td>'+
+								'<input type="text" class="nombreconceptoadelanto form-control" name="nombreconceptoadelantos[]" value="'+nombreconceptoadelanto+'" readonly></input>'+
+							'</td>'+
+							'<td>'+
+								'<input type="text" class="codigocuentacajaadelanto form-control" name="codigocuentacajaadelantos[]" value="'+codigocuentacajaadelanto+'" readonly></input>'+
+							'</td>'+
+							'<td>'+
+								'<input type="text" class="nombrecuentacajaadelanto form-control" name="nombrecuentacajaadelantos[]" value="'+nombrecuentacajaadelanto+'" readonly></input>'+
+							'</td>'+
+							'<td>'+
+								'<input type="text" class="abreviaturamonedaadelanto form-control" name="abreviaturamonedaadelantos[]" value="'+abreviaturamonedaadelanto+'" readonly></input>'+
+								'<input type="hidden" class="monedaadelanto_id form-control" name="monedaadelanto_ids[]" value="'+monedaadelanto_id+'"></input>'+
+							'</td>'+
+							'<td>'+
+								'<input type="text" name="montoadelantoes[]" class="form-control montoadelanto" min="0" value="'+montoadelanto+'" readonly></input>'+
+							'</td>'+
+							'<td>'+
+								'<input type="text" name="cotizacionadelantoes[]" class="form-control cotizacionadelanto" value="'+cotizacionadelanto+'" readonly></input>'+
+							'</td>'+
+							'<td>'+
+								'<button type="button" title="Elimina esta linea" class="btn-accion-tabla eliminar_rendicionreceptivo_adelanto tooltipsC">'+
+									'<i class="fa fa-times-circle text-danger"></i>'+
+								'</button>'+
+							'</td>'+
+						'</tr>'
+						);
+						// Suma adelanto
+						sumaAdelanto();
+					});
+
+					// Lee los gastos ya cargados anteriormente a la rendicion
+					$.each(data.gastoanterior, function(index,value){
+						let idgastoanterior = value.id;
+						let nombreconceptogastoanterior = value.nombregasto;
+						let codigocuentacajagastoanterior = value.codigocuentacaja;
+						let nombrecuentacajagastoanterior = value.nombrecuentacaja;
+						let abreviaturamonedagastoanterior = value.abreviaturamoneda;
+						let monedagastoanterior_id = value.moneda_id;
+						let cotizaciongastoanterior = value.cotizacion;
+						let montogastoanterior = value.monto;
+
+						$(wrapperGastoAnterior).append('<tr class="item-rendicionreceptivo-gastoanterior">'+
+							'<td>'+
+								'<input type="text" class="idgastoanterior form-control" name="idgastoanteriores[]" value="'+idgastoanterior+'" readonly></input>'+
+							'</td>'+				
+							'<td>'+
+								'<input type="text" class="nombreconceptogastoanterior form-control" name="nombreconceptogastoanteriores[]" value="'+nombreconceptogastoanterior+'" readonly></input>'+
+							'</td>'+
+							'<td>'+
+								'<input type="text" class="codigocuentacajagastoanterior form-control" name="codigocuentacajagastoanteriores[]" value="'+codigocuentacajagastoanterior+'" readonly></input>'+
+							'</td>'+
+							'<td>'+
+								'<input type="text" class="nombrecuentacajagastoanterior form-control" name="nombrecuentacajagastoanteriores[]" value="'+nombrecuentacajagastoanterior+'" readonly></input>'+
+							'</td>'+
+							'<td>'+
+								'<input type="text" class="abreviaturamonedagastoanterior form-control" name="abreviaturamonedagastoanteriores[]" value="'+abreviaturamonedagastoanterior+'" readonly></input>'+
+								'<input type="hidden" class="monedagastoanterior_id form-control" name="monedagastoanterior_ids[]" value="'+monedagastoanterior_id+'"></input>'+
+							'</td>'+
+							'<td>'+
+								'<input type="text" name="montogastoanteriores[]" class="form-control montogastoanterior" min="0" value="'+montogastoanterior+'" readonly></input>'+
+							'</td>'+
+							'<td>'+
+								'<input type="text" name="cotizaciongastoanteriores[]" class="form-control cotizaciongastoanterior" value="'+cotizaciongastoanterior+'" readonly></input>'+
+							'</td>'+
+							'<td>'+
+								'<button type="button" title="Elimina esta linea" class="btn-accion-tabla eliminar_rendicionreceptivo_gastoanterior tooltipsC">'+
+									'<i class="fa fa-times-circle text-danger"></i>'+
+								'</button>'+
+							'</td>'+
+						'</tr>'
+						);
+					});
+
+					// Suma totales del gastos anteriores
+					sumaMonto();
+
+					// Lee los vouchers
+					leeVoucher();
+				}
+				else
+					alert("Error en lectura gastos anteriores");
+			},
+			error: function (r) {
+				alert("Error grave en lectura gastos anteriores");
+			}
+		});		
 	}
 
     function agregaRenglonGasto(event){
@@ -827,6 +834,14 @@ var montoComision=[];
 		let token = $("meta[name='csrf-token']").attr("content");
 		let id = $("#id").val();
 		var url;
+
+		// Calcula final de rendicion si es a pagar o a cobrar
+		idMoneda.forEach(function(moneda, indice, array) {
+			if (totalMoneda[moneda] < 0)
+			{
+				
+			}
+		});
 
 		$.ajaxSetup({
 			beforeSend: BeforeSend,

@@ -170,8 +170,10 @@ class ReservaRepository implements ReservaRepositoryInterface
     }
 
     // Busca reserva por id y filtra servicio
-    public function leeReservaPorIdServicioTerrestre($reserva_id, $servicioterrestre_id)
+    public function leeReservaPorIdServicioTerrestre($reserva_id, $servicioterrestre_id, $fecha)
     {
+        $fecha = str_replace("-", "", $fecha);
+
         $apiAnita = new ApiAnita();
         $data = array( 
             'acc' => 'list', 'tabla' => $this->tableAnita, 
@@ -181,13 +183,14 @@ class ReservaRepository implements ReservaRepositoryInterface
                 rese_reserva as id,
                 rese_fecha_arribo as fechaarribo,
                 rese_fecha_partida as fechapartida,
-                rese_cant_pasajero as cantidadpasajero,
-                rese_cant_gratis as cantidadgratis,
+                rese_cant_pasajero+rese_cant_gratis as cantidadpasajero,
+                (select sum(reses_free) from reseserv where reses_reserva=rese_reserva
+                and reses_tipo_serv='".'T'."' and reses_servicio=$servicioterrestre_id and reses_fecha_serv=$fecha) as cantidadgratis,
                 rese_pasajero as nombrepasajero,
                 (select resepa_pasajero from resepax where resepa_reserva=rese_reserva
                 and resepa_orden=0) as pasajero_id,
                 (select sum(reses_pax) from reseserv where reses_reserva=rese_reserva
-                and reses_tipo_serv='".'T'."' and reses_servicio=$servicioterrestre_id) as cantidadincluido,
+                and reses_tipo_serv='".'T'."' and reses_servicio=$servicioterrestre_id and reses_fecha_serv=$fecha) as cantidadincluido,
                 (select sum(reses_pax) from reseserv where reses_reserva=rese_reserva
                 and reses_tipo_serv='".'A'."' and reses_servicio=$servicioterrestre_id) as cantidadopcional
             " , 

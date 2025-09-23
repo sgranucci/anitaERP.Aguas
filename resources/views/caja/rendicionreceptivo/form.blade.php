@@ -51,6 +51,9 @@
                         @endif
                     @endforeach
                 </select>
+                <button type="button" title="Consulta Ordenes de Servicio" style="padding:1;" class="btn-accion-tabla consultaordenservicio tooltipsC">
+                    <i class="fa fa-search text-primary"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -84,4 +87,5 @@
 @include('includes.compras.modalconsultaproveedor')
 @include('includes.receptivo.modalconsultaguia')
 @include('includes.receptivo.modalconsultamovil')
+@include('includes.receptivo.modalconsultaordenservicio')
 

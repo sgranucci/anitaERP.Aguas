@@ -1142,6 +1142,7 @@ Route::get('caja/cuentacaja/leercuentacajaporcodigo/{codigo}', 'Caja\CuentacajaC
  Route::delete('caja/voucher/{id}', 'Caja\VoucherController@eliminar')->name('eliminar_voucher'); 
  Route::get('caja/listavoucher/{formato?}/{busqueda?}', 'Caja\VoucherController@listar')->name('lista_voucher');
  Route::get('caja/listarvoucher/{id}', 'Caja\VoucherController@listarVoucher')->name('listar_voucher');
+ 
 /*
  * Rendicion de receptivo
  */
@@ -1156,6 +1157,7 @@ Route::get('caja/cuentacaja/leercuentacajaporcodigo/{codigo}', 'Caja\CuentacajaC
 
  Route::post('caja/rendicionreceptivo/leegastoanterior', 'Caja\RendicionreceptivoController@leeGastoAnterior')->name('leer_gasto_anterior');
  Route::post('caja/rendicionreceptivo/leevoucher', 'Caja\RendicionreceptivoController@leeVoucher')->name('leer_voucher');
+
 /* 
  * Tipos de transacciones de caja
  */
@@ -1168,6 +1170,7 @@ Route::get('caja/cuentacaja/leercuentacajaporcodigo/{codigo}', 'Caja\CuentacajaC
  Route::delete('caja/tipotransaccion_caja/{id}', 'Caja\Tipotransaccion_CajaController@eliminar')->name('eliminar_tipotransaccion_caja');
  
  Route::get('caja/leertipotransaccion_caja/{id}', 'Caja\Tipotransaccion_CajaController@leeTipotransaccion_caja')->name('leer_tipotransaccion_caja');
+
 /* 
  * Cajas
  */
@@ -1458,5 +1461,12 @@ Route::get('compras/leerproveedor/{proveedor_id}', 'Compras\ProveedorController@
  */
 
  Route::get('receptivo/leereserva/{reserva}', 'Receptivo\ReservaController@leeReserva')->name('lee_reserva');
- Route::get('receptivo/leereservaporidservicioterrestre/{reserva}/{servicioterrestre_id}', 'Receptivo\ReservaController@leeReservaPorIdServicioTerrestre')->name('lee_reserva_por_id_servicioterrestre');
+ Route::get('receptivo/leereservaporidservicioterrestre/{reserva}/{servicioterrestre_id}/{fecha}', 'Receptivo\ReservaController@leeReservaPorIdServicioTerrestre')->name('lee_reserva_por_id_servicioterrestre');
  Route::post('receptivo/reserva/consultareserva', 'Receptivo\ReservaController@consultaReserva')->name('consulta_reserva');
+
+/* 
+ * Orden de servicio 
+ */
+
+ Route::post('receptivo/ordenservicio/consultaordenservicio', 'Receptivo\OrdenservicioController@consultaOrdenservicio')->name('consulta_ordenservicio');
+ Route::post('receptivo/ordenservicio/leeunaordenservicio/{ordenservicio_id}', 'Receptivo\OrdenservicioController@leeUnaOrdenservicio')->name('leer_una_ordenservicio');

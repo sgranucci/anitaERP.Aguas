@@ -114,6 +114,7 @@
 			let fechaarribo = $(this).parents("tr").find(".fechaarribo").html();
 			let fechapartida = $(this).parents("tr").find(".fechapartida").html();
 			let pasajero_id = $(this).parents("tr").find(".pasajero_id").html();
+			let fecha = $("#fecha").val();
 
 			// Asigna a grilla los valores devueltos por consulta
 			$(reservaxcodigo).val(seleccion);
@@ -140,18 +141,24 @@
 
 				// Lee reserva
 				let codigoservicioterrestre = $("#codigoservicioterrestre").val();
-				let url_res = '/anitaERP/public/receptivo/leereservaporidservicioterrestre/'+seleccion+"/"+codigoservicioterrestre;
+				let url_res = '/anitaERP/public/receptivo/leereservaporidservicioterrestre/'+seleccion+"/"+codigoservicioterrestre+"/"+fecha;
 				
 				$.get(url_res, function(data){
 					{
 						if (data[0])
 						{
-							$(ptrReservaActual).parents("tr").find(".pax").val(data[0].cantidadpasajero);
-							$(ptrReservaActual).parents("tr").find(".pax").attr("max",data[0].cantidadpasajero);
-							$(ptrReservaActual).parents("tr").find(".limitepax").val(data[0].cantidadpasajero);
-							$(ptrReservaActual).parents("tr").find(".free").val(data[0].cantidadgratis);
-							$(ptrReservaActual).parents("tr").find(".free").attr("max",data[0].cantidadpasajero);
-							$(ptrReservaActual).parents("tr").find(".limitefree").val(data[0].cantidadgratis);
+							$(ptrReservaActual).parents("tr").find(".pax").val(parseInt(data[0].cantidadpasajero));
+							$(ptrReservaActual).parents("tr").find(".pax").attr("max",parseInt(data[0].cantidadpasajero));
+							$(ptrReservaActual).parents("tr").find(".limitepax").val(parseInt(data[0].cantidadpasajero));
+							if (data[0].cantidadgratis != NaN && data[0].cantidadgratis != '')
+								$(ptrReservaActual).parents("tr").find(".free").val(parseInt(data[0].cantidadgratis));
+							else
+								$(ptrReservaActual).parents("tr").find(".free").val(0);
+							$(ptrReservaActual).parents("tr").find(".free").attr("max",parseInt(data[0].cantidadpasajero));
+							if (data[0].cantidadgratis != NaN && data[0].cantidadgratis != '')
+								$(ptrReservaActual).parents("tr").find(".limitefree").val(parseInt(data[0].cantidadgratis));
+							else
+								$(ptrReservaActual).parents("tr").find(".limitefree").val(0);
 							if (data[0].cantidadincluido != NaN && data[0].cantidadincluido != '')
 								$(ptrReservaActual).parents("tr").find(".incluido").val(parseInt(data[0].cantidadincluido));
 							else
@@ -162,6 +169,7 @@
 								$(ptrReservaActual).parents("tr").find(".opcional").val(0);
 
 							sumaPasajero();
+							calculaMontoProveedor();
 						}
 					}
 				});
@@ -173,13 +181,14 @@
 		$(document).on('change', '.codigoreserva', function () {
 			let reserva_id = $(this).val();
 			let ptrReservaActual = this;
-			
+			let fecha = $("#fecha").val();
+
 			// Asigna la reserva ingresada manualmente
 			$(ptrReservaActual).parents("tr").find(".reserva_id").val(reserva_id);
 
 			// Lee reserva
 			let codigoservicioterrestre = $("#codigoservicioterrestre").val();
-			let url_res = '/anitaERP/public/receptivo/leereservaporidservicioterrestre/'+reserva_id+"/"+codigoservicioterrestre;
+			let url_res = '/anitaERP/public/receptivo/leereservaporidservicioterrestre/'+reserva_id+"/"+codigoservicioterrestre+"/"+fecha;
 
 			$.get(url_res, function(data){
 				{
@@ -197,12 +206,19 @@
 						$(ptrReservaActual).parents("tr").find(".nombrepasajero").val(data[0].nombrepasajero);
 						$(ptrReservaActual).parents("tr").find(".fechaarribo").val(fechaarribo);
 						$(ptrReservaActual).parents("tr").find(".fechapartida").val(fechapartida);
-						$(ptrReservaActual).parents("tr").find(".pax").val(data[0].cantidadpasajero);
-						$(ptrReservaActual).parents("tr").find(".pax").attr("max",data[0].cantidadpasajero);
-						$(ptrReservaActual).parents("tr").find(".limitepax").val(data[0].cantidadpasajero);
-						$(ptrReservaActual).parents("tr").find(".free").val(data[0].cantidadgratis);
-						$(ptrReservaActual).parents("tr").find(".free").attr("max",data[0].cantidadpasajero);
-						$(ptrReservaActual).parents("tr").find(".limitefree").val(data[0].cantidadgratis);
+
+						$(ptrReservaActual).parents("tr").find(".pax").val(parseInt(data[0].cantidadpasajero));
+						$(ptrReservaActual).parents("tr").find(".pax").attr("max",parseInt(data[0].cantidadpasajero));
+						$(ptrReservaActual).parents("tr").find(".limitepax").val(parseInt(data[0].cantidadpasajero));
+						if (data[0].cantidadgratis != NaN && data[0].cantidadgratis != '')
+							$(ptrReservaActual).parents("tr").find(".free").val(parseInt(data[0].cantidadgratis));
+						else
+							$(ptrReservaActual).parents("tr").find(".free").val(0);
+						$(ptrReservaActual).parents("tr").find(".free").attr("max",parseInt(data[0].cantidadpasajero));
+						if (data[0].cantidadgratis != NaN && data[0].cantidadgratis != '')
+							$(ptrReservaActual).parents("tr").find(".limitefree").val(parseInt(data[0].cantidadgratis));
+						else
+							$(ptrReservaActual).parents("tr").find(".limitefree").val(0);
 						if (data[0].cantidadincluido != NaN && data[0].cantidadincluido != '')
 							$(ptrReservaActual).parents("tr").find(".incluido").val(parseInt(data[0].cantidadincluido));
 						else
@@ -210,9 +226,10 @@
 						if (data[0].cantidadopcional != NaN && data[0].cantidadopcional != '')
 							$(ptrReservaActual).parents("tr").find(".opcional").val(parseInt(data[0].cantidadopcional));
 						else
-							$(ptrReservaActual).parents("tr").find(".opcional").val(0);
+							$(ptrReservaActual).parents("tr").find(".opcional").val(0);						
 
 						sumaPasajero();
+						calculaMontoProveedor();
 					}
 				}
 			});
@@ -247,14 +264,7 @@
 			$("#codigoservicioterrestre").val(codigo);
 
 			// Lee el proveedor si existe y lo trae
-			let url = '/anitaERP/public/receptivo/leerproveedor_servicioterrestre/'+seleccion;
-			$.get(url, function(data){
-				if (data[0])
-				{
-					$("#proveedor_id").val(data[0].proveedor_id);
-					$("#proveedor").val(data[0].nombreproveedor);
-				}
-			});
+			buscaProveedorServicio(seleccion);
 
 			calculaMontoProveedor();
 			calculaMontoEmpresa();
@@ -448,6 +458,9 @@
 						$("#nombreservicioterrestre").val(data.nombre);
 						$("#servicioterrestre").val(data.nombre);
 						$("#codigoservicioterrestre").val(data.codigo);
+
+						// Lee el proveedor del servicio terrestre
+						buscaProveedorServicio(data.id);
 					}
 				}
 			});
@@ -702,12 +715,12 @@
 			$.get(url, function(data){
 				let montoProveedor = parseFloat(data.costo);
 				let moneda_id = data.moneda_id;
-				let totalPax = $("#totalpaxvoucher").val();
+				let totalPaxOpcional = $("#totalopcionalvoucher").val();
 
 				if (isNaN(montoProveedor))
 					montoProveedor = 0;
 
-				montoProveedor = montoProveedor * totalPax;
+				montoProveedor = montoProveedor * totalPaxOpcional;
 
 				if (moneda_id > 1)
 				{
@@ -764,6 +777,22 @@
 				$(ptr).parents("tr").find(".porcentajecomision").val(data.porcentajecomision);
 
 				calculaPorcentajeComisionGuia(ptr);
+			}
+		});
+	}
+
+	function buscaProveedorServicio(servicio)
+	{
+		$("#proveedor_id").val("");
+		$("#proveedor").val("");
+
+		// Lee el proveedor si existe y lo trae
+		let url = '/anitaERP/public/receptivo/leerproveedor_servicioterrestre/'+servicio;
+		$.get(url, function(data){
+			if (data[0])
+			{
+				$("#proveedor_id").val(data[0].proveedor_id);
+				$("#proveedor").val(data[0].nombreproveedor);
 			}
 		});
 	}

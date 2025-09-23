@@ -148,8 +148,10 @@ class Voucher_GuiaRepository implements Voucher_GuiaRepositoryInterface
 										'voucher_guia.montocomision as monto',
 										DB::raw(config('receptivo.comisiones.COTIZACION').' as cotizacion'),
 										'voucher_guia.ordenservicio_id as ordenservicio_id')
+										->where('voucher_guia.deleted_at', null)
 										->leftJoin('voucher', 'voucher.id', 'voucher_guia.voucher_id')
 										->where([
+												['voucher_guia.deleted_at', null],
 												['voucher_guia.ordenservicio_id', $ordenservicio_id],
 												['voucher_guia.guia_id', $guia_id]
 												])
@@ -163,9 +165,11 @@ class Voucher_GuiaRepository implements Voucher_GuiaRepositoryInterface
     public function leeOrdenServicioVoucher()
 	{
 		$voucher = $this->model->select('voucher_guia.ordenservicio_id as ordenservicio_id')
+								->where('voucher_guia.deleted_at', null)
 								->whereNotExists(function ($query) {
 									$query->select(DB::raw(1))
 											->from('rendicionreceptivo')
+											->where('rendicionreceptivo.deleted_at', null)
 											->whereColumn('voucher_guia.ordenservicio_id', 'rendicionreceptivo.ordenservicio_id');
 								})
 								->get();

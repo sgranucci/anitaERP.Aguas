@@ -298,7 +298,7 @@ class RendicionreceptivoService
         $request->merge(['montos' => $montos]);
         $request->merge(['cotizaciones' => $cotizaciones]);
 
-        // Arma asiento contale
+        // Arma asiento contable
         $asiento = Self::armaAsiento($request->empresa_id, $cuentacaja_id, $conceptogasto_id, $monto, $moneda_id, $cotizacionVenta);
 
         $request->merge(['cuentacontable_ids' => $asiento['cuentacontable_ids']]);
@@ -309,7 +309,7 @@ class RendicionreceptivoService
         $request->merge(['cotizacionasientos' => $asiento['cotizacionasientos']]);
         $request->merge(['observacionasientos' => $asiento['observacionasientos']]);
 
-        // Graba egreso de caja
+        // Graba movimiento de caja
         $request->merge(['conceptogasto_id' => $conceptogasto_id]);
         $request->merge(['rendicionreceptivo_id' => $id]);
         $request->merge(['observaciones' => [' ']]);
@@ -486,13 +486,28 @@ class RendicionreceptivoService
         $voucher = $this->voucher_guiaRepository->leeOrdenServicioVoucher();
 
         $caja_movimiento = $this->caja_movimientoRepository->leeOrdenServicioCajaMovimiento();
-
         $ordenservicio_ids = [];
         foreach($voucher as $orden)
-            $ordenservicio_ids[] = $orden->ordenservicio_id;
+        {
+            for ($i = 0, $flEncontro = false; $i < count($ordenservicio_ids); $i++)
+            {
+                if ($ordenservicio_ids[$i] == $orden->ordenservicio_id)
+                    $flEncontro = true;
+            }
+            if (!$flEncontro)
+                $ordenservicio_ids[] = $orden->ordenservicio_id;
+        }
         
         foreach($caja_movimiento as $orden)
-            $ordenservicio_ids[] = $orden->ordenservicio_id;
+        {
+            for ($i = 0, $flEncontro = false; $i < count($ordenservicio_ids); $i++)
+            {
+                if ($ordenservicio_ids[$i] == $orden->ordenservicio_id)
+                    $flEncontro = true;
+            }
+            if (!$flEncontro)
+                $ordenservicio_ids[] = $orden->ordenservicio_id;
+        }            
 
         return $ordenservicio_ids;
     }

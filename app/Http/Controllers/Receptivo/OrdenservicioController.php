@@ -27,4 +27,8 @@ class OrdenservicioController extends Controller
         return ($this->ordenservicioRepository->leeUnaOrdenservicio($ordenservicio_id));
 	}
 
+    public function leeOrdenservicioUsada($ordenservicio_id)
+    {
+        return $this->ordenservicioRepository->leeOrdenservicioUsada($ordenservicio_id);
+    }
 }

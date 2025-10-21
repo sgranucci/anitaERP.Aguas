@@ -239,8 +239,21 @@ var montoComision=[];
 
 		$('#ordenservicio_id').on('change', function (event) {
 			event.preventDefault();
+			let ordenservicio_id = $("#ordenservicio_id").val();
 
-			leeOrdenServicio();
+			// Verifica que la OS no este asignada a otra rendicion
+			let url_cot = '/anitaERP/public/receptivo/ordenservicio/leeordenserviciousada/'+ordenservicio_id;
+		
+			$.get(url_cot, function(data){
+				if ($data.ordenservicio_id == ordenservicio_id)
+				{
+					alert("no puede volver a usar orden de servicio ya rendida")
+					$('#ordenservicio_id').val('');
+				}
+			});
+			setTimeout(() => {
+				leeOrdenServicio();
+			}, 300);
 		});
 	}
 

@@ -87,6 +87,7 @@
 			$('.codigo').off('change');
 			$('.porcentajecomision').off('change');
 			$('#montoproveedor').off('change');
+			$('.formapago').off('change');
 			$('.tipocomision').off('change');
 		}
 		
@@ -343,6 +344,7 @@
 			var nombre = $(this).parents("tr").find(".nombre").html();
 			var codigo = $(this).parents("tr").find(".codigo").html();
 			var moneda_id = $(this).parents("tr").find(".moneda_id").html();
+			var formapago_id = $(this).parents("tr").find(".formapago_id").html();
 		
 			// Asigna a grilla los valores devueltos por consulta
 			$(cuentacajaxcodigo).val(seleccion);
@@ -352,6 +354,7 @@
 			//* Asigna nueva cuentacaja
 			$(cuentacajaxcodigo).parents("tr").find(".cuentacaja_id_previa").val($(cuentacajaxcodigo).val());
 			$(cuentacajaxcodigo).parents("tr").find(".moneda").val(moneda_id);
+			$(cuentacajaxcodigo).parents("tr").find(".cuentacaja_formapago_id").val(formapago_id);
 		
 			$('#consultacuentacajaModal').modal('hide');
 		});
@@ -359,6 +362,7 @@
 		$(document).on('change', '.codigo', function () {
 			let codigo = $(this).val();
 			let moneda_id = $(this).parents("tr").find(".moneda");
+			var formapago_id = $(this).parents("tr").find(".formapago_id");
 			cuentacajaxcodigo = $(this).parents("tr").find(".cuentacaja_id");
 			nombrexcodigo = $(this).parents("tr").find(".nombre");
 			codigoxcodigo = $(this).parents("tr").find(".codigo");
@@ -370,7 +374,8 @@
 				$(cuentacajaxcodigo).val(data.id);
 				$(nombrexcodigo).val(data.nombre);
 				$(codigoxcodigo).val(data.codigo);
-				$(moneda_id).val(data.moneda_id)
+				$(moneda_id).val(data.moneda_id);
+				$(formapago_id).val(data.formapago_id);
 			});
 		});
 
@@ -405,6 +410,16 @@
 		$('.cotizacion').on('change', function (event) {
 			event.preventDefault();
 			sumaMonto();
+		});
+
+		$('.formapago').on('change', function (event) {
+			event.preventDefault();
+
+			// Busca comision por servicio
+			buscaComisionPorServicio(this);
+
+			calculaMontoProveedor();
+			calculaMontoEmpresa();
 		});
 
 		$('.tipocomision').on('change', function (event) {
@@ -458,7 +473,7 @@
 						$("#nombreservicioterrestre").val(data.nombre);
 						$("#servicioterrestre").val(data.nombre);
 						$("#codigoservicioterrestre").val(data.codigo);
-
+alert('s');
 						// Lee el proveedor del servicio terrestre
 						buscaProveedorServicio(data.id);
 					}
@@ -489,8 +504,26 @@
 	function calculaPorcentajeComisionGuia(ptr)
 	{
 		let porcentajeComision = $(ptr).parents('tr').find(".porcentajecomision").val();
+		let formapago_id = $(ptr).parents("tr").find(".formapago").val();
 		let montoVoucher = $("#montovoucher").val();
+		let monedaDefault = $("#moneda_default_id").val();
 		let montoComision = 0;
+
+		// Calcula total por forma de pago
+		montoVoucher = 0;
+		$("#tbody-voucher-formapago-table tr").each(function(index, element) {
+			if ($(element).find(".cuentacaja_formapago_id").val() == formapago_id)
+			{
+				let valor = parseFloat($(element).find('.monto').val());
+				let moneda = $(element).find('.moneda').val();
+				let cotizacion = $(element).find('.cotizacion').val();
+				let coef = calculaCoeficienteMoneda(monedaDefault, moneda, cotizacion);
+				if (moneda > 1)
+					montoVoucher += (valor * coef);
+				else	
+					montoVoucher += valor;
+			}
+		});
 
 		montoComision = parseFloat(montoVoucher) * parseFloat(porcentajeComision) / 100;
 		$(ptr).parents('tr').find('.montocomision').val(montoComision);
@@ -536,6 +569,8 @@
 		$("#incluido").val(totalIncluido);
 		$("#totalopcionalvoucher").val(totalOpcional);
 		$("#opcional").val(totalOpcional);
+
+		calculaMontoProveedor();
 	}
 
     function agregaRenglonGuia(event){
@@ -769,8 +804,9 @@
 	{
 		let servicioterrestre_id = $('#servicioterrestre_id').val();
 		let tipocomision = $(ptr).parents("tr").find(".tipocomision").val();
+		let formapago_id = $(ptr).parents("tr").find(".formapago").val();
 
-		let url = '/anitaERP/public/caja/leercomision_servicioterrestre/'+servicioterrestre_id+'/'+tipocomision;
+		let url = '/anitaERP/public/caja/leercomision_servicioterrestre/'+servicioterrestre_id+'/'+tipocomision+'/'+formapago_id;
 		$.get(url, function(data){
 			if (data.porcentajecomision)
 			{
@@ -778,6 +814,8 @@
 
 				calculaPorcentajeComisionGuia(ptr);
 			}
+			else
+				$(ptr).parents("tr").find(".porcentajecomision").val("");
 		});
 	}
 

@@ -22,6 +22,7 @@
                                 <input type="hidden" name="cuentacaja[]" class="form-control iicuenta" readonly value="{{ $loop->index+1 }}" />
                                 <input type="hidden" class="cuentacaja_id" name="cuentacaja_ids[]" value="{{$formapago->cuentacaja_id ?? ''}}" >
                                 <input type="hidden" class="cuentacaja_id_previa" name="cuentacaja_id_previa[]" value="{{$formapago->cuentacaja_id ?? ''}}" >
+                                <input type="hidden" class="cuentacaja_formapago_id" name="cuentacaja_formapago_id[]" value="{{$formapago->cuentacajas->formapago_id ?? ''}}" >
                                 <button type="button" title="Consulta cuentas" style="padding:1;" class="btn-accion-tabla consultacuentacaja tooltipsC">
                                         <i class="fa fa-search text-primary"></i>
                                 </button>

@@ -30,6 +30,8 @@
               <th>Nombre Cuenta Contable</th>
               <th>Cod.Mon.</th>
               <th>Nombre Moneda</th>
+              <th>Id F.Pago</th>
+              <th>Forma de Pago</th>
               <th>Opcion</th>
           </thead>
           <tbody id="datoscuentacaja"></tbody>

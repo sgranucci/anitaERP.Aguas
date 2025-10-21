@@ -8,6 +8,7 @@ use App\Models\Configuracion\Empresa;
 use App\Models\Configuracion\Moneda;
 use App\Models\Contable\Cuentacontable;
 use App\Models\Caja\Banco;
+use App\Models\Ventas\Formapago;
 use App\Traits\Caja\CuentacajaTrait;
 
 class Cuentacaja extends Model
@@ -15,7 +16,7 @@ class Cuentacaja extends Model
     use CuentacajaTrait;
 
     protected $fillable = ['nombre', 'codigo', 'tipocuenta', 'banco_id', 
-                            'empresa_id', 'cuentacontable_id', 'moneda_id', 'cbu'];
+                            'empresa_id', 'cuentacontable_id', 'moneda_id', 'cbu', 'formapago_id'];
     protected $table = 'cuentacaja';
 
     public function bancos()
@@ -37,5 +38,10 @@ class Cuentacaja extends Model
     {
         return $this->belongsTo(Cuentacontable::class, 'cuentacontable_id');
     }
+
+    public function formapagos()
+    {
+        return $this->belongsTo(Formapago::class, 'formapago_id');
+    }    
 }
 

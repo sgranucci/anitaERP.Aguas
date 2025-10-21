@@ -80,6 +80,9 @@ function activa_eventos_consultaguia()
         $("#codigoguia").val(codigo);
 
         $('#consultaguiaModal').modal('hide');
+
+        leeVoucher();
+		leeOrdenServicio();
     });
 
     $('#codigoguia').on('change', function (event) {
@@ -96,6 +99,9 @@ function activa_eventos_consultaguia()
                 $("#nombreguia").val(data.nombre);
                 $("#guia").val(data.nombre);
                 $("#codigoguia").val(data.codigo);
+
+                leeVoucher();
+		        leeOrdenServicio();
             }
         });
 

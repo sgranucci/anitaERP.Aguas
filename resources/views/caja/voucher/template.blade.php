@@ -13,7 +13,15 @@
             </div>
         </td>
         <td>
-            <select name="tipocomisiones[]" class="col-lg-8 form-control tipocomision" required>
+            <select name="formapago_ids[]" class="col-lg-12 form-control formapago" required>
+                <option value=""> Elija forma de pago </option>
+                @foreach ($formapago_query as $formapago)
+                    <option value="{{ $formapago['id'] }}">{{ $formapago['nombre'] }}</option>
+                @endforeach
+            </select>
+        </td>        
+        <td>
+            <select name="tipocomisiones[]" class="col-lg-12 form-control tipocomision" required>
                 <option value="">-- Elija tipo de comisión --</option>
                 @foreach ($tipocomision_enum as $tipocomision)
                     <option value="{{ $tipocomision['valor'] }}">{{ $tipocomision['nombre'] }}</option>

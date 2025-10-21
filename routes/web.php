@@ -1454,7 +1454,7 @@ Route::get('compras/leerproveedor/{proveedor_id}', 'Compras\ProveedorController@
  Route::delete('receptivo/comision_servicioterrestre/{id}', 'Receptivo\Comision_ServicioterrestreController@eliminar')->name('eliminar_comision_servicioterrestre');
  Route::get('receptivo/leecomision/{formapago_id}/{tipocomision}/{servicioterrestre_id}', 'Receptivo\Comision_ServicioterrestreController@leeComision')->name('lee_comision');
 
- Route::get('caja/leercomision_servicioterrestre/{servioterrestre_id}/{tipocomision}', 'Receptivo\Comision_ServicioterrestreController@leeComision_Servicioterrestre')->name('leer_comision_servicioterrestre');
+ Route::get('caja/leercomision_servicioterrestre/{servioterrestre_id}/{tipocomision}/{formapago_id}', 'Receptivo\Comision_ServicioterrestreController@leeComision_Servicioterrestre')->name('leer_comision_servicioterrestre');
 
 /*
  * Reserva
@@ -1470,3 +1470,4 @@ Route::get('compras/leerproveedor/{proveedor_id}', 'Compras\ProveedorController@
 
  Route::post('receptivo/ordenservicio/consultaordenservicio', 'Receptivo\OrdenservicioController@consultaOrdenservicio')->name('consulta_ordenservicio');
  Route::post('receptivo/ordenservicio/leeunaordenservicio/{ordenservicio_id}', 'Receptivo\OrdenservicioController@leeUnaOrdenservicio')->name('leer_una_ordenservicio');
+ Route::get('receptivo/ordenservicio/leeordenserviciousada/{ordenservicio_id}', 'Receptivo\OrdenservicioController@leeOrdenservicioUsada')->name('leer_ordenservicio_usada');

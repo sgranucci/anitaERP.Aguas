@@ -123,7 +123,7 @@ class CuentacajaRepository implements CuentacajaRepositoryInterface
 
     public function find($id)
     {
-        if (null == $cuentacaja = $this->model->find($id)) {
+        if (null == $cuentacaja = $this->model->with('formapagos')->find($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
 
@@ -132,7 +132,7 @@ class CuentacajaRepository implements CuentacajaRepositoryInterface
 
     public function findOrFail($id)
     {
-        if (null == $cuentacaja = $this->model->findOrFail($id)) {
+        if (null == $cuentacaja = $this->model->with('formapagos')->findOrFail($id)) {
             throw new ModelNotFoundException("Registro no encontrado");
         }
 
@@ -141,7 +141,7 @@ class CuentacajaRepository implements CuentacajaRepositoryInterface
 
     public function findPorCodigo($codigo)
     {
-        return $this->model->where('codigo', $codigo)->first();
+        return $this->model->where('codigo', $codigo)->with('formapagos')->first();
     }
 
     public function sincronizarConAnita(){

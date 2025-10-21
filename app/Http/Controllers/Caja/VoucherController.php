@@ -75,6 +75,9 @@ class VoucherController extends Controller
     {
         can('listar-voucher');
 		
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', '0');
+
         $busqueda = $request->busqueda;
 
 		$vouchers = $this->voucherRepository->leeVoucher($busqueda, true);

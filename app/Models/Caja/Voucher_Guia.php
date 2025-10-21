@@ -6,12 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Receptivo\Guia;
+use App\Models\Ventas\Formapago;
 
 class Voucher_Guia extends Model
 {
     use SoftDeletes;
     protected $fillable = [
-							'voucher_id', 'guia_id', 'tipocomision',  
+							'voucher_id', 'guia_id', 'formapago_id', 'tipocomision',  
 							'porcentajecomision', 'montocomision', 'ordenservicio_id'
 							];
     protected $table = 'voucher_guia';
@@ -26,6 +27,10 @@ class Voucher_Guia extends Model
     	return $this->belongsTo(Guia::class, 'guia_id');
 	}
 
+	public function formapagos()
+    {
+        return $this->belongsTo(Formapago::class, 'formapago_id');
+    } 
 }
 
 

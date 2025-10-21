@@ -124,9 +124,10 @@
         <table class="table" id="guia-table">
             <thead>
                 <tr>
-                    <th style="width: 30%;">Guia</th>
-                    <th style="width: 20%;">Tipo de comisión</th>
-                    <th style="width: 10%;">Porcentaje</th>
+                    <th style="width: 25%;">Guia</th>
+                    <th style="width: 15%;">Forma de pago</th>
+                    <th style="width: 15%;">Tipo de comisión</th>
+                    <th style="width: 8%;">Porcentaje</th>
                     <th style="width: 20%;">Monto Comisión</th>
                     <th style="width: 20%;">Orden de servicio</th>
                     <th></th>
@@ -150,8 +151,18 @@
                             </div>
                         </td>
                         <td>
-                            <select name="tipocomisiones[]" class="col-lg-6 form-control tipocomision" required>
-                                <option value="">-- Elija tipo de comisión --</option>
+                            <select name="formapago_ids[]" class="col-lg-12 form-control formapago" required>
+                                <option value=""> Elija forma de pago </option>
+                                @foreach ($formapago_query as $formapago)
+                                    <option value="{{ $formapago['id'] }}"
+                                        @if (old('formapago', $guia->formapago_id ?? '') == $formapago['id']) selected @endif
+                                        >{{ $formapago['nombre'] }}</option>
+                                @endforeach
+                            </select>
+                        </td>
+                        <td>
+                            <select name="tipocomisiones[]" class="col-lg-12 form-control tipocomision" required>
+                                <option value="">Elija tipo de comisión</option>
                                 @foreach ($tipocomision_enum as $tipocomision)
                                     <option value="{{ $tipocomision['valor'] }}"
                                         @if (old('tipocomision', $guia->tipocomision ?? '') == $tipocomision['valor']) selected @endif

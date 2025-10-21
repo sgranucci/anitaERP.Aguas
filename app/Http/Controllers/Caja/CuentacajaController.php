@@ -9,6 +9,7 @@ use App\Http\Requests\ValidacionCuentacaja;
 use App\Models\Caja\Cuentacaja;
 use App\Repositories\Caja\CuentacajaRepositoryInterface;
 use App\Repositories\Caja\BancoRepositoryInterface;
+use App\Repositories\Ventas\FormapagoRepositoryInterface;
 use App\Repositories\Contable\CuentacontableRepositoryInterface;
 use App\Repositories\Configuracion\EmpresaRepositoryInterface;
 use App\Repositories\Configuracion\MonedaRepositoryInterface;
@@ -20,18 +21,21 @@ class CuentacajaController extends Controller
     private $cuentacontableRepository;
     private $empresaRepository;
     private $monedaRepository;
+    private $formapagoRepository;
 
     public function __construct(CuentacajaRepositoryInterface $repository,
                                 BancoRepositoryInterface $bancorepository,
                                 CuentacontableRepositoryInterface $cuentacontablerepository,
                                 EmpresaRepositoryInterface $empresarepository,
-                                MonedaRepositoryInterface $monedarepository)
+                                MonedaRepositoryInterface $monedarepository,
+                                FormapagoRepositoryInterface $formapagorepository)
     {
         $this->repository = $repository;
         $this->bancoRepository = $bancorepository;
         $this->cuentacontableRepository = $cuentacontablerepository;
         $this->empresaRepository = $empresarepository;
         $this->monedaRepository = $monedarepository;
+        $this->formapagoRepository = $formapagorepository;
     }
 
     /**
@@ -59,11 +63,12 @@ class CuentacajaController extends Controller
         $empresa_query = $this->empresaRepository->all();
         $moneda_query = $this->monedaRepository->all();
         $banco_query = $this->bancoRepository->all();
+        $formapago_query = $this->formapagoRepository->all();
         $cuentacontable_query = $this->cuentacontableRepository->all();
         $tipocuenta_enum = Cuentacaja::$enumTipocuenta;
 
         return view('caja.cuentacaja.crear', compact('empresa_query', 'banco_query', 'cuentacontable_query',
-                                                    'tipocuenta_enum', 'moneda_query'));
+                                                    'tipocuenta_enum', 'moneda_query', 'formapago_query'));
     }
 
     /**
@@ -93,11 +98,12 @@ class CuentacajaController extends Controller
         $empresa_query = $this->empresaRepository->all();
         $moneda_query = $this->monedaRepository->all();
         $banco_query = $this->bancoRepository->all();
+        $formapago_query = $this->formapagoRepository->all();
         $cuentacontable_query = $this->cuentacontableRepository->all();
         $tipocuenta_enum = Cuentacaja::$enumTipocuenta;
 
         return view('caja.cuentacaja.editar', compact('data', 'empresa_query', 'banco_query', 'cuentacontable_query',   
-                                                    'tipocuenta_enum', 'moneda_query'));
+                                                    'tipocuenta_enum', 'moneda_query', 'formapago_query'));
     }
 
     /**
@@ -140,9 +146,9 @@ class CuentacajaController extends Controller
     public function consultaCuentaCaja(Request $request)
     {
 		$columns = ['cuentacaja.id', 'cuentacaja.codigo', 'cuentacaja.nombre', 'empresa.nombre', 'cuentacontable.codigo', 
-                    'cuentacontable.nombre', 'cuentacaja.moneda_id', 'moneda.nombre'];
+                    'cuentacontable.nombre', 'cuentacaja.moneda_id', 'moneda.nombre', 'cuentacaja.formapago_id', 'formapago.nombre'];
 		$columnsOut = ['cuentacaja_id', 'codigo', 'nombre', 'nombreempresa', 'codigocuentacontable', 'nombrecuentacontable',
-                        'moneda_id', 'nombremoneda'];
+                        'moneda_id', 'nombremoneda', 'formapago_id', 'nombreformapago'];
 
         $empresaId = $request->empresa_id;
         $consulta = $request->consulta;
@@ -151,10 +157,13 @@ class CuentacajaController extends Controller
         $query = CuentaCaja::select('cuentacaja.id as cuentacaja_id', 'cuentacaja.codigo', 
                 'cuentacaja.nombre', 'cuentacaja.empresa_id as empresa_id', 'empresa.nombre as nombreempresa',
                 'cuentacaja.tipocuenta', 'cuentacontable.codigo as codigocuentacontable', 'cuentacontable.nombre as nombrecuentacontable',
-                'cuentacaja.moneda_id', 'moneda.nombre as nombremoneda')
+                'cuentacaja.moneda_id', 'moneda.nombre as nombremoneda',
+                'cuentacaja.formapago_id as formapago_id',
+                'formapago.nombre as nombreformapago')
 				->leftJoin('empresa','cuentacaja.empresa_id','=','empresa.id')
                 ->leftJoin('cuentacontable','cuentacaja.cuentacontable_id','=','cuentacontable.id')
                 ->leftJoin('moneda','cuentacaja.moneda_id','=','moneda.id')
+                ->leftJoin('formapago','cuentacaja.formapago_id','=','formapago.id')
                 ->orWhere(function ($query) use ($count, $consulta, $columns) {
                         for ($i = 0; $i < $count; $i++)
                             $query->orWhere($columns[$i], "LIKE", '%'. $consulta . '%');

@@ -32,6 +32,7 @@
                             <th>Nombre</th>
                             <th>Código</th>
                             <th>Tipo cuenta</th>
+                            <th>Forma de pago</th>
                             <th>Banco</th>
                             <th>Empresa</th>
                             <th>Cuenta contable</th>
@@ -52,6 +53,7 @@
 									@endif
 								@endforeach
                             </td>
+                            <td>{{$data->formapagos->nombre??''}}</td>
                             <td>{{$data->bancos->nombre ?? ''}}</td>
                             <td>{{$data->empresas->nombre ?? ''}}</td>
                             <td>{{$data->cuentacontables->codigo ?? ''}}-{{$data->cuentacontables->nombre??''}}</td>

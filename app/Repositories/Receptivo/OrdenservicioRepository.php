@@ -159,4 +159,20 @@ class OrdenservicioRepository implements OrdenservicioRepositoryInterface
 
         return($voucher);
     }
+
+    // Busca si la orden de servicio esta rendida
+
+    public function leeOrdenservicioUsada($ordenservicio_id)
+    {
+        // lee una orden de servicio
+        $ordenservicio = DB::table('rendicionreceptivo')
+                                    ->select('id',
+                                            'fecha', 
+                                            'empresa_id')
+                                    ->where('deleted_at', null)
+                                    ->where('ordenservicio_id', $ordenservicio_id)
+                                    ->get();
+
+        return($ordenservicio);
+    }
 }

@@ -24,6 +24,19 @@
 	</select>
 </div>
 <div class="form-group row">
+	<label for="formapago" class="col-lg-3 col-form-label">Forma de pago</label>
+	<select name="formapago_id" id="formapago_id" data-placeholder="Forma de pago" class="col-lg-3 form-control" data-fouc>
+		<option value="">-- Seleccionar Forma de Pago --</option>
+		@foreach($formapago_query as $key => $value)
+			@if( (int) $value->id == (int) old('formapago_id', $data->formapago_id ?? ''))
+				<option value="{{ $value->id }}" selected="select">{{ $value->nombre }}</option>    
+			@else
+				<option value="{{ $value->id }}">{{ $value->nombre }}</option>    
+			@endif
+		@endforeach
+	</select>
+</div>
+<div class="form-group row">
 	<label for="banco" class="col-lg-3 col-form-label">Banco</label>
 	<select name="banco_id" id="banco_id" data-placeholder="Banco" class="col-lg-3 form-control" data-fouc>
 		<option value="">-- Seleccionar Banco --</option>

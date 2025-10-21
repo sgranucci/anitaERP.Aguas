@@ -148,10 +148,10 @@ class Comision_ServicioterrestreController extends Controller
         return ['porcentajecomision' => $porcentajeComision];
     }
 
-    public function leeComision_Servicioterrestre($servicioterrestre_id, $tipocomision)
+    public function leeComision_Servicioterrestre($servicioterrestre_id, $tipocomision, $formapago_id)
     {
         $comision_servicioterrestre = $this->comision_servicioterrestreRepository
-                                        ->findComisionPorServicioTerrestre($servicioterrestre_id, $tipocomision);
+                                        ->findComisionPorServicioTerrestre($servicioterrestre_id, $tipocomision, $formapago_id);
 
         $porcentajeComision = 0;
         if ($comision_servicioterrestre)

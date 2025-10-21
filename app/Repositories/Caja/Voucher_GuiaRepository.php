@@ -73,10 +73,10 @@ class Voucher_GuiaRepository implements Voucher_GuiaRepositoryInterface
 			$q_voucher_guia = count($voucher_guia);
 		}
 
-		// Graba exclusiones
 		if (isset($data['guia_ids']))
 		{
 			$guia_ids = $data['guia_ids'];
+			$formapago_ids = $data['formapago_ids'];
 			$tipocomisiones = $data['tipocomisiones'];
 			$porcentajecomisiones = $data['porcentajecomisiones'];
 			$montocomisiones = $data['montocomisiones'];
@@ -101,6 +101,7 @@ class Voucher_GuiaRepository implements Voucher_GuiaRepositoryInterface
 						$voucher_guia = $this->model->findOrFail($_id[$i])->update([
 									"voucher_id" => $id,
 									"guia_id" => $guia_ids[$i],
+									"formapago_id" => $formapago_ids[$i],
 									"tipocomision" => $tipocomisiones[$i],
 									"porcentajecomision" => $porcentajecomisiones[$i],
 									"montocomision" => $montocomisiones[$i],
@@ -122,6 +123,7 @@ class Voucher_GuiaRepository implements Voucher_GuiaRepositoryInterface
 					$voucher_guia = $this->model->create([
 									"voucher_id" => $id,
 									"guia_id" => $guia_ids[$i_guia],
+									"formapago_id" => $formapago_ids[$i_guia],
 									"tipocomision" => $tipocomisiones[$i_guia],
 									"porcentajecomision" => $porcentajecomisiones[$i_guia],
 									"montocomision" => $montocomisiones[$i_guia],

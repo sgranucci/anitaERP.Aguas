@@ -12,6 +12,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Pagination\Paginator;
 use App\Models\Admin\Menu;
+use App;
+use Carbon\Carbon;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,6 +33,9 @@ class AppServiceProvider extends ServiceProvider
         });
         View::share('theme', 'lte');
 
+		App::setLocale('es');
+    	Carbon::setLocale('es');		
+		
 		Pedido_Combinacion::observe(Pedido_CombinacionObserver::class);
 		Ordentrabajo_Tarea::observe(Ordentrabajo_TareaObserver::class);
 		Pedido_Combinacion_Estado::observe(Pedido_Combinacion_EstadoObserver::class);

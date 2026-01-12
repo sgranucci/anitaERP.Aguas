@@ -29,7 +29,7 @@
                                     <button type="button" title="Consulta conceptos" style="padding:1;" class="btn-accion-tabla consultaconceptogasto tooltipsC">
                                             <i class="fa fa-search text-primary"></i>
                                     </button>
-                                    <input type="text" style="WIDTH: 200px;HEIGHT: 38px" class="nombreconceptogasto form-control" name="nombreconceptogastos[]" value="{{$gasto->conceptogastos->nombre}}" >
+                                    <input type="text" style="WIDTH: 200px;HEIGHT: 38px" class="nombreconceptogasto form-control" name="nombreconceptogastos[]" value="{{$gasto->conceptogastos->nombre??''}}" >
                                 </div>
                             </td>	
                             <td>

@@ -627,6 +627,11 @@ class AppServiceProvider extends ServiceProvider
     	);
 
 		$this->app->bind(
+        	'App\Repositories\Receptivo\Guia_CuentacorrienteRepositoryInterface',
+        	'App\Repositories\Receptivo\Guia_CuentacorrienteRepository',
+    	);
+
+		$this->app->bind(
         	'App\Repositories\Receptivo\Comision_ServicioterrestreRepositoryInterface',
         	'App\Repositories\Receptivo\Comision_ServicioterrestreRepository',
     	);

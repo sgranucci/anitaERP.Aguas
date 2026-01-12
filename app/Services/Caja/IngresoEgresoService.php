@@ -16,6 +16,7 @@ use App\Repositories\Contable\CuentacontableRepositoryInterface;
 use App\Repositories\Contable\CentrocostoRepositoryInterface;
 use App\Repositories\Contable\AsientoRepositoryInterface;
 use App\Repositories\Contable\Asiento_MovimientoRepositoryInterface;
+use App\Repositories\Receptivo\Guia_CuentacorrienteRepositoryInterface;
 use App\Models\Configuracion\Empresa;
 use App\Models\Configuracion\Localidad;
 use App\Models\Caja\Caja_Movimiento_Estado;
@@ -34,6 +35,7 @@ class IngresoEgresoService
     private $caja_movimiento_cuentacajaRepository;
     private $caja_movimiento_estadoRepository;
     private $caja_movimiento_archivoRepository;
+	private $guia_cuentacorrienteRepository;
 	private $tipoasientoRepository;
 	private $cuentacontableRepository;
     private $centrocostoRepository;
@@ -47,6 +49,7 @@ class IngresoEgresoService
                                 Caja_Movimiento_CuentacajaRepositoryInterface $caja_movimiento_cuentacajarepository,
                                 Caja_Movimiento_EstadoRepositoryInterface $caja_movimiento_estadorepository,
                                 Caja_Movimiento_ArchivoRepositoryInterface $caja_movimiento_archivorepository,
+								Guia_CuentacorrienteRepositoryInterface $guia_cuentacorrienteRepository,
 								ConceptogastoRepositoryInterface $conceptogastorepository,
 								TipoasientoRepositoryInterface $tipoasientorepository,
 								CuentacajaRepositoryInterface $cuentacajarepository,
@@ -62,6 +65,7 @@ class IngresoEgresoService
         $this->caja_movimiento_cuentacajaRepository = $caja_movimiento_cuentacajarepository;
         $this->caja_movimiento_estadoRepository = $caja_movimiento_estadorepository;
         $this->caja_movimiento_archivoRepository = $caja_movimiento_archivorepository;
+		$this->guia_cuentacorrienteRepository = $guia_cuentacorrienteRepository;
 		$this->conceptogastoRepository = $conceptogastorepository;
 		$this->tipoasientoRepository = $tipoasientorepository;
 		$this->asientoRepository= $asientorepository;
@@ -123,6 +127,22 @@ class IngresoEgresoService
 		$caja_movimiento_cuentacaja = $this->caja_movimiento_cuentacajaRepository->create($data, $caja_movimiento->id);
 		$caja_movimiento_estado = $this->caja_movimiento_estadoRepository->create($data, $caja_movimiento->id);
 		$caja_movimiento_archivo = $this->caja_movimiento_archivoRepository->create($request, $caja_movimiento->id);
+
+		// Graba cuenta corriente del guia
+		$tipotransaccion_caja = $this->tipotransaccion_cajaRepository->find($data['tipotransaccion_caja_id']);
+
+		// Si es movimiento de guia graba cuenta corriente
+		if ($tipotransaccion_caja->operacion == 'G' || $tipotransaccion_caja->operacion == 'A')
+		{
+			$data['rendicionreceptivo_id'] = null;
+			$data['cotizacionrendiciones'] = $data['cotizaciones'];
+			$data['montorendiciones'] = $data['montos'];
+			$data['monedarendicion_ids'] = $data['moneda_ids'];
+			$data['caja_movimiento_id'] = $caja_movimiento->id;
+
+			// Lee la cuenta corriente 
+			$this->guia_cuentacorrienteRepository->create($data);	
+		}
 
 		// Graba cheques
 
@@ -203,6 +223,25 @@ class IngresoEgresoService
 
 		// Graba archivos del ingreso egreso
 		$this->caja_movimiento_archivoRepository->update($request, $id);
+
+		// Graba cuenta corriente del guia
+		$tipotransaccion_caja = $this->tipotransaccion_cajaRepository->find($data['tipotransaccion_caja_id']);
+
+		// Si es movimiento de guia graba cuenta corriente
+		if ($tipotransaccion_caja->operacion == 'G' || $tipotransaccion_caja->operacion == 'A')
+		{
+			$data['rendicionreceptivo_id'] = null;
+			$data['cotizacionrendiciones'] = $data['cotizaciones'];
+			$data['montorendiciones'] = $data['montos'];
+			$data['monedarendicion_ids'] = $data['moneda_ids'];
+			$data['caja_movimiento_id'] = $id;
+
+			$this->guia_cuentacorrienteRepository->update($data, $id, 'caja_movimiento_id');		
+		}
+		else
+		{
+			$this->guia_cuentacorrienteRepository->deletePorCajaMovimientoId($id);
+		}
 
 		// Graba cheques 
 

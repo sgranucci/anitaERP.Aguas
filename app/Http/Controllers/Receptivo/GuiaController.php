@@ -11,8 +11,10 @@ use App\Models\Configuracion\Localidad;
 use App\Models\Configuracion\Provincia;
 use App\Models\Receptivo\Guia;
 use App\Repositories\Receptivo\GuiaRepositoryInterface;
+use App\Repositories\Receptivo\Guia_CuentacorrienteRepositoryInterface;
 use App\Repositories\Receptivo\Guia_IdiomaRepositoryInterface;
 use App\Repositories\Receptivo\IdiomaRepositoryInterface;
+use App\Exports\Receptivo\Guia_CuentacorrienteExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
@@ -21,14 +23,17 @@ use DB;
 class GuiaController extends Controller
 {
 	private $guiaRepository, $guia_idiomaRepository;
+    private $guia_cuentacorrienteRepository;
     private $idiomaRepository;
 
 	public function __construct(GuiaRepositoryInterface $guiarepository,
 								Guia_IdiomaRepositoryInterface $guia_idiomarepository,
+                                Guia_CuentacorrienteRepositoryInterface $guia_cuentacorrienteRepository,
                                 IdiomaRepositoryInterface $idiomarepository)
     {
         $this->guiaRepository = $guiarepository;
 		$this->guia_idiomaRepository = $guia_idiomarepository;
+        $this->guia_cuentacorrienteRepository = $guia_cuentacorrienteRepository;
         $this->idiomaRepository = $idiomarepository;
     }
 
@@ -201,4 +206,70 @@ class GuiaController extends Controller
     {
         return ($this->guiaRepository->findPorCodigo($codigoguia));
 	}
+
+    public function listarCuentaCorriente(Request $request, $guia_id)
+    {
+        can('listar-cuentacorriente-guia');
+
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', '0');
+
+        $formato = $request->formato;
+        $busqueda = $request->busqueda;
+        $guia = $this->guiaRepository->find($guia_id);
+
+        $nombreguia = '';
+        if ($guia)
+            $nombreguia= $guia->nombre;
+
+        switch($formato)
+        {
+        case 'PDF':
+            $cuentacorriente = $this->guia_cuentacorrienteRepository->listarCuentaCorriente($busqueda, $guia_id, false);
+
+            $view =  \View::make('receptivo.cuentacorrienteguia.listado', compact('cuentacorriente', 'nombreguia'))
+                        ->render();
+            $path = storage_path('pdf/listados');
+            $nombre_pdf = 'listado_cuentacorriente_guia';
+
+            $pdf = \App::make('dompdf.wrapper');
+            $pdf->setPaper('legal','landscape');
+            $pdf->loadHTML($view)->save($path.'/'.$nombre_pdf.'.pdf');
+
+            return response()->download($path.'/'.$nombre_pdf.'.pdf');
+            break;
+
+        case 'EXCEL':
+            return (new Guia_CuentacorrienteExport($this->guia_cuentacorrienteRepository, $guia_id, $nombreguia))
+                        ->parametros($busqueda)
+                        ->download('cuentacorrienteguia.xlsx');
+            break;
+
+        case 'CSV':
+            return (new Guia_CuentacorrienteExport($this->guia_cuentacorrienteRepository, $guia_id, $nombreguia))
+                        ->parametros($busqueda)
+                        ->download('cuentacorrienteguia.csv', \Maatwebsite\Excel\Excel::CSV);
+            break;
+
+        default:
+            $cuentacorriente = $this->guia_cuentacorrienteRepository->listarCuentaCorriente($busqueda, $guia_id, true);
+
+            $datas = ['cuentacorriente' => $cuentacorriente, 'busqueda' => $busqueda, 
+                        'id' => $guia_id, 'nombreguia' => $nombreguia];
+
+            return view('receptivo.cuentacorrienteguia.index', $datas);
+        }
+    }
+
+    // Editar cuenta corriente
+    public function EditarCuentaCorriente($cuentacorriente_id)
+    {
+        $cuentacorriente = $this->guia_cuentacorrienteRepository->find($cuentacorriente_id);
+
+        // Verifica si es movimiento de caja o rendicion
+        if ($cuentacorriente->rendicionreceptivo_id != null)
+            return $this->rendicion->editaUnaFactura($cuentacorriente->venta_id);
+
+        return false;
+    }     
 }

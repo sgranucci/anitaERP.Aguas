@@ -84,6 +84,11 @@
                                    	<i class="fa fa-edit"></i>
                                 	</a>
 								@endif
+                                @if (can('listar-cuentacorriente-guia', false))
+                                	<a href="{{route('listar_cuentacorriente_guia', ['id' => $guia->id])}}" class="btn-accion-tabla tooltipsC" title="Cuenta Corriente">
+                                    <i class="fa fa-folder-open"></i>
+                                	</a>
+								@endif								
                        			@if (can('borrar-guia', false))
                                 	<form action="{{route('eliminar_guia', ['id' => $guia->id])}}" class="d-inline form-eliminar" method="POST">
                                    		@csrf @method("delete")

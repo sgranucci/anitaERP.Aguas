@@ -22,11 +22,17 @@
             <div class="card-header">
                 <h3 class="card-title">Editar Rendición - Número {{$data->numerotalonario}}</h3>
                 <div class="card-tools">
-                    @if ($origen == 'movimientocaja')
-                        <a href="{{route('consulta_movimiento_caja')}}" class="btn btn-outline-info btn-sm">
-                    @else
-                        <a href="{{route('rendicionreceptivo')}}" class="btn btn-outline-info btn-sm">
-                    @endif
+                        @switch($origen)
+                            @case ('movimientocaja')
+                                <a href="{{route('consulta_movimiento_caja')}}" class="btn btn-outline-info btn-sm">
+                                @break
+                            @case ('rendicionreceptivo')
+                                <a href="{{route('rendicionreceptivo')}}" class="btn btn-outline-info btn-sm">
+                                @break
+                            @case ('listacuentacorrienteguia')
+                                <a href="{{route('listar_cuentacorriente_guia', ['id' => $data->guia_id])}}" class="btn btn-outline-info btn-sm">
+                                @break
+                        @endswitch
                         <i class="fa fa-fw fa-reply-all"></i> Volver al listado
                     </a>
                 </div>

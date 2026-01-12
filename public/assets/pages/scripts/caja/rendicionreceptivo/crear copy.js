@@ -13,11 +13,9 @@ var montoComision=[];
    
     $(function () {
         $('#agrega_renglon_rendicionreceptivo_gasto').on('click', agregaRenglonGasto);
-		$('#agrega_renglon_rendicionreceptivo_comision').on('click', agregaRenglonComision);
         $(document).on('click', '.eliminar_rendicionreceptivo_gasto', borraRenglonGasto);
 		$(document).on('click', '.eliminar_rendicionreceptivo_gastoanterior', borraRenglonGastoAnterior);
 		$(document).on('click', '.eliminar_rendicionreceptivo_voucher', borraRenglonVoucher);
-		$(document).on('click', '.eliminar_rendicionreceptivo_comision', borraRenglonComision);
 
 		flCrear = document.getElementById("crear");
 		flModificaAsiento = false;
@@ -101,8 +99,6 @@ var montoComision=[];
 			});
 		});
 
-		leeVoucher();
-
 		// Muestra sumatoria de montos del ingreso egreso
 		setTimeout(() => {
 			sumaAdelanto();
@@ -110,7 +106,7 @@ var montoComision=[];
 			sumaMontoGasto();
 			sumaMontoVoucher();
 			sumaComision();
-			muestraTotalComisionDelVoucher();
+
 			calculaTotalRendicion();
 		}, 300);
 
@@ -141,10 +137,6 @@ var montoComision=[];
 			$('#codigomovil').off('change');
 			$('.conceptogasto_id').off('change');
 			$('#guia_id').off('change');
-
-			$('.montocomision').off('change');
-			$('.monedacomision_id').off('change');
-			$('.cotizacioncomision').off('change');
 		}
 
 		// Activa eventos de consulta
@@ -169,7 +161,6 @@ var montoComision=[];
 					$(codigo).parents("tr").find(".cuentacaja_id_previa").val(data.id);
 					$(codigo).parents("tr").find(".nombre").val(data.nombre);
 					$(codigo).parents("tr").find(".moneda").val(data.moneda_id);
-					$(codigo).parents("tr").find(".monedacomision_id").val(data.moneda_id);
 					
 					flModificaAsiento = true;
 				}
@@ -219,45 +210,26 @@ var montoComision=[];
 			//* Asigna nueva cuentacaja
 			$(cuentacajaxcodigo).parents("tr").find(".cuentacaja_id_previa").val($(cuentacajaxcodigo).val());
 			$(cuentacajaxcodigo).parents("tr").find(".moneda").val(moneda_id);
-			$(cuentacajaxcodigo).parents("tr").find(".monedacomision_id").val(moneda_id);
 		
 			$('#consultacuentacajaModal').modal('hide');
 			flModificaAsiento = true;
 		});
 
-
 		$('.monto').on('change', function (event) {
 			event.preventDefault();
-			leeCotizacion(this, '.moneda', '.cotizacion');
+			leeCotizacion(this);
 			sumaMontoGasto();
 		});
 
 		$('.moneda').on('change', function (event) {
 			event.preventDefault();
-			leeCotizacion(this, '.moneda', '.cotizacion');
+			leeCotizacion(this);
 			sumaMontoGasto();
 		});
 
 		$('.cotizacion').on('change', function (event) {
 			event.preventDefault();
 			sumaMontoGasto();
-		});
-
-		$('.montocomision').on('change', function (event) {
-			event.preventDefault();
-			leeCotizacion(this, '.monedacomision_id', '.cotizacioncomision');
-			sumaComision();
-		});
-
-		$('.monedacomision_id').on('change', function (event) {
-			event.preventDefault();
-			leeCotizacion(this, '.monedacomision_id', '.cotizacioncomision');
-			sumaComision();
-		});
-
-		$('.cotizacioncomision').on('change', function (event) {
-			event.preventDefault();
-			sumaComision();
 		});
 
 		$('#codigoguia').on('change', function (event) {
@@ -471,57 +443,18 @@ var montoComision=[];
     	});
     }
 
-    function agregaRenglonComision(event){
-    	event.preventDefault();
-
-		agregaUnRenglonComision();
-	}
-
-	function agregaUnRenglonComision()
-	{
-    	let renglon = $('#template-renglon-rendicionreceptivo-comision').html();
-
-    	$("#tbody-rendicionreceptivo-comision-table").append(renglon);
-    	actualizaRenglonesComision();
-
-		// Hace focus sobre el primer elemento de la tabla
-		let ptrUltimoRenglon = $("#tbody-rendicionreceptivo-comision-table tr:last");
-		$(ptrUltimoRenglon).find('.codigocuentacajacomision').focus();
-
-		activa_eventos(false);
-    }
-
-    function borraRenglonComision(event) {
-    	event.preventDefault();
-    	$(this).parents('tr').remove();
-    	actualizaRenglonesComision();
-		sumaComision();
-    }
-
-    function actualizaRenglonesComision() {
-    	var item = 1;
-
-    	$("#tbody-rendicionreceptivo-comision-table .iiconceptogasto").each(function() {
-    		$(this).val(item++);
-    	});
-    }
-
-	function leeCotizacion(ptr, claseMoneda, claseCotizacion)
+	function leeCotizacion(ptr)
 	{
 		let fecha = $('#fecha').val();
-		let moneda_id = $(ptr).parents("tr").find(claseMoneda).val();
+		let moneda_id = $(ptr).parents("tr").find('.moneda').val();
 
 		if (moneda_id > 0)
 		{
 			let url_cot = '/anitaERP/public/configuracion/leercotizacion/'+fecha+'/'+moneda_id;
 		
 			$.get(url_cot, function(data){
-				$(ptr).parents("tr").find(claseCotizacion).val(data.cotizacionventa);
-				
-				if (caseMoneda == '.monedacomision')
-					sumaComision();
-				else
-					sumaMonto();
+				$(ptr).parents("tr").find('.cotizacion').val(data.cotizacionventa);
+				sumaMonto();
 			});
 		}
 	}
@@ -533,6 +466,9 @@ var montoComision=[];
 		let ordenservicio_id = $("#ordenservicio_id").val();
 		let guia_id = $("#guia_id").val();
 		var wrapperVoucher = $(".container-voucher");
+		var wrapperComision = $(".container-comision");
+		var wrapperTotalComision = $(".totales-comision-voucher");
+		let id = $("#tbody-rendicionreceptivo-voucher").children(':first').find('.idvoucher').val();
 
 		activa_eventos(guia_id);
 
@@ -556,12 +492,12 @@ var montoComision=[];
 				success: function (data) {
 					if (data.mensaje == 'ok')
 					{
+						$(wrapperComision).empty();
 						$(wrapperVoucher).empty();
 
 						// Inicializa totales por moneda
 						idMoneda.forEach(function(moneda, indice, array) {
 							montoComision[moneda] = 0;
-							totalComisionVoucher[moneda] = 0;
 						});
 
 						$.each(data.comision, function(index,value){
@@ -578,14 +514,43 @@ var montoComision=[];
 							montoComision[value.moneda_id] += value.monto;
 							monedaComision[value.moneda_id] = value.moneda_id;
 
-							totalComisionVoucher[monedavoucher_id] += value.monto;							
+							totalComisionVoucher[monedavoucher_id] += valor;							
+
+							$(wrapperComision).append('<tr class="item-rendicionreceptivo-comision">'+
+								'<td>'+
+									'<input type="text" class="vouchercomision_id form-control" name="vouchercomision_ids[]" value="'+idvoucher+'" readonly></input>'+
+								'</td>'+				
+								'<td>'+
+									'<input type="date" class="fechacomision form-control" name="fechacomisiones[]" value="'+fechavoucher+'" readonly></input>'+
+								'</td>'+
+								'<td>'+
+									'<input type="text" class="codigocuentacajacomision form-control" name="codigocuentacajacomisiones[]" value="'+codigocuentacajavoucher+'" readonly></input>'+
+									'<input type="hidden" class="cuentacajacomision_id form-control" name="cuentacajacomision_ids[]" value="'+cuentacajavoucher_id+'"></input>'+
+								'</td>'+
+								'<td>'+
+									'<input type="text" class="nombrecuentacajacomision form-control" name="nombrecuentacajacomisiones[]" value="'+nombrecuentacajavoucher+'" readonly></input>'+
+								'</td>'+
+								'<td>'+
+									'<input type="text" class="abreviaturamonedacomision form-control" name="abreviaturamonedacomisiones[]" value="'+abreviaturamonedavoucher+'" readonly></input>'+
+									'<input type="hidden" class="monedacomision_id form-control" name="monedacomision_ids[]" value="'+monedavoucher_id+'"></input>'+
+								'</td>'+
+								'<td>'+
+									'<input type="text" name="montocomisiones[]" class="form-control montocomision" min="0" value="'+montovoucher+'" readonly></input>'+
+								'</td>'+
+								'<td>'+
+									'<input type="text" name="cotizacioncomisiones[]" class="form-control cotizacioncomision" value="'+cotizacionvoucher+'" readonly></input>'+
+								'</td>'+
+								'<td>'+
+									'<button type="button" title="Elimina esta linea" class="btn-accion-tabla eliminar_rendicionreceptivo_comision tooltipsC">'+
+										'<i class="fa fa-times-circle text-danger"></i>'+
+									'</button>'+
+								'</td>'+
+							'</tr>'
+							);
 
 							// Suma totales de comisiones
 							sumaComision();
 						});						
-
-						// Muestra totales de comision del voucher
-						muestraTotalComisionDelVoucher();
 
 						$.each(data.voucher, function(index,value){
 							let idvoucher = value.id;
@@ -821,20 +786,38 @@ var montoComision=[];
 		calculaTotalRendicion();
 	}
 
-	function muestraTotalComisionDelVoucher()
+	function sumaComisionDelVoucher()
 	{
 		var wrapper = $(".totales-comision-voucher");
+
+		// Inicializa totales por moneda
+		idMoneda.forEach(function(moneda, indice, array) {
+			totalComisionVoucher[moneda] = 0;
+		});
+
+		// Lee las comisiones de los vouchers asociados
+		$.get('/anitaERP/public/receptivo/leercomisionvoucher', function(data){
+			var vouchers = $.map(data, function(value, index){
+				return [value];
+			});
+			$.each(vouchers, function(index,value){
+				let valor = parseFloat(value.valor);
+				let moneda = value.moneda_id;
+
+				totalComisionVoucher[moneda] += valor;
+			});
+		});
 
 		// Muestra totales por moneda
 		$(wrapper).empty();
 
 		idMoneda.forEach(function(moneda, indice, array) {
-			let detalleLabel = 'Total voucher '+descripcionMoneda[moneda];
+			let detalleLabel = 'Total '+descripcionMoneda[moneda];
 
 			$(wrapper).append('<label class="col-lg-1 col-form-label">'+detalleLabel+'</label>');
 			
 			$(wrapper).append('<input type="hidden" name="monedacomisionvoucher_ids[]" class="form-control col-lg-1" readonly value="'+moneda+'" />');
-			if (totalComisionVoucher[moneda] == 0)
+			if (totalMoneda[moneda] == 0)
 				$(wrapper).append('<input type="text" name="montocomisionvouchers[]" class="form-control col-lg-1" readonly value="" />');
 			else
 				$(wrapper).append('<input type="text" name="montocomisionvouchers[]" class="form-control col-lg-1" readonly value="'+totalComisionVoucher[moneda].toFixed(2)+'" />');
@@ -945,17 +928,8 @@ var montoComision=[];
 					alert("Error de grabacion");
 
 				let origen = $('#origen').val();
+				var listarUri = "/anitaERP/public/caja/rendicionreceptivo";
 
-				switch(origen)
-				{
-					case "listacuentacorrienteguia":
-						let guia_id = $("#guia_id").val();
-						var listarUri = "/anitaERP/public/receptivo/guia/listacuentacorriente/"+guia_id;
-						break;
-					default:
-						var listarUri = "/anitaERP/public/caja/rendicionreceptivo";
-						break;						
-				}
 				window.location.href = listarUri;
 			},
 			error :function( data ) {

@@ -71,8 +71,8 @@ class Rendicionreceptivo_VoucherRepository implements Rendicionreceptivo_Voucher
 		// Graba cuentas contables
 		if (isset($data))
 		{
-			$voucher_ids = $data['idvouchers'];
-
+			// No graba vouchers repetidos
+			$voucher_ids = array_values(array_unique($data['idvouchers']));
 			if ($funcion == 'update')
 			{
 				$_id = $rendicionreceptivo_voucher;

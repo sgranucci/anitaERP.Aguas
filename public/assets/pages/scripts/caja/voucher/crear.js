@@ -524,7 +524,6 @@ alert('s');
 					montoVoucher += valor;
 			}
 		});
-
 		montoComision = parseFloat(montoVoucher) * parseFloat(porcentajeComision) / 100;
 		$(ptr).parents('tr').find('.montocomision').val(montoComision);
 		calculaMontoEmpresa();

@@ -1098,7 +1098,7 @@ Route::get('caja/cuentacaja/leercuentacajaporcodigo/{codigo}', 'Caja\CuentacajaC
  Route::delete('caja/talonariorendicion/{id}', 'Caja\TalonariorendicionController@eliminar')->name('eliminar_talonariorendicion');
  
 /* 
- * Talonarios de rendiciones
+ * Bancos
  */
 
  Route::get('caja/banco', 'Caja\BancoController@index')->name('banco');
@@ -1442,6 +1442,10 @@ Route::get('compras/leerproveedor/{proveedor_id}', 'Compras\ProveedorController@
 
  Route::post('receptivo/guia/consultaguia', 'Receptivo\GuiaController@consultaGuia')->name('consulta_guia');
  Route::get('receptivo/leerguia/{guia_id}', 'Receptivo\GuiaController@leeguia')->name('leer_guia');
+
+ Route::get('receptivo/guia/listacuentacorriente/{id}', 'Receptivo\GuiaController@listarCuentaCorriente')->name('listar_cuentacorriente_guia'); 
+ Route::get('receptivo/guia/editacuentacorriente/{id}', 'Receptivo\GuiaController@editarCuentaCorriente')->name('editar_cuentacorriente_guia'); 
+ 
 /* 
  * Comisiones por servicio
  */

@@ -71,7 +71,6 @@ class Rendicionreceptivo_ComisionRepository implements Rendicionreceptivo_Comisi
 		// Graba cuentas contables
 		if (isset($data))
 		{
-			$voucher_ids = $data['vouchercomision_ids'];
 			$cuentacaja_ids = $data['cuentacajacomision_ids'];
 			$moneda_ids = $data['monedacomision_ids'];
 			$montos = $data['montocomisiones'];
@@ -94,7 +93,6 @@ class Rendicionreceptivo_ComisionRepository implements Rendicionreceptivo_Comisi
 					{
 						$rendicionreceptivo_comision = $this->model->findOrFail($_id[$i])->update([
 									"rendicionreceptivo_id" => $id,
-									"voucher_id" => $voucher_ids[$i],
 									"cuentacaja_id" => $cuentacaja_ids[$i],
 									"moneda_id" => $moneda_ids[$i],
 									"monto" => $montos[$i],
@@ -114,7 +112,6 @@ class Rendicionreceptivo_ComisionRepository implements Rendicionreceptivo_Comisi
 				{
 					$rendicionreceptivo_comision = $this->model->create([
 						"rendicionreceptivo_id" => $id,
-						"voucher_id" => $voucher_ids[$i_movimiento],
 						"cuentacaja_id" => $cuentacaja_ids[$i_movimiento],
 						"moneda_id" => $moneda_ids[$i_movimiento],
 						"monto" => $montos[$i_movimiento],

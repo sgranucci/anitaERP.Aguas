@@ -168,7 +168,6 @@ var flModificaAsiento;
 					flError = true;
 				}
 			});
-	
 			// Valida montos asiento
 			sumaMontoAsiento();
 
@@ -219,7 +218,6 @@ var flModificaAsiento;
 					muestraVentanaAsiento();
 				}
 			}
-	
 			if (!flError)
 				$( "#form-general" ).submit();
 		});
@@ -245,6 +243,7 @@ var flModificaAsiento;
 		// Activa eventos de consulta
 		activa_eventos_consultaproveedor();
 		activa_eventos_consultaconceptogasto();
+		activa_eventos_consultaguia();
 
 		$('#tipotransaccion_caja_id').on('change', function (event) {
 			event.preventDefault();
@@ -751,17 +750,28 @@ var flModificaAsiento;
 			processData: false, //importante enviar este parametro en false
 			success: function (data) {
 				if (data.mensaje == 'ok')
-					alert("Se grabó transacción de caja con éxito");
+					alert("Se grabó transacción de caja con éxito !");
 				else
 					alert("Error de grabacion");
 
 				let origen = $('#origen').val();
 
-				if (origen == 'movimientocaja')
-					var listarUri = "/anitaERP/public/caja/movimientocaja";
-				else
-					var listarUri = "/anitaERP/public/caja/ingresoegreso";
-
+				switch(origen)
+				{
+					case "listacuentacorrienteguia":
+						let guia_id = $("#guia_id").val();
+						var listarUri = "/anitaERP/public/receptivo/guia/listacuentacorriente/"+guia_id;
+						break;
+					case "movimientocaja":
+						var listarUri = "/anitaERP/public/caja/movimientocaja";
+						break;
+					case "ingresoegreso":
+						var listarUri = "/anitaERP/public/caja/ingresoegreso";
+						break;
+					default:
+						var listarUri = "/anitaERP/public/caja/rendicionreceptivo";
+						break;						
+				}
 				window.location.href = listarUri;
 			},
 			error :function( data ) {
@@ -794,20 +804,37 @@ var flModificaAsiento;
 		$.get(url, function(data){
 			if (data.id > 0)
 			{
-				if (data.signo == 'E')
+				switch(data.operacion)
 				{
-					$("#div-ordenservicio").show();
-					$("#div-conceptogasto").show();
-					$("#div-proveedor").show();
-				}
-				else
-				{
-					$("#div-ordenservicio").hide();
-					$("#div-conceptogasto").hide();
-					$("#div-proveedor").hide();
-					$('#ordenservicio_id').val('');
-					$('#conceptogasto_id').val('');
-					$('#proveedor_id').val('');
+					case 'P':
+						$("#div-ordenservicio").show();
+						$("#div-conceptogasto").show();
+						$("#div-proveedor").show();
+						break;
+
+					case 'G':
+						$("#div-ordenservicio").show();
+						$("#div-conceptogasto").show();
+						$("#div-proveedor").hide();
+						$("#div-guia").show();
+						break;
+						
+					case 'A':
+						$("#div-ordenservicio").show();
+						$("#div-conceptogasto").show();
+						$("#div-proveedor").hide();
+						$("#div-guia").show();
+						break;
+			
+					default:
+						$("#div-ordenservicio").hide();
+						$("#div-conceptogasto").hide();
+						$("#div-guia").hide();
+						$("#div-proveedor").hide();
+						$('#ordenservicio_id').val('');
+						$('#conceptogasto_id').val('');
+						$('#proveedor_id').val('');
+						$('#guia_id').val('');
 				}
 			}
 			else

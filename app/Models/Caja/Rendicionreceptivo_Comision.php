@@ -15,7 +15,7 @@ class Rendicionreceptivo_Comision extends Model implements Auditable
 	use \OwenIt\Auditing\Auditable;
 
     protected $fillable = [
-							'rendicionreceptivo_id', 'voucher_id', 'cuentacaja_id',
+							'rendicionreceptivo_id', 'cuentacaja_id',
 							'moneda_id', 'monto', 'cotizacion'
 						];
     protected $table = 'rendicionreceptivo_comision';
@@ -23,11 +23,6 @@ class Rendicionreceptivo_Comision extends Model implements Auditable
     public function rendicionreceptivos()
 	{
     	return $this->belongsTo(Rendicionreceptivo::class, 'rendicionreceptivo_id');
-	}
-
-	function vouchers()
-	{
-    	return $this->belongsTo(Voucher::class, 'voucher_id', 'id')->with('voucher_guias');
 	}
 
 	public function cuentacajas()

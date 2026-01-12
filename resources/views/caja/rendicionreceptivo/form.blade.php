@@ -13,8 +13,8 @@
             </div>
             <div class="form-group row">
                 <label for="movil" class="col-lg-3 col-form-label">Móvil</label>
-                <input type="hidden" class="col-form-label movil_id" id="movil_id" name="movil_id" value="{{$data->movil_id ?? ''}}" >
-                <input type="text" class="col-lg-2 codigomovil" id="codigomovil" name="codigomovil" value="{{$data->moviles->codigo ?? ''}}" >
+                <input type="hidden" class="col-form-label movil_id" id="movil_id" name="movil_id" value="{{$data->movil_id ?? ''}}">
+                <input type="text" class="col-lg-2 codigomovil requerido" id="codigomovil" name="codigomovil" value="{{$data->moviles->codigo ?? ''}}" required>
                 <input type="text" class="col-lg-5 col-form-label nombremovil" id="nombremovil" name="nombremovil" value="{{$data->moviles->nombre ?? ''}}" readonly>
                 <button type="button" title="Consulta móviles" style="padding:1;" class="btn-accion-tabla consultamovil tooltipsC">
                     <i class="fa fa-search text-primary"></i>
@@ -41,16 +41,7 @@
             </div>
             <div class="form-group row">
                 <label for="ordenservicio" class="col-lg-3 col-form-label">Orden de Servicio</label>
-                <select id="ordenservicio_id" name="ordenservicio_id" class="col-lg-4 form-control" required>
-                    <option value="">-- Elija orden de servicio --</option>
-                    @foreach($ordenservicio_id_query as $ordenservicio)
-                        @if ($ordenservicio == old('ordenservicio_id',$data->ordenservicio_id??''))
-                            <option value="{{ $ordenservicio }}" selected>{{ $ordenservicio }}</option>    
-                        @else
-                            <option value="{{ $ordenservicio }}">{{ $ordenservicio }}</option>
-                        @endif
-                    @endforeach
-                </select>
+                <input type="text" name="ordenservicio_id" id="ordenservicio_id" class="form-control col-lg-3" value="{{old('ordenservicio_id', $data->ordenservicio_id ?? '')}}">
                 <button type="button" title="Consulta Ordenes de Servicio" style="padding:1;" class="btn-accion-tabla consultaordenservicio tooltipsC">
                     <i class="fa fa-search text-primary"></i>
                 </button>
@@ -64,6 +55,7 @@
         </div>
     </div>
     <input type="hidden" id="id" name="id" value="{{ $data->id ?? '' }}" />
+    <input type="hidden" id="origen" name="origen" value="{{ $origen ?? '' }}" />
     <input type="hidden" class="moneda_default_id" id="moneda_default_id" name="moneda_default_id" value="{{config('caja.ID_MONEDA_DEFAULT_VOUCHER') ?? ''}}" >
     <label for="Gastos anteriores" class="col-lg-3 col-form-label">Total gastos anteriores</label>
     <div class="form-group row totales-por-moneda-gastoanterior">

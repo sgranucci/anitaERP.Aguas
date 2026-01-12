@@ -17,8 +17,6 @@ class CrearTablaRendicionreceptivoComision extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('rendicionreceptivo_id');
             $table->foreign('rendicionreceptivo_id', 'fk_rendicionreceptivo_comision_rendicionreceptivo')->references('id')->on('rendicionreceptivo')->onDelete('cascade')->onUpdate('cascade');
-            $table->unsignedBigInteger('voucher_id');
-            $table->foreign('voucher_id', 'fk_rendicionreceptivo_comision_voucher')->references('id')->on('voucher')->onDelete('restrict')->onUpdate('restrict');
             $table->unsignedBigInteger('cuentacaja_id');
             $table->foreign('cuentacaja_id', 'fk_rendicionreceptivo_comision_cuentacaja')->references('id')->on('cuentacaja')->onDelete('restrict')->onUpdate('restrict');
             $table->unsignedBigInteger('moneda_id');

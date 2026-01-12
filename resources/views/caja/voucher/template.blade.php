@@ -28,12 +28,17 @@
                 @endforeach
             </select>
         </td>
-        <td>
-            <input type="number" name="porcentajecomisiones[]" class="form-control porcentajecomision" value="">
-        </td>
-        <td>
-            <input type="number" name="montocomisiones[]" class="form-control montocomision" value="">
-        </td>
+        @if (can('ver-comisiones-guia-voucher', false))
+            <td>
+                <input type="number" name="porcentajecomisiones[]" class="form-control porcentajecomision" value="">
+            </td>
+            <td>
+                <input type="number" name="montocomisiones[]" class="form-control montocomision" value="">
+        @else
+            <input type="hidden" name="porcentajecomisiones[]" class="form-control porcentajecomision" value="">
+            <input type="hidden" name="montocomisiones[]" class="form-control montocomision" value="">
+        @endif
+            </td>
         <td>
             <input type="number" name="ordenservicio_ids[]" class="form-control ordenservicio_id" value="">
         </td>

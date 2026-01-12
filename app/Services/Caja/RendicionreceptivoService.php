@@ -16,6 +16,7 @@ use App\Repositories\Caja\CuentacajaRepositoryInterface;
 use App\Repositories\Caja\VoucherRepositoryInterface;
 use App\Repositories\Caja\Voucher_GuiaRepositoryInterface;
 use App\Repositories\Caja\ConceptogastoRepositoryInterface;
+use App\Repositories\Receptivo\Guia_CuentacorrienteRepositoryInterface;
 use App\Services\Caja\IngresoEgresoService;
 use App\Services\Configuracion\CotizacionService;
 use Illuminate\Support\Facades\Storage;
@@ -35,6 +36,7 @@ class RendicionreceptivoService
     private $rendicionreceptivo_formapagoRepository;
     private $rendicionreceptivo_comisionRepository;
     private $rendicionreceptivo_adelantoRepository;
+    private $guia_cuentacorrienteRepository;
     private $caja_movimientoRepository;
     private $cuentacajaRepository;
     private $voucherRepository;
@@ -50,6 +52,7 @@ class RendicionreceptivoService
                                 Rendicionreceptivo_FormapagoRepositoryInterface $rendicionreceptivo_formapagorepository,
                                 Rendicionreceptivo_ComisionRepositoryInterface $rendicionreceptivo_comisionrepository,
                                 Rendicionreceptivo_AdelantoRepositoryInterface $rendicionreceptivo_adelantorepository,
+                                Guia_CuentacorrienteRepositoryInterface $guia_cuentacorrienteRepository,
                                 Caja_MovimientoRepositoryInterface $caja_movimientorepository,
                                 CuentacajaRepositoryInterface $cuentacajarepository,
                                 VoucherRepositoryInterface $voucherrepository,
@@ -71,6 +74,7 @@ class RendicionreceptivoService
         $this->rendicionreceptivo_formapagoRepository = $rendicionreceptivo_formapagorepository;
         $this->rendicionreceptivo_adelantoRepository = $rendicionreceptivo_adelantorepository;
         $this->rendicionreceptivo_comisionRepository = $rendicionreceptivo_comisionrepository;
+        $this->guia_cuentacorrienteRepository = $guia_cuentacorrienteRepository;
         $this->monedaRepository = $monedarepository;
         $this->ingresoegresoService = $ingresoegresoservice;
         $this->cotizacionService = $cotizacionservice;
@@ -100,18 +104,37 @@ class RendicionreceptivoService
                 $rendicionreceptivo_comision = $this->rendicionreceptivo_comisionRepository->create($data, $rendicionreceptivo->id);
                 $rendicionreceptivo_adelanto = $this->rendicionreceptivo_adelantoRepository->create($data, $rendicionreceptivo->id);
 
+                // Graba Cuenta corriente del guia 
+                if (isset($data['montorendiciones']))
+                {
+                    for ($i = 0; $i < count($data['monedarendicion_ids']); $i++)
+                    {
+                        $cotizacion = $this->cotizacionService->leeCotizacionDiaria($data['fecha'], $data['monedarendicion_ids'][$i]);
+                        $data['cotizacionrendiciones'][$i] = $cotizacion['cotizacionventa'];
+                    }
+                    $data['rendicionreceptivo_id'] = $id;
+                    $data['caja_movimiento_id'] = null;
+
+                    // Asigna cotizacion a cada item a grabar
+                    for ($i = 0; $i < count($data['montorendiciones']); $i++)
+                        $data['cotizacionrendiciones'][$i] = $cotizacion['cotizacionventa'];
+                    
+                    // Lee la cuenta corriente 
+                    $this->guia_cuentacorrienteRepository->create($data);
+                }
+
                 // Graba gastos a compensar
                 Self::armaGastoACompensar($request, 'create', $id);
 
                 // Graba ingreso / egreso por saldo de rendicion
-                if (isset($data['montorendiciones']))
-                {
-                    for ($i = 0; $i < count($data['montorendiciones']); $i++)
-                    {
-                        if ($data['montorendiciones'][$i] != 0)
-                            Self::armaSaldoRendicion($request, $data['montorendiciones'][$i], $data['monedarendicion_ids'][$i], 'create', $id);
-                    }
-                }
+                //if (isset($data['montorendiciones']))
+                //{
+                //    for ($i = 0; $i < count($data['montorendiciones']); $i++)
+                //    {
+                //        if ($data['montorendiciones'][$i] != 0)
+                //            Self::armaSaldoRendicion($request, $data['montorendiciones'][$i], $data['monedarendicion_ids'][$i], 'create', $id);
+                //    }
+                //}
             }
 
             DB::commit();
@@ -129,7 +152,7 @@ class RendicionreceptivoService
     {
         session(['empresa_id' => $request->empresa_id]);
 		$data = $request->all();
-
+        
         DB::beginTransaction();
         try
         {
@@ -157,30 +180,33 @@ class RendicionreceptivoService
             // Graba gastos a compensar
             Self::armaGastoACompensar($request, 'update', $id);
 
-            // Graba ingreso / egreso por saldo de rendicion
+            // Graba Cuenta corriente del guia 
             if (isset($data['montorendiciones']))
             {
-                // Compara cantidad de resultados grabados con los que hay ahora
-                $cantidadRendiciones = 0;
-                for ($i = 0; $i < count($data['montorendiciones']); $i++)
+                for ($i = 0; $i < count($data['monedarendicion_ids']); $i++)
                 {
-                    if ($data['montorendiciones'][$i] != 0)
-                        $cantidadRendiciones++;
+                    $cotizacion = $this->cotizacionService->leeCotizacionDiaria($data['fecha'], $data['monedarendicion_ids'][$i]);
+                    $data['cotizacionrendiciones'][$i] = $cotizacion['cotizacionventa'];
                 }
+                $data['rendicionreceptivo_id'] = $id;
+                $data['caja_movimiento_id'] = null;
+                                
+                // Lee la cuenta corriente 
+                $this->guia_cuentacorrienteRepository->update($data, $id, 'rendicionreceptivo_id');
 
                 // Si hay mas resultados grabados borra lo que sobra
-                if ($cantidadRendiciones < count($data['resultado_ids']))
-                {
-					for ($d = count($data['resultado_ids']); $d < $cantidadRendiciones; $d++)
-						$this->caja_movimientoRepository->find($data['resultado_ids'][$d])->delete();
-                }
+                //if ($cantidadRendiciones < count($data['resultado_ids']))
+                //{
+				//	for ($d = count($data['resultado_ids']); $d < $cantidadRendiciones; $d++)
+				//		$this->caja_movimientoRepository->find($data['resultado_ids'][$d])->delete();
+                //}
 
-                for ($i = 0; $i < count($data['montorendiciones']); $i++)
-                {
-                    if ($data['montorendiciones'][$i] != 0)
-                        Self::armaSaldoRendicion($request, $data['montorendiciones'][$i], $data['monedarendicion_ids'][$i], 'update', $id,  
-                            $data['resultado_ids'][$i]);
-                }
+                //for ($i = 0; $i < count($data['montorendiciones']); $i++)
+                //{
+                //    if ($data['montorendiciones'][$i] != 0)
+                //        Self::armaSaldoRendicion($request, $data['montorendiciones'][$i], $data['monedarendicion_ids'][$i], 'update', $id,  
+                //            $data['resultado_ids'][$i]);
+                //}
             }
             
             DB::commit();
@@ -259,14 +285,16 @@ class RendicionreceptivoService
                 $request->merge(['rendicionreceptivo_id' => $id]);
                 $request->merge(['observaciones' => [' ']]);
                 $request->merge(['detalle' => 'Rendicion Nro. '.$request->id]);
-
                 switch($funcion)
                 {
                     case 'create':
                         $this->ingresoegresoService->guardaIngresoEgreso($request, "rendicionreceptivo");
                         break;
                     case 'update':
-                        $this->ingresoegresoService->actualizaIngresoEgreso($request, $request->gasto_ids[$i], 'rendicionreceptivo');
+                        if ($request->gasto_ids[$i] == null)
+                            $this->ingresoegresoService->guardaIngresoEgreso($request, "rendicionreceptivo");
+                        else
+                            $this->ingresoegresoService->actualizaIngresoEgreso($request, $request->gasto_ids[$i], 'rendicionreceptivo');
                         break;
                 }
             }

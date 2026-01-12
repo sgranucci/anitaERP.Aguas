@@ -16,7 +16,8 @@
                 </tr>
             </thead>
             <tbody id="tbody-rendicionreceptivo-gastoanterior-table" class="container-gastoanterior">
-            @if ($data->rendicionreceptivo_caja_movimientos ?? '') 
+            @if (isset($data->rendicionrecepcion_caja_movimientos))
+            @if (count($data->rendicionreceptivo_caja_movimientos) > 0) 
                 @foreach (old('gastoanterior', $data->rendicionreceptivo_caja_movimientos->count() ? $data->rendicionreceptivo_caja_movimientos : ['']) as $gastoanterior)
                     @foreach($gastoanterior->caja_movimientos->caja_movimiento_cuentacajas as $gastoanteriorcuentacaja)
                         <tr class="item-rendicionreceptivo-gastoanterior">
@@ -50,6 +51,7 @@
                         </tr>
                     @endforeach                        
                 @endforeach
+            @endif
             @endif
             </tbody>
         </table>

@@ -7,6 +7,7 @@ use App\Models\Caja\Voucher_Guia;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\ApiAnita;
 use Auth;
+use DB;
 
 class VoucherRepository implements VoucherRepositoryInterface
 {
@@ -191,16 +192,16 @@ class VoucherRepository implements VoucherRepositoryInterface
 												'voucher_formapago.moneda_id as moneda_id',
 												'moneda.abreviatura as abreviaturamoneda',
 												'voucher_formapago.monto as monto',
-												'voucher_formapago.cotizacion as cotizacion',
-												'voucher_guia.ordenservicio_id as ordenservicio_id')
+												'voucher_formapago.cotizacion as cotizacion')
 										->leftJoin('voucher_formapago', 'voucher_formapago.voucher_id', 'voucher.id')
-                                        ->leftJoin('voucher_guia', 'voucher_guia.voucher_id', 'voucher.id')
 										->leftJoin('cuentacaja', 'cuentacaja.id', 'voucher_formapago.cuentacaja_id')
 										->leftJoin('moneda', 'moneda.id', 'voucher_formapago.moneda_id')
-                                        ->where('voucher_guia.deleted_at', null)
-										->where('voucher_guia.ordenservicio_id', $ordenservicio_id)
-										->get();
-
+                                        ->whereExists(function ($query) use ($ordenservicio_id) {
+                                                    $query->select(DB::raw(1)) // Use select(DB::raw(1)) for performance
+                                                        ->from('voucher_guia')
+                                                        ->whereColumn('voucher.id', 'voucher_guia.voucher_id')
+                                                        ->where('voucher_guia.ordenservicio_id', $ordenservicio_id);
+                                        })->get();
 		return $voucher;
 	}
 

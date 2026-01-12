@@ -198,7 +198,6 @@ class RendicionreceptivoController extends Controller
         $ordenservicio_id_query[] = $data->ordenservicio_id;
         $ordenservicio_id_query = Arr::sort($ordenservicio_id_query);
         $caja_id = $data->caja_id;
-
         $nombreCaja = '';
         if (isset($caja_id))
         {
@@ -274,4 +273,5 @@ class RendicionreceptivoController extends Controller
     {
         return $this->rendicionreceptivoService->leeVoucher($request->guia_id, $request->ordenservicio_id);
     }
+
 }

@@ -10,13 +10,14 @@ use App\Models\Configuracion\Empresa;
 use App\Models\Ventas\Cliente;
 use App\Models\Compras\Proveedor;
 use App\Models\Contable\Asiento;
+use App\Models\Receptivo\Guia;
 use Auth;
 
 class Caja_Movimiento extends Model implements Auditable
 {
     use \OwenIt\Auditing\Auditable;
     protected $fillable = ['empresa_id', 'tipotransaccion_caja_id', 'numerotransaccion', 'fecha', 
-                            'caja_id', 'proveedor_id', 'cliente_id', 'conceptogasto_id', 'detalle', 
+                            'caja_id', 'proveedor_id', 'cliente_id', 'guia_id', 'conceptogasto_id', 'detalle', 
                             'usuario_id',
                             'ordenservicio_id',
                             'rendicionreceptivo_id'];
@@ -52,7 +53,7 @@ class Caja_Movimiento extends Model implements Auditable
 
     public function tipotransaccioncajas()
     {
-        return $this->belongsTo(Tipotransaccion_caja::class, 'tipotransaccion_caja_id');
+        return $this->belongsTo(Tipotransaccion_Caja::class, 'tipotransaccion_caja_id');
     }
 
     public function proveedores()
@@ -63,6 +64,11 @@ class Caja_Movimiento extends Model implements Auditable
     public function clientes()
     {
         return $this->belongsTo(Cliente::class, 'cliente_id');
+    }
+
+    public function guias()
+    {
+        return $this->belongsTo(Guia::class, 'guia_id');
     }
 
     public function conceptogastos()

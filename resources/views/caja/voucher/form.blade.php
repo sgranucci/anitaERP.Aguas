@@ -95,22 +95,27 @@
                 </div>
             </div>
         </div>
-        <div class="col-sm-4">
-            <div class="form-group row">
-                <label for="montoempresa" class="col-lg-6 col-form-label">Monto empresa</label>
-                <div class="col-lg-6">
-                    <input type="number" name="montoempresa" id="montoempresa" class="form-control" value="{{old('montoempresa', $data->montoempresa ?? '0')}}">
+        @if (can('ver-comisiones-guia-voucher', false))
+            <div class="col-sm-4">
+                <div class="form-group row">
+                    <label for="montoempresa" class="col-lg-6 col-form-label">Monto empresa</label>
+                    <div class="col-lg-6">
+                        <input type="number" name="montoempresa" id="montoempresa" class="form-control" value="{{old('montoempresa', $data->montoempresa ?? '0')}}">
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="form-group row">
-                <label for="montoproveedor" class="col-lg-6 col-form-label">Monto proveedor</label>
-                <div class="col-lg-6">
-                    <input type="number" name="montoproveedor" id="montoproveedor" class="form-control" value="{{old('montoproveedor', $data->montoproveedor ?? '0')}}">
+            <div class="col-sm-4">
+                <div class="form-group row">
+                    <label for="montoproveedor" class="col-lg-6 col-form-label">Monto proveedor</label>
+                    <div class="col-lg-6">
+                        <input type="number" name="montoproveedor" id="montoproveedor" class="form-control" value="{{old('montoproveedor', $data->montoproveedor ?? '0')}}">
+                    </div>
                 </div>
             </div>
-        </div>
+        @else
+            <input type="hidden" name="montoempresa" id="montoempresa" class="form-control" value="{{old('montoempresa', $data->montoempresa ?? '0')}}">
+            <input type="hidden" name="montoproveedor" id="montoproveedor" class="form-control" value="{{old('montoproveedor', $data->montoproveedor ?? '0')}}">
+        @endif
     </div>
     <div class="form-group row">
         <label for="observacion" class="col-lg-3 col-form-label">Observaciones</label>
@@ -127,8 +132,10 @@
                     <th style="width: 25%;">Guia</th>
                     <th style="width: 15%;">Forma de pago</th>
                     <th style="width: 15%;">Tipo de comisión</th>
-                    <th style="width: 8%;">Porcentaje</th>
-                    <th style="width: 20%;">Monto Comisión</th>
+                    @if (can('ver-comisiones-guia-voucher', false))
+                        <th style="width: 8%;">Porcentaje</th>
+                        <th style="width: 20%;">Monto Comisión</th>
+                    @endif
                     <th style="width: 20%;">Orden de servicio</th>
                     <th></th>
                 </tr>
@@ -170,12 +177,17 @@
                                 @endforeach
                             </select>
                         </td>
-                        <td>
-                            <input type="number" name="porcentajecomisiones[]" class="form-control porcentajecomision" value="{{old('porcentajecomisiones', $guia->porcentajecomision ?? '')}}">
-                        </td>
-                        <td>
-                            <input type="number" name="montocomisiones[]" class="form-control montocomision" value="{{old('montocomisiones', $guia->montocomision ?? '')}}">
-                        </td>
+                        @if (can('ver-comisiones-guia-voucher', false))
+                            <td>
+                                <input type="number" name="porcentajecomisiones[]" class="form-control porcentajecomision" value="{{old('porcentajecomisiones', $guia->porcentajecomision ?? '')}}">
+                            </td>
+                            <td>
+                                <input type="number" name="montocomisiones[]" class="form-control montocomision" value="{{old('montocomisiones', $guia->montocomision ?? '')}}">
+                        @else
+                                <input type="hidden" name="porcentajecomisiones[]" class="form-control porcentajecomision" value="{{old('porcentajecomisiones', $guia->porcentajecomision ?? '')}}">
+                                <input type="hidden" name="montocomisiones[]" class="form-control montocomision" value="{{old('montocomisiones', $guia->montocomision ?? '')}}">
+                        @endif
+                            </td>
                         <td>
                             <input type="number" name="ordenservicio_ids[]" class="form-control ordenservicio_id" value="{{old('ordenservicios', $guia->ordenservicio_id ?? '')}}">
                         </td>

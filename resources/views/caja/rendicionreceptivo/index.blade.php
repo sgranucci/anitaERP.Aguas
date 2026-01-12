@@ -8,7 +8,7 @@
 
 <script>
     function eliminarRendicionReceptivo(event) {
-        var opcion = confirm("Desea eliminar el pedido?");
+        var opcion = confirm("Desea eliminar la rendición?");
         if(!opcion) {
             event.preventDefault();
         }

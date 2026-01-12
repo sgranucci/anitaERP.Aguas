@@ -62,7 +62,7 @@ class Rendicionreceptivo extends Model implements Auditable
 	public function rendicionreceptivo_comisiones()
 	{
     	return $this->hasMany(Rendicionreceptivo_Comision::class, 'rendicionreceptivo_id')
-				->with('monedas')->with('vouchers')->with('cuentacajas');
+				->with('monedas')->with('cuentacajas');
 	}
 
 	public function rendicionreceptivo_adelantos()

@@ -38,6 +38,16 @@
                 <input type="hidden" class="proveedor_id" id="proveedor_id" name="proveedor_id" value="{{$data->proveedor_id ?? ''}}" >
                 <input type="hidden" name="nombreproveedor" id="nombreproveedor" class="form-control" value="{{old('nombreproveedor', $data->proveedores->nombre ?? '')}}">
             </div>
+            <div class="form-group row" id="div-guia" style="display: none">
+                <label for="guia" class="col-lg-3 col-form-label">Guía</label>
+                <input type="hidden" class="col-form-label guia_id" id="guia_id" name="guia_id" value="{{$data->guia_id ?? ''}}" >
+                <input type="text" class="col-lg-2 codigoguia" id="codigoguia" name="codigoguia" value="{{$data->guias->codigo ?? ''}}" >
+                <input type="text" class="col-lg-5 col-form-label nombreguia" id="nombreguia" name="nombreguia" value="{{$data->guias->nombre ?? ''}}" readonly>
+                <button type="button" title="Consulta guías" style="padding:1;" class="btn-accion-tabla consultaguia tooltipsC">
+                    <i class="fa fa-search text-primary"></i>
+                </button>
+                <input type="hidden" name="nombreguia" id="nombreguia" class="form-control" value="{{old('nombreguia', $data->guias->nombre ?? '')}}">
+            </div>
         </div>
         <div class="col-sm-6">
             <div class="form-group row">
@@ -51,7 +61,7 @@
                 <input type="text" class="ordenservicio_id" id="ordenservicio_id" name="ordenservicio_id" value="{{$data->ordenservicio_id ?? ''}}" >
             </div>
             <div class="form-group row" id="div-conceptogasto" style="display: none">
-                <label for="conceptogasto" class="col-lg-3 col-form-label">Concepto de gasto</label>
+                <label for="conceptogasto" class="col-lg-3 col-form-label">Concepto</label>
                 <input type="text" class="col-lg-2 conceptogasto_id" id="conceptogasto_id" name="conceptogasto_id" value="{{$data->conceptogasto_id??''}}" >
                 <button type="button" title="Consulta conceptos" style="padding:1;" class="btn-accion-tabla consultaconceptogasto tooltipsC">
                         <i class="fa fa-search text-primary"></i>

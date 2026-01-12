@@ -20,8 +20,6 @@
                     <a href="{{route('guia')}}" class="btn btn-outline-secondary btn-sm">
                         <i class="fa fa-fw fa-reply-all"></i> Volver al listado de guías
                     </a>
-                </div>
-                <div class="card-tools">
                     <a href="{{route('consulta_movimiento_caja')}}" class="btn btn-outline-secondary btn-sm">
                         <i class="fa fa-fw fa-reply-all"></i> Movimientos de cajas
                     </a>
@@ -81,7 +79,9 @@
                             </td>
                             @for ($i = 1; $i <= 5; $i++)
                                 <td style="text-align: right;">
+                                <strong>
                                     {{number_format($saldo[$i], 2)}}
+                                </strong>
                                 </td>
                             @endfor
                             <td>
